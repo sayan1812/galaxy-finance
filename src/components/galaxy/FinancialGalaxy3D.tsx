@@ -141,11 +141,15 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
     renderer.toneMappingExposure = 1.2;
     rendererRef.current = renderer;
 
-    // 4. Ambient & Directional Lights
-    const ambientLight = new THREE.AmbientLight(0x38bdf8, 0.4);
+    // 4. Ambient & Directional Lights — Crimson Noir & Slate Edition
+    const ambientLight = new THREE.AmbientLight(0x8e929d, 0.45);
     scene.add(ambientLight);
 
-    const coreLight = new THREE.PointLight(0xffffff, 2.5, 90, 0.8);
+    const wineBacklight = new THREE.DirectionalLight(0x4a121a, 1.2);
+    wineBacklight.position.set(40, 30, -20);
+    scene.add(wineBacklight);
+
+    const coreLight = new THREE.PointLight(0xffffff, 2.8, 100, 0.8);
     coreLight.position.set(0, 0, 0);
     scene.add(coreLight);
 
@@ -241,27 +245,27 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
     }
     interactiveObjectsRef.current = [];
 
-    // Helper: Create Glowing Sun Core
+    // Helper: Create Glowing Sun Core — Crimson Noir & Slate Edition
     const sunRadius = galaxyMode === 'accounts' ? 3.4 : 3.0;
-    const sunColor = galaxyMode === 'accounts' ? 0x38bdf8 : 0xf43f5e;
-    const sunEmissive = galaxyMode === 'accounts' ? 0x0284c7 : 0xbe123c;
+    const sunColor = galaxyMode === 'accounts' ? 0xd32f2f : 0xe53935;
+    const sunEmissive = galaxyMode === 'accounts' ? 0x4a121a : 0x2e0b10;
 
     const sunGeo = new THREE.SphereGeometry(sunRadius, 32, 32);
     const sunMat = new THREE.MeshStandardMaterial({
       color: sunColor,
       emissive: sunEmissive,
-      emissiveIntensity: 1.2,
-      roughness: 0.2,
-      metalness: 0.8,
+      emissiveIntensity: 1.4,
+      roughness: 0.25,
+      metalness: 0.75,
     });
     const sunMesh = new THREE.Mesh(sunGeo, sunMat);
     sunMesh.userData = {
       id: 'core-sun',
       isSun: true,
       name: galaxyMode === 'accounts' ? 'NET AVAILABLE' : 'TOTAL EXPENSES',
-      type: galaxyMode === 'accounts' ? 'Core Available Money' : 'Monthly Outflow',
+      type: galaxyMode === 'accounts' ? 'Core Available Capital' : 'Monthly Outflow',
       balance: galaxyMode === 'accounts' ? netAvailableMoney : monthExpense,
-      color: galaxyMode === 'accounts' ? '#38bdf8' : '#f43f5e',
+      color: galaxyMode === 'accounts' ? '#D32F2F' : '#E53935',
     };
     group.add(sunMesh);
     sunMeshRef.current = sunMesh;
@@ -423,11 +427,12 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
 
   // Animation Loop (GPU Friendly)
   useEffect(() => {
-    let clock = new THREE.Clock();
+    let lastTime = performance.now();
 
-    const animate = () => {
+    const animate = (now: number = performance.now()) => {
       animFrameIdRef.current = requestAnimationFrame(animate);
-      const delta = clock.getDelta();
+      const delta = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
 
       // Rotate Sun Core
       if (sunMeshRef.current) {
@@ -454,7 +459,7 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
       }
     };
 
-    animate();
+    animFrameIdRef.current = requestAnimationFrame(animate);
 
     return () => {
       if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current);
@@ -579,7 +584,7 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
   return (
     <div 
       ref={containerRef}
-      className="relative w-full h-[400px] sm:h-[480px] lg:h-[540px] rounded-3xl overflow-hidden bg-slate-950/70 border border-indigo-500/20 shadow-[0_0_50px_rgba(79,70,229,0.15)] backdrop-blur-xl group select-none"
+      className="relative w-full h-[400px] sm:h-[480px] lg:h-[540px] rounded-3xl overflow-hidden bg-[#0D0D11]/90 border border-[rgba(74,18,26,0.35)] shadow-2xl backdrop-blur-xl group select-none"
     >
       {/* 3D WebGL Canvas */}
       <canvas
@@ -595,13 +600,13 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
 
       {/* Top Left: Galaxy Mode & Status Indicator */}
       <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
-        <div className="flex items-center p-1 rounded-2xl bg-slate-900/80 border border-slate-700/60 backdrop-blur-md shadow-lg">
+        <div className="flex items-center p-1 rounded-2xl bg-[#13131A]/90 border border-white/[0.08] backdrop-blur-md shadow-lg">
           <button
             onClick={() => setGalaxyMode('accounts')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
               galaxyMode === 'accounts'
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-[#D32F2F] text-[#FBFBFB] shadow-md'
+                : 'text-[#8E929D] hover:text-[#FBFBFB]'
             }`}
           >
             <Orbit size={14} />
@@ -611,8 +616,8 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
             onClick={() => setGalaxyMode('expenses')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
               galaxyMode === 'expenses'
-                ? 'bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-[#4A121A] text-[#E53935] border border-[#E53935]/40 shadow-md'
+                : 'text-[#8E929D] hover:text-[#FBFBFB]'
             }`}
           >
             <TrendingDown size={14} />
@@ -621,39 +626,39 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
         </div>
 
         {/* Live Orbit Status Pill */}
-        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/70 border border-slate-800 text-[11px] font-semibold text-slate-300 backdrop-blur-md">
-          <span className={`w-2 h-2 rounded-full ${isRotating && !settings.reduceMotion ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`} />
+        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#13131A]/80 border border-white/[0.06] text-[11px] font-mono font-semibold text-[#8E929D] backdrop-blur-md">
+          <span className={`w-2 h-2 rounded-full ${isRotating && !settings.reduceMotion ? 'bg-[#E53935] animate-ping' : 'bg-[#8E929D]'}`} />
           <span>{isRotating && !settings.reduceMotion ? 'Orbital Motion' : 'Stationary'}</span>
         </div>
       </div>
 
       {/* Top Right: Cosmic Controls */}
-      <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 p-1 rounded-2xl bg-slate-900/80 border border-slate-700/60 backdrop-blur-md shadow-lg text-slate-300">
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 p-1 rounded-2xl bg-[#13131A]/90 border border-white/[0.08] backdrop-blur-md shadow-lg text-[#8E929D]">
         <button
           onClick={() => setIsRotating(!isRotating)}
           title={isRotating ? 'Pause Orbit' : 'Resume Orbit'}
-          className="p-2 rounded-xl hover:bg-slate-800 hover:text-white transition cursor-pointer"
+          className="p-2 rounded-xl hover:bg-white/[0.08] hover:text-[#FBFBFB] transition cursor-pointer"
         >
           {isRotating ? <Pause size={14} /> : <Play size={14} />}
         </button>
         <button
           onClick={() => handleZoom('in')}
           title="Zoom In"
-          className="p-2 rounded-xl hover:bg-slate-800 hover:text-white transition cursor-pointer"
+          className="p-2 rounded-xl hover:bg-white/[0.08] hover:text-[#FBFBFB] transition cursor-pointer"
         >
           <ZoomIn size={14} />
         </button>
         <button
           onClick={() => handleZoom('out')}
           title="Zoom Out"
-          className="p-2 rounded-xl hover:bg-slate-800 hover:text-white transition cursor-pointer"
+          className="p-2 rounded-xl hover:bg-white/[0.08] hover:text-[#FBFBFB] transition cursor-pointer"
         >
           <ZoomOut size={14} />
         </button>
         <button
           onClick={handleResetCamera}
           title="Reset View Angle"
-          className="p-2 rounded-xl hover:bg-slate-800 hover:text-white transition cursor-pointer"
+          className="p-2 rounded-xl hover:bg-white/[0.08] hover:text-[#FBFBFB] transition cursor-pointer"
         >
           <RotateCcw size={14} />
         </button>
@@ -661,16 +666,16 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
 
       {/* Center Top: Cosmic Command Headline */}
       <div className="absolute top-16 left-1/2 -translate-x-1/2 pointer-events-none text-center hidden md:block">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-950/60 border border-indigo-500/30 text-[10px] font-black uppercase tracking-widest text-indigo-300 shadow-sm">
-          <Sparkles size={11} className="text-cyan-400" />
-          <span>3D Financial Galaxy System</span>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#4A121A]/40 border border-[#E53935]/30 text-[10px] font-mono font-bold uppercase tracking-widest text-[#E53935] shadow-sm">
+          <Sparkles size={11} className="text-[#E53935]" />
+          <span>Fintech Galaxy Orbital Matrix</span>
         </div>
       </div>
 
       {/* Dynamic Hover HUD Card */}
       {hoveredItem && (
         <div 
-          className="absolute z-20 pointer-events-none transition-all duration-75 p-3.5 rounded-2xl bg-slate-900/90 border border-indigo-500/40 shadow-[0_0_20px_rgba(79,70,229,0.35)] backdrop-blur-xl text-left min-w-[190px] animate-in fade-in zoom-in-95"
+          className="absolute z-20 pointer-events-none transition-all duration-75 p-3.5 rounded-2xl bg-[#13131A]/95 border border-[rgba(74,18,26,0.45)] shadow-2xl backdrop-blur-xl text-left min-w-[190px] animate-in fade-in zoom-in-95"
           style={{
             left: Math.min(window.innerWidth - 220, Math.max(16, mousePos.x + 14)),
             top: Math.min(420, Math.max(16, mousePos.y - 45)),
@@ -681,32 +686,32 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
               className="w-3 h-3 rounded-full flex-shrink-0 shadow-xs" 
               style={{ backgroundColor: hoveredItem.color }} 
             />
-            <span className="text-xs font-black text-white truncate">{hoveredItem.name}</span>
+            <span className="text-xs font-black text-[#FBFBFB] truncate">{hoveredItem.name}</span>
           </div>
 
-          <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-2">
+          <p className="text-[10px] uppercase font-mono font-bold tracking-wider text-[#8E929D] mb-2">
             {hoveredItem.type}
           </p>
 
           {hoveredItem.balance !== undefined && (
-            <div className="text-base font-black text-white">
+            <div className="text-base font-black font-mono text-[#FBFBFB]">
               {formatCurrency(hoveredItem.balance, settings.currency)}
             </div>
           )}
 
           {hoveredItem.amount !== undefined && (
             <div className="space-y-1">
-              <div className="text-sm font-black text-rose-400">
+              <div className="text-sm font-black font-mono text-[#E53935]">
                 {formatCurrency(hoveredItem.amount, settings.currency)}
               </div>
-              <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800">
-                <span>{hoveredItem.txCount} transactions</span>
+              <div className="flex items-center justify-between text-[10px] text-[#8E929D] pt-1 border-t border-white/[0.06] font-mono">
+                <span>{hoveredItem.txCount} txs</span>
                 <span>Avg: {formatCurrency(hoveredItem.avgAmount || 0, settings.currency)}</span>
               </div>
             </div>
           )}
 
-          <div className="mt-2 pt-1 border-t border-slate-800/80 flex items-center justify-between text-[9px] text-indigo-300 font-semibold">
+          <div className="mt-2 pt-1 border-t border-white/[0.06] flex items-center justify-between text-[9px] text-[#E53935] font-semibold">
             <span>Click to explore</span>
             <ChevronRight size={10} />
           </div>
@@ -714,10 +719,10 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
       )}
 
       {/* Bottom Center: Quick Nav Hint */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/80 border border-slate-800/80 backdrop-blur-md text-[11px] text-slate-400">
-        <Info size={12} className="text-cyan-400" />
-        <span className="hidden sm:inline">Drag to rotate • Scroll to zoom • Click planet for details</span>
-        <span className="sm:hidden">Drag to orbit • Tap planet for breakdown</span>
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#13131A]/90 border border-white/[0.08] backdrop-blur-md text-[11px] text-[#8E929D]">
+        <Info size={12} className="text-[#E53935]" />
+        <span className="hidden sm:inline">Drag to rotate • Scroll to zoom • Click planet for telemetry</span>
+        <span className="sm:hidden">Drag to orbit • Tap planet for telemetry</span>
       </div>
     </div>
   );

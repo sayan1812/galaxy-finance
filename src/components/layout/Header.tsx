@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { 
   Plus, 
   Sun, 
+  Moon,
+  Orbit,
   WalletCards, 
   Clock, 
   Calendar, 
@@ -20,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useTransactions } from '../../context/TransactionContext';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { formatDate } from '../../utils/dateUtils';
 import { SyncStatusBar } from '../sync/SyncStatusBar';
 
@@ -38,6 +41,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
   } = useTransactions();
 
   const { user, isAuthenticated, logout, setIsAuthModalOpen, setAuthModalMode } = useAuth();
+  const { theme, cycleTheme } = useTheme();
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   const navItems = [
@@ -54,20 +58,20 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
   const todayStr = formatDate(new Date().toISOString());
 
   return (
-    <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 transition-colors shadow-xs">
+    <header className="sticky top-0 z-30 bg-[#0D0D11]/90 backdrop-blur-md border-b border-white/[0.07] transition-colors shadow-sm select-none">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Brand (Mobile / Tablet) */}
           <div className="flex items-center gap-3 cursor-pointer lg:hidden" onClick={() => setCurrentTab('dashboard')}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-cyan-500/20">
-              <WalletCards size={22} className="stroke-[2.2]" />
+            <div className="w-10 h-10 rounded-xl bg-[#4A121A] border border-[#E53935]/40 flex items-center justify-center text-[#FBFBFB] shadow-md shadow-[#4A121A]/40 btn-hover">
+              <WalletCards size={20} className="stroke-[2.2] text-[#E53935]" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-cyan-600 via-teal-600 to-indigo-600 bg-clip-text text-transparent">
-                  RupeeWise
+                <span className="text-xl font-black tracking-tight text-[#FBFBFB]">
+                  Galaxy Finance
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-cyan-100 text-cyan-800 border border-cyan-300">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#4A121A]/50 text-[#E53935] border border-[#E53935]/30">
                   {settings.currency.symbol}
                 </span>
               </div>
@@ -76,14 +80,14 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
 
           {/* Today Date on Desktop */}
           <div className="hidden lg:flex items-center gap-3">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold">
-              <Calendar size={14} className="text-cyan-600" />
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#13131A] border border-white/[0.06] text-[#8E929D] text-xs font-mono font-semibold">
+              <Calendar size={13} className="text-[#E53935]" />
               <span>Today: {todayStr}</span>
             </div>
           </div>
 
           {/* Tablet Nav Links */}
-          <nav className="hidden md:flex lg:hidden items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+          <nav className="hidden md:flex lg:hidden items-center gap-1 bg-[#13131A] p-1 rounded-xl border border-white/[0.06]">
             {navItems.slice(0, 5).map((item) => {
               const Icon = item.icon;
               const isActive = currentTab === item.id;
@@ -91,10 +95,10 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
                 <button
                   key={item.id}
                   onClick={() => setCurrentTab(item.id)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition cursor-pointer nav-item-hover ${
                     isActive
-                      ? 'bg-cyan-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-[#D32F2F] text-[#FBFBFB] shadow-xs'
+                      : 'text-[#8E929D] hover:text-[#FBFBFB]'
                   }`}
                 >
                   <Icon size={14} />
@@ -110,7 +114,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
             {dueRecurringCount > 0 && (
               <button
                 onClick={() => setCurrentTab('recurring')}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/30 text-xs font-medium cursor-pointer hover:bg-amber-500/20 transition animate-pulse"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#4A121A]/40 text-[#E53935] border border-[#E53935]/40 text-xs font-mono font-medium cursor-pointer hover:bg-[#4A121A] transition animate-pulse"
                 title={`${dueRecurringCount} recurring item(s) due today`}
               >
                 <Clock size={13} />
@@ -127,35 +131,39 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
             {/* AI Assistant Button */}
             <button
               onClick={() => setIsAiModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-500/20 to-cyan-500/20 hover:from-purple-500/30 hover:to-cyan-500/30 border border-cyan-500/40 text-cyan-300 text-xs font-semibold shadow-xs transition active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#13131A] hover:bg-[#181822] border border-white/[0.08] text-[#8E929D] hover:text-[#FBFBFB] text-xs font-semibold shadow-xs transition cursor-pointer"
               title="Open Cosmic AI Agent"
             >
-              <Bot size={15} className="text-cyan-400 animate-pulse" />
+              <Bot size={15} className="text-[#E53935]" />
               <span className="hidden sm:inline">AI Agent</span>
             </button>
 
-            {/* Light Mode Active Indicator */}
-            <div
-              className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center shadow-xs"
-              title="Light Mode Active (Dark & Night modes withdrawn)"
+            {/* Theme Mode Toggle (Light / Dark / Galaxy) */}
+            <button
+              onClick={cycleTheme}
+              className="p-2 rounded-xl bg-[#13131A] border border-white/[0.08] text-[#8E929D] hover:text-[#FBFBFB] flex items-center justify-center shadow-xs cursor-pointer transition-all"
+              title={`Active Theme: ${theme.toUpperCase()} (Click to toggle Light / Dark / Galaxy)`}
+              aria-label="Cycle theme"
             >
-              <Sun size={17} className="text-amber-500" />
-            </div>
+              {theme === 'light' && <Sun size={16} className="text-amber-400" />}
+              {theme === 'dark' && <Moon size={16} className="text-[#8E929D]" />}
+              {theme === 'galaxy' && <Orbit size={16} className="text-[#E53935]" />}
+            </button>
 
             {/* + Add Cash Button */}
             <button
               onClick={() => setIsAddCashModalOpen(true)}
-              className="flex items-center gap-1 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-xs transition active:scale-95 cursor-pointer"
+              className="btn-slate-subtle flex items-center gap-1 px-3 py-2 rounded-xl font-semibold text-xs tracking-wide shadow-xs transition cursor-pointer"
               title="Quick manual cash wallet entry"
             >
               <Banknote size={15} />
               <span>+ Cash</span>
             </button>
 
-            {/* + Add Transaction Button */}
+            {/* + Add Transaction Primary Crimson Button */}
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-cyan-600/20 active:scale-95 transition-all cursor-pointer"
+              className="btn-crimson flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm tracking-wide shadow-md transition-all cursor-pointer"
             >
               <Plus size={16} className="stroke-[2.5]" />
               <span className="hidden sm:inline">Record Transaction</span>
@@ -167,16 +175,16 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
               {isAuthenticated && user ? (
                 <button
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 hover:border-cyan-500/50 transition cursor-pointer text-xs"
+                  className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl bg-[#13131A] border border-white/[0.08] hover:border-[#E53935]/40 transition cursor-pointer text-xs"
                 >
-                  <div className="w-6 h-6 rounded-lg bg-cyan-100 text-cyan-700 flex items-center justify-center font-bold text-[11px]">
+                  <div className="w-6 h-6 rounded-lg bg-[#4A121A] text-[#E53935] border border-[#4A121A] flex items-center justify-center font-bold text-[11px] font-mono">
                     {user.name.charAt(0).toUpperCase()}
                   </div>
-                  <span className="hidden md:inline font-medium text-slate-800 truncate max-w-[90px]">
+                  <span className="hidden md:inline font-medium text-[#FBFBFB] truncate max-w-[90px]">
                     {user.name.split(' ')[0]}
                   </span>
                   {user.emailVerified && (
-                    <ShieldCheck size={13} className="text-emerald-500" />
+                    <ShieldCheck size={13} className="text-emerald-400" />
                   )}
                 </button>
               ) : (
@@ -185,7 +193,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
                     setAuthModalMode('login');
                     setIsAuthModalOpen(true);
                   }}
-                  className="px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 hover:text-cyan-600 hover:bg-slate-200 text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
+                  className="px-3 py-2 rounded-xl bg-[#13131A] border border-white/[0.08] text-[#8E929D] hover:text-[#FBFBFB] hover:border-white/[0.15] text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
                 >
                   <User size={14} />
                   <span>Sign In</span>
@@ -195,13 +203,13 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
               {/* User Dropdown */}
               {userDropdownOpen && isAuthenticated && user && (
                 <div 
-                  className="absolute right-0 mt-2 w-56 rounded-2xl bg-white border border-slate-200 shadow-xl p-2 z-50 text-slate-800 animate-micro-pop"
+                  className="absolute right-0 mt-2 w-56 rounded-2xl bg-[#13131A] border border-[rgba(74,18,26,0.4)] shadow-2xl p-2 z-50 text-[#FBFBFB] animate-micro-pop"
                   onMouseLeave={() => setUserDropdownOpen(false)}
                 >
-                  <div className="px-3 py-2 border-b border-slate-100 mb-1">
-                    <p className="font-semibold text-xs text-slate-900 truncate">{user.name}</p>
-                    <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
-                    <div className="mt-1 flex items-center gap-1 text-[10px] text-emerald-600 font-semibold">
+                  <div className="px-3 py-2 border-b border-white/[0.06] mb-1">
+                    <p className="font-semibold text-xs text-[#FBFBFB] truncate">{user.name}</p>
+                    <p className="text-[11px] text-[#8E929D] truncate font-mono">{user.email}</p>
+                    <div className="mt-1 flex items-center gap-1 text-[10px] text-emerald-400 font-semibold">
                       <ShieldCheck size={11} />
                       <span>{user.emailVerified ? 'Verified Account' : 'Verification Pending'}</span>
                     </div>
@@ -211,7 +219,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
                       setUserDropdownOpen(false);
                       setCurrentTab('settings');
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs hover:bg-slate-100 text-slate-700 transition"
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs hover:bg-white/[0.04] text-[#8E929D] hover:text-[#FBFBFB] transition"
                   >
                     <Settings2 size={14} />
                     <span>Account Settings</span>
@@ -221,7 +229,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab }) => 
                       setUserDropdownOpen(false);
                       logout();
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs hover:bg-rose-50 text-rose-600 transition mt-1"
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs hover:bg-[#4A121A]/30 text-[#E53935] transition mt-1"
                   >
                     <LogOut size={14} />
                     <span>Sign Out</span>

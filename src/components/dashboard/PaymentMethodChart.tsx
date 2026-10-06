@@ -41,23 +41,23 @@ export const PaymentMethodChart: React.FC = () => {
 
   const getMethodColor = (m: PaymentMethod) => {
     switch (m) {
-      case 'UPI': return 'bg-indigo-500';
-      case 'CASH': return 'bg-emerald-500';
-      case 'CREDIT_CARD': return 'bg-purple-500';
-      case 'DEBIT_CARD': return 'bg-sky-500';
-      case 'BANK_TRANSFER': return 'bg-blue-500';
-      default: return 'bg-slate-400';
+      case 'UPI': return 'bg-[#E53935]';
+      case 'CASH': return 'bg-[#4A121A]';
+      case 'CREDIT_CARD': return 'bg-[#D32F2F]';
+      case 'DEBIT_CARD': return 'bg-[#8E929D]';
+      case 'BANK_TRANSFER': return 'bg-[#5A5D6B]';
+      default: return 'bg-[#8E929D]';
     }
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs flex flex-col justify-between">
+    <div className="bg-[#13131A] p-5 rounded-3xl border border-[rgba(74,18,26,0.35)] shadow-md flex flex-col justify-between">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+          <h3 className="font-bold text-sm sm:text-base text-[#FBFBFB]">
             Payment Mode Spending
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-[#8E929D] font-mono">
             This Month • Total {formatCurrency(totalExpense, settings.currency)}
           </p>
         </div>
@@ -65,7 +65,7 @@ export const PaymentMethodChart: React.FC = () => {
 
       {totalExpense > 0 ? (
         <div className="space-y-4">
-          <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
+          <div className="h-3 w-full bg-[#0D0D11] border border-white/[0.04] rounded-full overflow-hidden flex">
             {methodStats.map((item) => {
               if (item.percent <= 0) return null;
               return (
@@ -86,11 +86,11 @@ export const PaymentMethodChart: React.FC = () => {
                   <span className={`w-2.5 h-2.5 rounded-full ${getMethodColor(item.method)}`} />
                   <PaymentMethodBadge method={item.method} size="sm" showIcon={false} />
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="font-bold text-slate-900 dark:text-white">
+                <div className="flex items-center gap-3 font-mono">
+                  <span className="font-bold text-[#FBFBFB]">
                     {formatCurrency(item.amount, settings.currency)}
                   </span>
-                  <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium w-9 text-right">
+                  <span className="text-[11px] text-[#8E929D] font-medium w-9 text-right">
                     {formatPercentage(item.percent)}
                   </span>
                 </div>
@@ -99,8 +99,8 @@ export const PaymentMethodChart: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="flex items-center justify-center h-48 text-center text-xs text-slate-400">
-          No transactions for this month
+        <div className="py-12 text-center text-xs text-[#8E929D]">
+          Zero expense entries recorded for this month.
         </div>
       )}
     </div>

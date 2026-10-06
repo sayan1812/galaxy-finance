@@ -119,6 +119,10 @@ class ApiClient {
   }
 
   // --- User Profile ---
+  async getAuthMe() {
+    return this.request<{ user: any; message?: string }>('/v1/auth/me');
+  }
+
   async getMe() {
     return this.request<{ user: any; settings: any }>('/users/me');
   }

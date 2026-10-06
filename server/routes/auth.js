@@ -8,7 +8,8 @@ import {
   invalidateSession, 
   createVerificationToken, 
   verifyVerificationToken, 
-  requireAuth 
+  requireAuth,
+  signJwt
 } from '../auth.js';
 
 const router = express.Router();
@@ -24,6 +25,34 @@ function setSessionCookie(res, token, rememberMe = true) {
   });
 }
 
+// 0. GET CURRENT USER PROFILE (GET /me and GET /api/v1/auth/me)
+router.get('/me', requireAuth, (req, res) => {
+  try {
+    const user = db.prepare(`
+      SELECT id, name, email, phone, email_verified, phone_verified, created_at, last_login_at
+      FROM users WHERE id = ?
+    `).get(req.userId);
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    return res.json({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        emailVerified: Boolean(user.email_verified),
+        phoneVerified: Boolean(user.phone_verified),
+        createdAt: user.created_at,
+        lastLoginAt: user.last_login_at
+      },
+      message: 'Active session'
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // 1. REGISTER
 router.post('/register', (req, res) => {
   try {
@@ -31,6 +60,12 @@ router.post('/register', (req, res) => {
 
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required.' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      return res.status(400).json({ error: 'Please provide a valid email address.' });
     }
 
     if (password !== confirmPassword) {
@@ -42,7 +77,6 @@ router.post('/register', (req, res) => {
       return res.status(400).json({ error: strength.message });
     }
 
-    const cleanEmail = email.trim().toLowerCase();
     const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(cleanEmail);
     if (existing) {
       return res.status(409).json({ error: 'An account with this email already exists.' });
@@ -63,16 +97,18 @@ router.post('/register', (req, res) => {
       VALUES (?, 'light', '₹', 1, 0, 'medium', 5000, ?, ?)
     `).run(userId, now, now);
 
-    // Create session
-    const { token, expiresAt } = createSession(userId);
-    setSessionCookie(res, token);
+    // Create both session record and signed JWT token
+    const { token: sessionToken, expiresAt } = createSession(userId);
+    const jwtToken = signJwt({ userId, email: cleanEmail, name: name.trim() });
+    setSessionCookie(res, jwtToken);
 
     // Auto-generate initial email verification token
     const verification = createVerificationToken(userId, 'email', cleanEmail);
 
     return res.status(201).json({
       message: 'Account created successfully. Please verify your email or phone.',
-      token,
+      token: jwtToken,
+      sessionToken,
       expiresAt,
       user: {
         id: userId,
@@ -119,13 +155,15 @@ router.post('/login', (req, res) => {
     const now = new Date().toISOString();
     db.prepare('UPDATE users SET last_login_at = ? WHERE id = ?').run(now, user.id);
 
-    // Create session
-    const { token, expiresAt } = createSession(user.id);
-    setSessionCookie(res, token, Boolean(rememberMe));
+    // Create session & signed JWT
+    const { token: sessionToken, expiresAt } = createSession(user.id);
+    const jwtToken = signJwt({ userId: user.id, email: user.email, name: user.name });
+    setSessionCookie(res, jwtToken, Boolean(rememberMe));
 
     return res.json({
       message: 'Signed in successfully.',
-      token,
+      token: jwtToken,
+      sessionToken,
       expiresAt,
       user: {
         id: user.id,

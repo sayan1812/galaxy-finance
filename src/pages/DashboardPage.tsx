@@ -12,7 +12,8 @@ import {
   ListFilter, 
   Info,
   ChevronRight,
-  Orbit
+  Orbit,
+  ShieldCheck
 } from 'lucide-react';
 import { useTransactions } from '../context/TransactionContext';
 import { formatCurrency } from '../utils/formatters';
@@ -96,34 +97,40 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   };
 
   return (
-    <div className="space-y-6 pb-12 animate-in fade-in duration-200 text-left">
-      {/* SECTION 1: GALAXY DASHBOARD TOP HERO & NET AVAILABLE MONEY */}
-      <div className="relative rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-indigo-950/70 via-slate-900/90 to-slate-950 border border-indigo-500/30 shadow-[0_0_50px_rgba(79,70,229,0.2)] backdrop-blur-xl text-white overflow-hidden">
-        {/* Ambient Nebula Gradients */}
-        <div className="absolute -top-24 -left-24 w-80 h-80 rounded-full bg-cyan-500/15 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -right-24 w-80 h-80 rounded-full bg-purple-500/15 blur-3xl pointer-events-none" />
+    <div className="space-y-6 pb-12 text-left">
+      {/* SECTION 1: CRIMSON NOIR BALANCE & TELEMETRY HERO */}
+      <div className="reveal-on-scroll stagger-1 relative rounded-3xl p-6 sm:p-8 bg-[#13131A] border border-[rgba(74,18,26,0.35)] shadow-xl backdrop-blur-xl text-[#FBFBFB] overflow-hidden fin-card">
+        {/* Subtle Deep Wine Ambient Radial Mesh */}
+        <div 
+          className="absolute -top-24 -right-24 w-96 h-96 rounded-full blur-3xl pointer-events-none opacity-20"
+          style={{ background: 'radial-gradient(circle, #4A121A 0%, transparent 70%)' }}
+        />
+        <div 
+          className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full blur-3xl pointer-events-none opacity-10"
+          style={{ background: 'radial-gradient(circle, #8E929D 0%, transparent 70%)' }}
+        />
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-950/80 border border-indigo-500/30 text-[11px] font-black uppercase tracking-wider text-cyan-300">
-              <Sparkles size={13} className="text-cyan-400" />
-              <span>Cosmic Personal Finance Ecosystem</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#4A121A]/30 border border-[#E53935]/30 text-[11px] font-mono font-bold uppercase tracking-wider text-[#E53935]">
+              <ShieldCheck size={13} className="text-[#E53935]" />
+              <span>Capital Solvency Engine</span>
             </div>
 
-            <h1 className="text-xs uppercase font-extrabold tracking-widest text-slate-400">
-              NET AVAILABLE MONEY
+            <h1 className="text-xs uppercase font-mono font-bold tracking-widest text-[#8E929D]">
+              NET AVAILABLE CAPITAL
             </h1>
 
-            {/* Central Giant Number */}
+            {/* Central Metric */}
             <div className="flex items-baseline gap-3">
               <AnimatedCounter
                 value={netAvailableMoney}
                 prefix={settings.currency.symbol}
-                className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white drop-shadow-[0_0_20px_rgba(56,189,248,0.4)]"
+                className="text-4xl sm:text-5xl lg:text-6xl font-black font-mono tracking-tight text-[#FBFBFB]"
               />
               <button
                 onClick={() => setShowFormulaTooltip(!showFormulaTooltip)}
-                className="text-slate-400 hover:text-cyan-300 transition cursor-pointer p-1"
+                className="text-[#8E929D] hover:text-[#FBFBFB] transition cursor-pointer p-1"
                 title="View Net Available Formula"
               >
                 <Info size={16} />
@@ -132,65 +139,65 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
             {/* Formula Explanation Banner */}
             {showFormulaTooltip && (
-              <div className="p-3.5 rounded-2xl bg-slate-950/90 border border-cyan-500/40 text-xs text-slate-300 space-y-1 animate-in fade-in duration-150">
-                <span className="font-bold text-cyan-300 block">Strict Available Money Formula:</span>
-                <p className="font-mono text-[11px]">
+              <div className="p-3.5 rounded-2xl bg-[#0D0D11] border border-[#4A121A] text-xs text-[#8E929D] space-y-1 animate-in fade-in duration-150">
+                <span className="font-bold text-[#E53935] block">Strict Available Money Formula:</span>
+                <p className="font-mono text-[11px] text-[#FBFBFB]">
                   Net Available = Total Available Bank Balance ({formatCurrency(totalBankBalance, settings.currency)}) + Cash Balance ({formatCurrency(cashBalance, settings.currency)})
                 </p>
-                <p className="text-[10px] text-slate-400">
-                  Bank Balances reflect each institution's opening balance + net bank inflows.
+                <p className="text-[10px] text-[#8E929D]">
+                  Bank Balances reflect each institution's opening balance + net reconciled inflows.
                 </p>
               </div>
             )}
 
-            {/* Inflow, Outflow & Breakdown Row (Section 1 & 5 Requirements) */}
-            <div className="flex flex-wrap items-center gap-y-2 gap-x-4 pt-2 text-xs font-semibold text-slate-300">
-              <span className="flex items-center gap-1.5 text-emerald-400">
+            {/* Inflow, Outflow & Breakdown Row */}
+            <div className="flex flex-wrap items-center gap-y-2 gap-x-4 pt-2 text-xs font-semibold text-[#8E929D]">
+              <span className="flex items-center gap-1.5 text-emerald-400 font-mono">
                 <TrendingUp size={14} />
-                <span>Total Income:</span>
-                <AnimatedCounter value={totalIncomeAllTime} prefix={settings.currency.symbol} className="text-white font-bold" />
+                <span>Inflows:</span>
+                <AnimatedCounter value={totalIncomeAllTime} prefix={settings.currency.symbol} className="text-[#FBFBFB] font-bold" />
               </span>
 
-              <span className="text-slate-600 hidden sm:inline">•</span>
+              <span className="text-white/[0.1] hidden sm:inline">•</span>
 
-              <span className="flex items-center gap-1.5 text-rose-400">
+              <span className="flex items-center gap-1.5 text-[#E53935] font-mono">
                 <TrendingDown size={14} />
-                <span>Total Expense:</span>
-                <AnimatedCounter value={totalExpenseAllTime} prefix={settings.currency.symbol} className="text-white font-bold" />
+                <span>Outflows:</span>
+                <AnimatedCounter value={totalExpenseAllTime} prefix={settings.currency.symbol} className="text-[#E53935] font-bold" />
               </span>
 
-              <span className="text-slate-600 hidden sm:inline">•</span>
+              <span className="text-white/[0.1] hidden sm:inline">•</span>
 
-              <span className="flex items-center gap-1.5 text-cyan-300">
+              <span className="flex items-center gap-1.5 text-[#8E929D] font-mono">
                 <Building2 size={14} />
                 <span>Banks:</span>
-                <AnimatedCounter value={totalBankBalance} prefix={settings.currency.symbol} className="text-white font-bold" />
+                <AnimatedCounter value={totalBankBalance} prefix={settings.currency.symbol} className="text-[#FBFBFB] font-bold" />
               </span>
 
-              <span className="text-slate-600 hidden sm:inline">•</span>
+              <span className="text-white/[0.1] hidden sm:inline">•</span>
 
-              <span className="flex items-center gap-1.5 text-amber-400">
+              <span className="flex items-center gap-1.5 text-[#8E929D] font-mono">
                 <Wallet size={14} />
                 <span>Cash:</span>
-                <AnimatedCounter value={cashBalance} prefix={settings.currency.symbol} className="text-white font-bold" />
+                <AnimatedCounter value={cashBalance} prefix={settings.currency.symbol} className="text-[#FBFBFB] font-bold" />
               </span>
             </div>
           </div>
 
-          {/* Quick Action Hub */}
+          {/* Quick Action Hub: Primary Crimson CTA & Secondary Slate Buttons */}
           <div className="flex flex-wrap lg:flex-col items-center lg:items-end gap-2.5">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-xs shadow-lg shadow-emerald-500/20 transition cursor-pointer"
+                className="btn-crimson flex items-center gap-1.5 px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm tracking-wide shadow-md transition cursor-pointer"
               >
-                <Plus size={16} />
-                <span>Add Transaction</span>
+                <Plus size={16} className="stroke-[2.5]" />
+                <span>Record Transaction</span>
               </button>
 
               <button
                 onClick={() => setIsAddCashModalOpen(true)}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 font-black text-xs transition cursor-pointer"
+                className="btn-slate-subtle flex items-center gap-1.5 px-4 py-2.5 rounded-2xl font-bold text-xs shadow-xs transition cursor-pointer"
               >
                 <Banknote size={16} />
                 <span>+ Add Cash</span>
@@ -200,46 +207,46 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsCashExpenseOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 font-bold text-xs transition cursor-pointer"
+                className="px-3 py-1.5 rounded-xl bg-[#4A121A]/30 hover:bg-[#4A121A]/50 text-[#E53935] border border-[#E53935]/30 font-bold text-xs transition cursor-pointer"
               >
                 <Minus size={14} />
-                <span>− Cash Expense</span>
+                <span>− Cash Outflow</span>
               </button>
 
               <button
                 onClick={() => onNavigate('banks')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs transition cursor-pointer"
+                className="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-[#8E929D] hover:text-[#FBFBFB] border border-white/[0.08] font-bold text-xs transition cursor-pointer flex items-center gap-1.5"
               >
                 <Building2 size={14} />
-                <span>Manage Banks</span>
+                <span>Vaults & Banks</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* This Month's Income & Expense Strip (Section 5 Requirement) */}
-        <div className="mt-6 pt-4 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        {/* This Month's Income & Expense Strip */}
+        <div className="mt-6 pt-4 border-t border-white/[0.06] grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
           <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">This Month's Income</span>
-            <span className="text-base font-black text-emerald-400">
+            <span className="text-[10px] uppercase font-mono font-bold text-[#8E929D] block">This Month's Inflow</span>
+            <span className="text-base font-black font-mono text-emerald-400">
               +{formatCurrency(monthIncome, settings.currency)}
             </span>
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">This Month's Expense</span>
-            <span className="text-base font-black text-rose-400">
+            <span className="text-[10px] uppercase font-mono font-bold text-[#8E929D] block">This Month's Outflow</span>
+            <span className="text-base font-black font-mono text-[#E53935]">
               -{formatCurrency(monthExpense, settings.currency)}
             </span>
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">Active Bank Vaults</span>
-            <span className="text-base font-black text-cyan-300">
+            <span className="text-[10px] uppercase font-mono font-bold text-[#8E929D] block">Active Bank Vaults</span>
+            <span className="text-base font-black font-mono text-[#FBFBFB]">
               {bankStatsList.length} Connected
             </span>
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">Cash Reserves</span>
-            <span className="text-base font-black text-amber-400">
+            <span className="text-[10px] uppercase font-mono font-bold text-[#8E929D] block">Physical Cash Reserves</span>
+            <span className="text-base font-black font-mono text-[#FBFBFB]">
               {formatCurrency(cashBalance, settings.currency)}
             </span>
           </div>
@@ -249,15 +256,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       {/* Sync Status Banner */}
       <SyncStatusBar />
 
-      {/* SECTION 10, 11, 12: 3D INTERACTIVE FINANCIAL GALAXY */}
-      <div>
+      {/* SECTION 2: 3D INTERACTIVE FINANCIAL GALAXY */}
+      <div className="reveal-on-scroll stagger-2">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <Orbit className="text-indigo-600" size={20} />
-              <span>3D Financial Galaxy & Cosmic Orbits</span>
+            <h2 className="text-lg font-black text-[#FBFBFB] tracking-tight flex items-center gap-2">
+              <Orbit className="text-[#E53935]" size={20} />
+              <span>Financial Galaxy & Cosmic Orbits</span>
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[#8E929D]">
               Interactive 3D simulation — accounts and expenses orbit as celestial bodies proportional to volume
             </p>
           </div>
@@ -269,24 +276,26 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         />
       </div>
 
-      {/* SECTION 14: FINANCIAL COMMAND CENTER */}
-      <CommandCenterSummary />
+      {/* SECTION 3: FINANCIAL COMMAND CENTER */}
+      <div className="reveal-on-scroll stagger-3">
+        <CommandCenterSummary />
+      </div>
 
-      {/* SECTION 4 & 6: MY BANKS & CASH WALLET PREVIEW */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* SECTION 4: MY BANKS & CASH WALLET PREVIEW */}
+      <div className="reveal-on-scroll stagger-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: My Banks Quick Grid */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                <Building2 size={18} className="text-indigo-600" />
-                <span>MY BANKS</span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold">
+              <h3 className="text-base font-black text-[#FBFBFB] flex items-center gap-2">
+                <Building2 size={18} className="text-[#E53935]" />
+                <span>BANK VAULTS</span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-white/[0.04] text-[#8E929D] border border-white/[0.08] font-mono font-bold">
                   {bankStatsList.length}
                 </span>
               </h3>
-              <p className="text-xs text-slate-500">
-                Total Bank Balance: <strong className="text-slate-900">{formatCurrency(totalBankBalance, settings.currency)}</strong>
+              <p className="text-xs text-[#8E929D]">
+                Total Bank Balance: <strong className="text-[#FBFBFB] font-mono">{formatCurrency(totalBankBalance, settings.currency)}</strong>
               </p>
             </div>
 
@@ -296,13 +305,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   setEditingBank(null);
                   setIsAddBankOpen(true);
                 }}
-                className="px-3 py-1.5 rounded-xl bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border border-cyan-200 text-xs font-bold transition cursor-pointer"
+                className="px-3 py-1.5 rounded-xl bg-[#4A121A]/30 hover:bg-[#4A121A]/50 text-[#E53935] border border-[#E53935]/30 text-xs font-bold transition cursor-pointer"
               >
                 + Add Bank
               </button>
               <button
                 onClick={() => onNavigate('banks')}
-                className="text-xs text-indigo-600 hover:text-indigo-700 font-bold flex items-center gap-1 cursor-pointer"
+                className="text-xs text-[#8E929D] hover:text-[#FBFBFB] font-bold flex items-center gap-1 cursor-pointer"
               >
                 <span>View All</span>
                 <ChevronRight size={14} />
@@ -315,32 +324,32 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <div
                 key={bs.bank.id}
                 onClick={() => setSelectedBank(bs.bank)}
-                className="p-4 rounded-2xl bg-white/95 border border-slate-200/90 hover:border-indigo-400/60 shadow-xs hover:shadow-md transition-all cursor-pointer text-left flex flex-col justify-between"
+                className="p-4 rounded-2xl bg-[#13131A] border border-[rgba(74,18,26,0.35)] fin-card shadow-xs cursor-pointer text-left flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2.5">
                       <span 
                         className="w-3 h-3 rounded-full flex-shrink-0 shadow-xs" 
-                        style={{ backgroundColor: bs.bank.planetColor || bs.bank.color || '#38bdf8' }} 
+                        style={{ backgroundColor: bs.bank.planetColor || bs.bank.color || '#E53935' }} 
                       />
                       <div>
-                        <h4 className="font-black text-sm text-slate-900">{bs.bank.bankName}</h4>
-                        <span className="text-[10px] text-slate-500">{bs.bank.accountType} • {bs.bank.nickname}</span>
+                        <h4 className="font-black text-sm text-[#FBFBFB]">{bs.bank.bankName}</h4>
+                        <span className="text-[10px] text-[#8E929D]">{bs.bank.accountType} • {bs.bank.nickname}</span>
                       </div>
                     </div>
-                    <span className="text-[10px] font-mono text-slate-400">{bs.bank.accountNumberMasked}</span>
+                    <span className="text-[10px] font-mono text-[#8E929D]">{bs.bank.accountNumberMasked}</span>
                   </div>
 
-                  <div className="mt-3 text-lg font-black text-slate-900">
+                  <div className="mt-3 text-lg font-black font-mono text-[#FBFBFB]">
                     {formatCurrency(bs.currentBalance, settings.currency)}
                   </div>
                 </div>
 
-                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-                  <span className="text-emerald-600 font-semibold">+{formatCurrency(bs.totalIncome, settings.currency)}</span>
-                  <span className="text-rose-600 font-semibold">-{formatCurrency(bs.totalExpense, settings.currency)}</span>
-                  <span>{bs.transactionCount} txs</span>
+                <div className="mt-3 pt-2 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-[#8E929D] font-mono">
+                  <span className="text-emerald-400 font-semibold">+{formatCurrency(bs.totalIncome, settings.currency)}</span>
+                  <span className="text-[#E53935] font-semibold">-{formatCurrency(bs.totalExpense, settings.currency)}</span>
+                  <span className="text-[#8E929D]">{bs.transactionCount} txs</span>
                 </div>
               </div>
             ))}
@@ -348,27 +357,27 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         </div>
 
         {/* Right 1 Col: Cash Wallet Box */}
-        <div className="p-6 rounded-3xl bg-white/95 border border-slate-200/90 shadow-sm flex flex-col justify-between text-left">
+        <div className="p-6 rounded-3xl bg-[#13131A] border border-[rgba(74,18,26,0.35)] shadow-md flex flex-col justify-between text-left fin-card">
           <div>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <Wallet className="text-amber-500" size={20} />
-                <h3 className="text-base font-black text-slate-900">CASH WALLET</h3>
+                <Wallet className="text-[#E53935]" size={20} />
+                <h3 className="text-base font-black text-[#FBFBFB]">CASH WALLET</h3>
               </div>
-              <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+              <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-[#4A121A]/40 text-[#E53935] border border-[#E53935]/30">
                 Manual
               </span>
             </div>
 
-            <p className="text-xs text-slate-500">
-              Manual physical cash reserves tracked separately from bank accounts
+            <p className="text-xs text-[#8E929D]">
+              Physical cash reserves tracked separately from bank vaults
             </p>
 
-            <div className="my-5 p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 shadow-xs">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-amber-800 block mb-1">
+            <div className="my-5 p-4 rounded-2xl bg-[#0D0D11] border border-white/[0.06] shadow-xs">
+              <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-[#8E929D] block mb-1">
                 Cash Available
               </span>
-              <div className="text-3xl font-black text-amber-700 tracking-tight">
+              <div className="text-3xl font-black font-mono text-[#FBFBFB] tracking-tight">
                 {formatCurrency(cashBalance, settings.currency)}
               </div>
             </div>
@@ -377,38 +386,48 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           <div className="space-y-2">
             <button
               onClick={() => setIsAddCashModalOpen(true)}
-              className="w-full py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-black text-xs shadow-xs transition cursor-pointer"
+              className="w-full py-2.5 rounded-xl btn-crimson font-bold text-xs shadow-xs transition cursor-pointer"
             >
               + Add Cash
             </button>
             <button
               onClick={() => setIsCashExpenseOpen(true)}
-              className="w-full py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition cursor-pointer"
+              className="w-full py-2.5 rounded-xl btn-slate-subtle font-bold text-xs transition cursor-pointer text-[#E53935]"
             >
-              − Cash Expense
+              − Cash Outflow
             </button>
           </div>
         </div>
       </div>
 
-      {/* SECTION 16: WHERE IS MY MONEY GOING? */}
-      <WhereIsMoneyGoingChart />
+      {/* SECTION 5: WHERE IS MY MONEY GOING? */}
+      <div className="reveal-on-scroll stagger-5">
+        <WhereIsMoneyGoingChart />
+      </div>
 
       {/* Budget Alerts Banner */}
       <BudgetAlertBanner onViewBudgets={() => onNavigate('budgets')} />
 
       {/* 4 CORE CHARTS GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <CategoryPieChart />
-        <PaymentMethodChart />
-        <DailyExpenseChart />
-        <IncomeExpenseChart />
+      <div className="reveal-on-scroll stagger-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="fin-card">
+          <CategoryPieChart />
+        </div>
+        <div className="fin-card">
+          <PaymentMethodChart />
+        </div>
+        <div className="fin-card">
+          <DailyExpenseChart />
+        </div>
+        <div className="fin-card">
+          <IncomeExpenseChart />
+        </div>
       </div>
 
       {/* QUICK LOG ACCELERATORS (One-Tap Entry) */}
-      <div className="p-5 rounded-3xl bg-white/95 border border-slate-200/90 shadow-sm">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-700 mb-3">
-          <Sparkles size={14} className="text-indigo-600" />
+      <div className="reveal-on-scroll stagger-6 p-5 rounded-3xl bg-[#13131A] border border-[rgba(74,18,26,0.35)] shadow-sm fin-card">
+        <div className="flex items-center gap-2 text-xs font-bold text-[#8E929D] mb-3">
+          <Sparkles size={14} className="text-[#E53935]" />
           <span>One-Tap Quick Logging Accelerators</span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -429,11 +448,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   handleQuickAddUpi(item.name, item.cat, item.amt);
                 }
               }}
-              className="px-3.5 py-2 rounded-2xl bg-slate-50 hover:bg-indigo-50/80 border border-slate-200 hover:border-indigo-300 text-xs font-semibold text-slate-800 transition-all flex items-center gap-2 cursor-pointer shadow-xs"
+              className="px-3.5 py-2 rounded-2xl bg-[#0D0D11] hover:bg-[#181822] border border-white/[0.08] hover:border-[#E53935]/40 text-xs font-semibold text-[#FBFBFB] transition-all flex items-center gap-2 cursor-pointer shadow-xs"
             >
               <span>{item.name}</span>
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                item.mode === 'cash' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+              <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                item.mode === 'cash' ? 'bg-[#4A121A]/50 text-[#E53935] border border-[#E53935]/30' : 'bg-white/[0.06] text-emerald-400 border border-emerald-500/30'
               }`}>
                 ₹{item.amt} ({item.mode.toUpperCase()})
               </span>
@@ -443,31 +462,31 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* RECENT TRANSACTIONS STREAM */}
-      <div className="p-6 rounded-3xl bg-white/95 border border-slate-200/90 shadow-sm space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div className="reveal-on-scroll stagger-6 p-6 rounded-3xl bg-[#13131A] border border-[rgba(74,18,26,0.35)] shadow-sm space-y-4 fin-card">
+        <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
           <div>
-            <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-              <ListFilter size={18} className="text-indigo-600" />
+            <h3 className="text-base font-black text-[#FBFBFB] flex items-center gap-2">
+              <ListFilter size={18} className="text-[#E53935]" />
               <span>Recent Financial Log Stream</span>
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[#8E929D]">
               Latest automatic online webhooks & manual entries
             </p>
           </div>
 
           <button
             onClick={() => onNavigate('transactions')}
-            className="text-xs text-indigo-600 hover:text-indigo-700 font-bold flex items-center gap-1 cursor-pointer"
+            className="text-xs text-[#8E929D] hover:text-[#FBFBFB] font-bold flex items-center gap-1 cursor-pointer"
           >
             <span>View All ({transactions.length})</span>
             <ArrowRight size={14} />
           </button>
         </div>
 
-        <div className="divide-y divide-slate-100">
+        <div className="space-y-2">
           {recentTransactions.length === 0 ? (
-            <div className="py-8 text-center text-xs text-slate-500">
-              No transactions recorded yet. Click "+ Add Transaction" to begin.
+            <div className="py-8 text-center text-xs text-[#8E929D]">
+              No transactions recorded yet. Click "+ Record Transaction" to begin.
             </div>
           ) : (
             recentTransactions.map((tx) => (

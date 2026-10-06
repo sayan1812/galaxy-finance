@@ -23,12 +23,12 @@ export const WhereIsMoneyGoingChart: React.FC = () => {
     const expenses = transactions.filter((t) => t.type === 'EXPENSE');
     const totalExpense = expenses.reduce((sum, t) => sum + t.amount, 0);
 
-    const methods: { method: PaymentMethod; label: string; color: string; icon: string }[] = [
-      { method: 'UPI', label: 'UPI / QR', color: '#10b981', icon: 'Smartphone' },
-      { method: 'CREDIT_CARD', label: 'Credit Card', color: '#a855f7', icon: 'CreditCard' },
-      { method: 'DEBIT_CARD', label: 'Debit Card', color: '#38bdf8', icon: 'CreditCard' },
-      { method: 'CASH', label: 'Cash', color: '#f59e0b', icon: 'Banknote' },
-      { method: 'BANK_TRANSFER', label: 'Bank Transfer', color: '#6366f1', icon: 'Landmark' },
+    const methods: { method: PaymentMethod; label: string; color: string }[] = [
+      { method: 'UPI', label: 'UPI / QR', color: '#E53935' },
+      { method: 'DEBIT_CARD', label: 'Debit Card', color: '#8E929D' },
+      { method: 'CREDIT_CARD', label: 'Credit Card', color: '#D32F2F' },
+      { method: 'CASH', label: 'Cash Wallet', color: '#4A121A' },
+      { method: 'BANK_TRANSFER', label: 'Bank Transfer', color: '#5A5D6B' },
     ];
 
     return methods.map((m) => {
@@ -52,24 +52,24 @@ export const WhereIsMoneyGoingChart: React.FC = () => {
   }, [data]);
 
   return (
-    <div className="p-6 sm:p-7 rounded-3xl bg-white/95 border border-slate-200/90 shadow-sm backdrop-blur-xl text-left text-slate-900 flex flex-col justify-between">
+    <div className="fin-card p-6 sm:p-7 rounded-3xl bg-[#13131A] border border-[rgba(74,18,26,0.35)] shadow-xl backdrop-blur-xl text-left text-[#FBFBFB] flex flex-col justify-between">
       {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-200/80">
+      <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
         <div>
-          <h3 className="text-base font-black tracking-tight text-slate-900 flex items-center gap-2">
-            <TrendingDown size={18} className="text-indigo-600" />
-            <span>Where Is My Money Going?</span>
+          <h3 className="text-base font-black tracking-tight text-[#FBFBFB] flex items-center gap-2">
+            <TrendingDown size={18} className="text-[#E53935]" />
+            <span>Outflow Channel Distribution</span>
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-[#8E929D] mt-0.5">
             Spending distribution across payment channels
           </p>
         </div>
 
         <div className="text-right">
-          <span className="text-[10px] uppercase font-bold text-slate-400 block">
+          <span className="text-[10px] uppercase font-mono font-bold text-[#8E929D] block">
             Total Analyzed
           </span>
-          <span className="text-sm font-black text-slate-900">
+          <span className="text-sm font-black font-mono text-[#FBFBFB]">
             {formatCurrency(totalSpent, settings.currency)}
           </span>
         </div>
@@ -85,23 +85,23 @@ export const WhereIsMoneyGoingChart: React.FC = () => {
                   className="w-2.5 h-2.5 rounded-full" 
                   style={{ backgroundColor: item.color }} 
                 />
-                <span className="font-bold text-slate-700">{item.name}</span>
+                <span className="font-bold text-[#FBFBFB]">{item.name}</span>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="font-black text-slate-900">
+              <div className="flex items-center gap-2 font-mono">
+                <span className="font-black text-[#FBFBFB]">
                   {formatCurrency(item.amount, settings.currency)}
                 </span>
-                <span className="text-[11px] text-slate-500 font-mono w-10 text-right">
+                <span className="text-[11px] text-[#8E929D] w-10 text-right">
                   {item.percentage}%
                 </span>
               </div>
             </div>
 
-            {/* Glowing Cosmic Bar */}
-            <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden p-0.5">
+            {/* Glowing Bar */}
+            <div className="w-full h-2 rounded-full bg-[#0D0D11] border border-white/[0.04] overflow-hidden p-0.5">
               <div 
-                className="h-full rounded-full transition-all duration-700 shadow-xs"
+                className="h-full rounded-full transition-all duration-700"
                 style={{ 
                   width: `${Math.max(2, item.percentage)}%`,
                   backgroundColor: item.color,
@@ -118,13 +118,13 @@ export const WhereIsMoneyGoingChart: React.FC = () => {
           <BarChart data={data} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
             <XAxis 
               dataKey="name" 
-              stroke="#94a3b8" 
+              stroke="#8E929D" 
               fontSize={10} 
               tickLine={false} 
               axisLine={false} 
             />
             <YAxis 
-              stroke="#94a3b8" 
+              stroke="#8E929D" 
               fontSize={10} 
               tickLine={false} 
               axisLine={false} 
@@ -135,17 +135,23 @@ export const WhereIsMoneyGoingChart: React.FC = () => {
                 if (active && payload && payload.length) {
                   const d = payload[0].payload;
                   return (
-                    <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs shadow-lg text-white">
+                    <div className="p-2.5 rounded-xl bg-[#13131A] border border-[rgba(74,18,26,0.5)] text-xs shadow-2xl text-[#FBFBFB]">
                       <span className="font-bold block">{d.name}</span>
-                      <span className="font-black text-emerald-400">{formatCurrency(d.amount, settings.currency)}</span>
-                      <span className="text-[10px] text-slate-300 block">{d.percentage}% of total outflows</span>
+                      <span className="font-black font-mono text-[#E53935]">{formatCurrency(d.amount, settings.currency)}</span>
+                      <span className="text-[10px] text-[#8E929D] block">{d.percentage}% of total outflows</span>
                     </div>
                   );
                 }
                 return null;
               }}
             />
-            <Bar dataKey="amount" radius={[6, 6, 0, 0]}>
+            <Bar 
+              dataKey="amount" 
+              radius={[6, 6, 0, 0]}
+              isAnimationActive={true}
+              animationDuration={600}
+              animationEasing="ease-out"
+            >
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}

@@ -7,6 +7,8 @@ import {
   Bell, 
   Volume2, 
   Sun, 
+  Moon,
+  Orbit,
   Coins,
   Sparkles,
   ShieldCheck,
@@ -16,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useTransactions } from '../../context/TransactionContext';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { AVAILABLE_CURRENCIES } from '../../constants/categories';
 import { ConfirmModal } from '../layout/ConfirmModal';
 
@@ -30,6 +33,7 @@ export const DataManagement: React.FC = () => {
   } = useTransactions();
 
   const { user, isAuthenticated, setIsAuthModalOpen, setAuthModalMode, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<string>('');
@@ -104,24 +108,68 @@ export const DataManagement: React.FC = () => {
             </select>
           </div>
 
-          {/* Theme Mode: Light Mode Standard */}
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 col-span-1 sm:col-span-2">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
-                <Sun size={16} className="text-amber-500" />
+          {/* Theme Mode: Light, Dark, Galaxy */}
+          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 col-span-1 sm:col-span-2">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
+                <Sparkles size={16} className="text-sky-500" />
                 <span>Appearance Mode</span>
               </div>
-              <span className="text-[10px] uppercase font-bold text-amber-800 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200">
-                Light Mode Active
+              <span className="text-[10px] uppercase font-bold text-sky-700 dark:text-sky-300 px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-950 border border-sky-200 dark:border-sky-800">
+                {theme.toUpperCase()} ACTIVE
               </span>
             </div>
-            <div className="p-3 rounded-xl bg-white border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Sun size={15} className="text-amber-500" />
-                <span className="font-semibold text-slate-800">Standard Light Mode</span>
-                <span className="text-[10px] text-slate-400">• Dark and Night modes withdrawn for optimal clarity</span>
-              </div>
-              <CheckCircle2 size={15} className="text-emerald-600" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {/* Light Mode */}
+              <button
+                type="button"
+                onClick={() => setTheme('light')}
+                className={`p-3 rounded-xl border text-xs flex items-center justify-between transition cursor-pointer btn-hover ${
+                  theme === 'light'
+                    ? 'bg-white dark:bg-slate-900 border-sky-500 text-slate-900 dark:text-white shadow-xs font-bold ring-2 ring-sky-500/20'
+                    : 'bg-white/60 dark:bg-slate-900/60 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Sun size={16} className="text-amber-500" />
+                  <span>Light Mode</span>
+                </div>
+                {theme === 'light' && <CheckCircle2 size={15} className="text-sky-600" />}
+              </button>
+
+              {/* Dark Mode */}
+              <button
+                type="button"
+                onClick={() => setTheme('dark')}
+                className={`p-3 rounded-xl border text-xs flex items-center justify-between transition cursor-pointer btn-hover ${
+                  theme === 'dark'
+                    ? 'bg-white dark:bg-slate-900 border-sky-500 text-slate-900 dark:text-white shadow-xs font-bold ring-2 ring-sky-500/20'
+                    : 'bg-white/60 dark:bg-slate-900/60 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Moon size={16} className="text-sky-400" />
+                  <span>Dark Mode</span>
+                </div>
+                {theme === 'dark' && <CheckCircle2 size={15} className="text-sky-500" />}
+              </button>
+
+              {/* Galaxy Mode */}
+              <button
+                type="button"
+                onClick={() => setTheme('galaxy')}
+                className={`p-3 rounded-xl border text-xs flex items-center justify-between transition cursor-pointer btn-hover ${
+                  theme === 'galaxy'
+                    ? 'bg-white dark:bg-slate-900 border-teal-500 text-slate-900 dark:text-white shadow-xs font-bold ring-2 ring-teal-500/20'
+                    : 'bg-white/60 dark:bg-slate-900/60 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Orbit size={16} className="text-teal-400" />
+                  <span>Galaxy Space</span>
+                </div>
+                {theme === 'galaxy' && <CheckCircle2 size={15} className="text-teal-500" />}
+              </button>
             </div>
           </div>
         </div>

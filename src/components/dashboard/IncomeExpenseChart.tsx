@@ -42,14 +42,14 @@ export const IncomeExpenseChart: React.FC = () => {
   }, [transactions]);
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs flex flex-col justify-between">
+    <div className="fin-card bg-[#13131A] p-5 rounded-2xl border border-[rgba(74,18,26,0.35)] shadow-xs flex flex-col justify-between">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
-            Monthly Income vs Expense
+          <h3 className="font-bold text-sm sm:text-base text-[#FBFBFB] tracking-tight">
+            Monthly Cash Flow
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            6-Month Cash Flow Trend
+          <p className="text-xs text-[#8E929D]">
+            6-Month Inflow vs Outflow Telemetry
           </p>
         </div>
       </div>
@@ -57,15 +57,15 @@ export const IncomeExpenseChart: React.FC = () => {
       <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.15} />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#8E929D" opacity={0.12} />
             <XAxis 
               dataKey="label" 
-              tick={{ fontSize: 11, fill: '#94a3b8' }} 
+              tick={{ fontSize: 11, fill: '#8E929D' }} 
               axisLine={false} 
               tickLine={false} 
             />
             <YAxis 
-              tick={{ fontSize: 10, fill: '#94a3b8' }} 
+              tick={{ fontSize: 10, fill: '#8E929D' }} 
               axisLine={false} 
               tickLine={false}
               tickFormatter={(v) => formatCompactCurrency(v, settings.currency)}
@@ -76,19 +76,19 @@ export const IncomeExpenseChart: React.FC = () => {
                   const item = payload[0].payload;
                   const net = item.income - item.expense;
                   return (
-                    <div className="bg-slate-900 text-white px-3.5 py-2.5 rounded-2xl text-xs shadow-xl border border-slate-700 space-y-1">
-                      <div className="font-bold text-slate-300">{item.label}</div>
-                      <div className="flex items-center justify-between gap-4 text-emerald-400">
-                        <span>Income:</span>
+                    <div className="bg-[#13131A] text-[#FBFBFB] px-3.5 py-2.5 rounded-xl text-xs shadow-xl border border-[rgba(74,18,26,0.5)] space-y-1.5 backdrop-blur-md">
+                      <div className="font-semibold text-[#8E929D] uppercase tracking-wider text-[10px]">{item.label}</div>
+                      <div className="flex items-center justify-between gap-4 text-emerald-400 font-mono">
+                        <span className="text-[#8E929D] font-sans">Inflow:</span>
                         <span className="font-bold">+{formatCurrency(item.income, settings.currency)}</span>
                       </div>
-                      <div className="flex items-center justify-between gap-4 text-rose-400">
-                        <span>Expense:</span>
+                      <div className="flex items-center justify-between gap-4 text-[#E53935] font-mono">
+                        <span className="text-[#8E929D] font-sans">Outflow:</span>
                         <span className="font-bold">-{formatCurrency(item.expense, settings.currency)}</span>
                       </div>
-                      <div className="border-t border-slate-700 pt-1 flex items-center justify-between gap-4 text-slate-200">
-                        <span>Net:</span>
-                        <span className={`font-extrabold ${net >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      <div className="border-t border-[rgba(255,255,255,0.08)] pt-1 flex items-center justify-between gap-4 text-[#FBFBFB] font-mono">
+                        <span className="text-[#8E929D] font-sans">Net:</span>
+                        <span className={`font-bold ${net >= 0 ? 'text-emerald-400' : 'text-[#E53935]'}`}>
                           {net >= 0 ? '+' : ''}{formatCurrency(net, settings.currency)}
                         </span>
                       </div>
@@ -101,22 +101,28 @@ export const IncomeExpenseChart: React.FC = () => {
             <Legend 
               verticalAlign="top" 
               align="right" 
-              iconType="circle" 
-              wrapperStyle={{ fontSize: 12, paddingBottom: 8 }} 
+              iconType="circle"
+              wrapperStyle={{ paddingBottom: '10px', fontSize: '11px', color: '#8E929D' }}
             />
             <Bar 
-              name="Income" 
               dataKey="income" 
-              fill="#10b981" 
+              name="Inflow"
+              fill="#10B981" 
               radius={[4, 4, 0, 0]} 
-              maxBarSize={28} 
+              maxBarSize={20}
+              isAnimationActive={true}
+              animationDuration={600}
+              animationEasing="ease-out"
             />
             <Bar 
-              name="Expense" 
               dataKey="expense" 
-              fill="#ef4444" 
+              name="Outflow"
+              fill="#E53935" 
               radius={[4, 4, 0, 0]} 
-              maxBarSize={28} 
+              maxBarSize={20}
+              isAnimationActive={true}
+              animationDuration={600}
+              animationEasing="ease-out"
             />
           </BarChart>
         </ResponsiveContainer>

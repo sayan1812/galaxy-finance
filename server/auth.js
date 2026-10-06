@@ -57,6 +57,41 @@ export function invalidateAllUserSessions(userId) {
   db.prepare('DELETE FROM sessions WHERE user_id = ?').run(userId);
 }
 
+export const JWT_SECRET = process.env.JWT_SECRET || 'galaxy-finance-crimson-jwt-secret-2026';
+
+// JWT Token Signing (HMAC SHA-256)
+export function signJwt(payload, expiresInSeconds = SESSION_EXPIRY_DAYS * 24 * 60 * 60) {
+  const header = { alg: 'HS256', typ: 'JWT' };
+  const exp = Math.floor(Date.now() / 1000) + expiresInSeconds;
+  const fullPayload = { ...payload, exp, iat: Math.floor(Date.now() / 1000) };
+
+  const b64Header = Buffer.from(JSON.stringify(header)).toString('base64url');
+  const b64Payload = Buffer.from(JSON.stringify(fullPayload)).toString('base64url');
+  const signature = crypto.createHmac('sha256', JWT_SECRET).update(`${b64Header}.${b64Payload}`).digest('base64url');
+
+  return `${b64Header}.${b64Payload}.${signature}`;
+}
+
+// JWT Token Verification
+export function verifyJwt(token) {
+  if (!token || typeof token !== 'string') return null;
+  const parts = token.split('.');
+  if (parts.length !== 3) return null;
+  const [b64Header, b64Payload, signature] = parts;
+  const expectedSig = crypto.createHmac('sha256', JWT_SECRET).update(`${b64Header}.${b64Payload}`).digest('base64url');
+  if (signature !== expectedSig) return null;
+
+  try {
+    const payload = JSON.parse(Buffer.from(b64Payload, 'base64url').toString('utf8'));
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+      return null; // Expired
+    }
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
 // Authentication Middleware
 export function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -73,6 +108,32 @@ export function requireAuth(req, res, next) {
     return res.status(401).json({ error: 'Authentication required. No session token provided.' });
   }
 
+  // 1. Check if token is a signed JWT
+  if (token.includes('.')) {
+    const jwtPayload = verifyJwt(token);
+    if (jwtPayload && jwtPayload.userId) {
+      const user = db.prepare(`
+        SELECT id, name, email, phone, email_verified, phone_verified
+        FROM users WHERE id = ?
+      `).get(jwtPayload.userId);
+
+      if (user) {
+        req.userId = user.id;
+        req.user = {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          emailVerified: Boolean(user.email_verified),
+          phoneVerified: Boolean(user.phone_verified)
+        };
+        req.rawToken = token;
+        return next();
+      }
+    }
+  }
+
+  // 2. Fallback to opaque session token lookup in DB
   const tokenHash = hashToken(token);
   const session = db.prepare(`
     SELECT s.id as session_id, s.user_id, s.expires_at, u.name, u.email, u.phone, u.email_verified, u.phone_verified

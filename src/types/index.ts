@@ -145,7 +145,7 @@ export interface CurrencyConfig {
 export type GalaxyIntensity = 'low' | 'medium' | 'high';
 export type CosmicTheme = 'nebula-deep' | 'starlight-cyan' | 'solar-gold' | 'void-dark';
 
-export type ThemeMode = 'light';
+export type ThemeMode = 'light' | 'dark' | 'galaxy';
 
 export interface AppSettings {
   currency: CurrencyConfig;
@@ -166,9 +166,10 @@ export interface User {
   name: string;
   email: string;
   phone?: string | null;
+  avatarUrl?: string;
   emailVerified: boolean;
   phoneVerified: boolean;
-  createdAt: string;
+  createdAt?: string;
   lastLoginAt?: string | null;
 }
 

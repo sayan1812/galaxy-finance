@@ -1,36 +1,132 @@
 @import "tailwindcss";
 
+/**
+ * GALAXY FINANCE — CRIMSON NOIR & SLATE EDITION
+ * Design System Stylesheet & CSS Variables
+ *
+ * Palette:
+ * - Base Pitch Black:      #0D0D11
+ * - Deep Wine / Maroon:    #4A121A
+ * - Vivid Crimson / Ruby:  #D32F2F / #E53935
+ * - Slate / Cool Steel:    #8E929D
+ * - Crisp White:           #FBFBFB
+ * - Subtle Border Stroke:  rgba(255, 255, 255, 0.08) in dark, rgba(74, 18, 26, 0.28) on wine surfaces
+ */
+
 @layer base {
-  :root, .light {
-    --bg-page: #f8fafc;
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --card-bg: rgba(255, 255, 255, 0.95);
-    --card-border: rgba(226, 232, 240, 0.8);
-    --accent-glow: rgba(99, 102, 241, 0.15);
+  :root, .dark, .galaxy {
+    --bg-pitch: #0D0D11;
+    --bg-page: #0D0D11;
+    --bg-secondary: #13131A;
+    --bg-subsurface: #4A121A;
+    --bg-wine-subtle: rgba(74, 18, 26, 0.35);
+    --bg-wine-glass: rgba(74, 18, 26, 0.18);
+
+    --card-bg: #13131A;
+    --card-border: rgba(74, 18, 26, 0.35);
+    --card-border-hover: rgba(229, 57, 53, 0.35);
+    --card-shadow-hover: 0 10px 25px -5px rgba(74, 18, 26, 0.25);
+
+    --text-primary: #FBFBFB;
+    --text-secondary: #8E929D;
+    --text-muted: #5A5D6B;
+
+    --accent-primary: #D32F2F;
+    --accent-ruby: #E53935;
+    --accent-wine: #4A121A;
+    --accent-slate: #8E929D;
+    --accent-glow: rgba(211, 47, 47, 0.2);
+
+    --btn-primary-bg: #D32F2F;
+    --btn-primary-hover-bg: #B71C1C;
+    --btn-primary-text: #FBFBFB;
+    --btn-primary-shadow: 0 4px 14px rgba(211, 47, 47, 0.3);
+
+    --btn-secondary-bg: rgba(74, 18, 26, 0.25);
+    --btn-secondary-border: rgba(142, 146, 157, 0.25);
+    --btn-secondary-text: #8E929D;
+    --btn-secondary-text-hover: #FBFBFB;
+    --btn-secondary-border-hover: #8E929D;
+
+    --row-hover-bg: rgba(255, 255, 255, 0.03);
+    --input-border: rgba(142, 146, 157, 0.2);
+    --input-focus-border: #D32F2F;
+    --input-focus-ring: 0 0 0 2px rgba(211, 47, 47, 0.2);
+
+    --header-bg: rgba(13, 13, 17, 0.88);
+    --sidebar-bg: rgba(13, 13, 17, 0.94);
+    --divider: rgba(255, 255, 255, 0.07);
+
+    color-scheme: dark;
+  }
+
+  .light {
+    --bg-pitch: #FBFBFB;
+    --bg-page: #FBFBFB;
+    --bg-secondary: #F3F4F6;
+    --bg-subsurface: #F5ECEE;
+    --bg-wine-subtle: rgba(74, 18, 26, 0.06);
+    --bg-wine-glass: rgba(74, 18, 26, 0.04);
+
+    --card-bg: #FFFFFF;
+    --card-border: rgba(74, 18, 26, 0.14);
+    --card-border-hover: rgba(229, 57, 53, 0.45);
+    --card-shadow-hover: 0 10px 25px -5px rgba(74, 18, 26, 0.15);
+
+    --text-primary: #111116;
+    --text-secondary: #525560;
+    --text-muted: #8E929D;
+
+    --accent-primary: #D32F2F;
+    --accent-ruby: #E53935;
+    --accent-wine: #4A121A;
+    --accent-slate: #606470;
+    --accent-glow: rgba(211, 47, 47, 0.12);
+
+    --btn-primary-bg: #D32F2F;
+    --btn-primary-hover-bg: #B71C1C;
+    --btn-primary-text: #FBFBFB;
+    --btn-primary-shadow: 0 4px 14px rgba(211, 47, 47, 0.25);
+
+    --btn-secondary-bg: #F5ECEE;
+    --btn-secondary-border: rgba(74, 18, 26, 0.2);
+    --btn-secondary-text: #525560;
+    --btn-secondary-text-hover: #111116;
+    --btn-secondary-border-hover: #8E929D;
+
+    --row-hover-bg: rgba(74, 18, 26, 0.04);
+    --input-border: rgba(74, 18, 26, 0.18);
+    --input-focus-border: #D32F2F;
+    --input-focus-ring: 0 0 0 2px rgba(211, 47, 47, 0.2);
+
+    --header-bg: rgba(251, 251, 251, 0.92);
+    --sidebar-bg: rgba(251, 251, 251, 0.96);
+    --divider: rgba(74, 18, 26, 0.08);
+
     color-scheme: light;
   }
 
   body {
-    background-color: #f8fafc;
-    color: #0f172a;
+    background-color: var(--bg-page);
+    color: var(--text-primary);
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     -webkit-tap-highlight-color: transparent;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
 }
 
-/* Reduced Motion Support */
+/* Reduced Motion Support - Strict zero motion compliance */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
-    animation-duration: 0.01ms !important;
+    animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 0.001ms !important;
+    transform: none !important;
     scroll-behavior: auto !important;
   }
 }
 
-/* Custom smooth scrollbar */
+/* Custom Sleek Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -39,22 +135,153 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.3);
+  background: rgba(142, 146, 157, 0.3);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 163, 175, 0.6);
+  background: rgba(211, 47, 47, 0.6);
 }
 
-/* Micro-interaction animations */
+/* ==============================================================================
+ * MICRO-INTERACTIONS SPECIFICATION
+ * ============================================================================== */
+
+/* A. Financial Cards:
+ * Normal: Deep surface fill, 1px subtle wine-tinted border, scale: 1, translateY: 0.
+ * Hover: translateY(-3px), scale: 1.012, border-color: rgba(229, 57, 53, 0.35), subtle wine drop-shadow: 0 10px 25px -5px rgba(74, 18, 26, 0.25).
+ * Transition: 250ms cubic-bezier(0.2, 0.0, 0, 1.0).
+ */
+.hover-card, .fin-card {
+  transition: transform 250ms cubic-bezier(0.2, 0.0, 0, 1.0), 
+              box-shadow 250ms cubic-bezier(0.2, 0.0, 0, 1.0), 
+              border-color 250ms cubic-bezier(0.2, 0.0, 0, 1.0);
+}
+.hover-card:hover, .fin-card:hover {
+  transform: translateY(-3px) scale(1.012);
+  border-color: rgba(229, 57, 53, 0.35) !important;
+  box-shadow: 0 10px 25px -5px rgba(74, 18, 26, 0.25) !important;
+}
+
+/* B. Action Buttons:
+ * Primary Crimson Button:
+ * Rest: Crimson (#D32F2F) with crisp white text.
+ * Hover: translateY(-1px), scale: 1.015, slight brightness lift (1.08), shadow: 0 4px 14px rgba(211, 47, 47, 0.3).
+ * Active / Press: scale: 0.98.
+ */
+.btn-hover, .btn-crimson {
+  background-color: #D32F2F;
+  color: #FBFBFB;
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), 
+              filter 200ms ease, 
+              box-shadow 200ms ease, 
+              background-color 200ms ease;
+}
+.btn-hover:hover, .btn-crimson:hover {
+  transform: translateY(-1px) scale(1.015);
+  filter: brightness(1.08);
+  box-shadow: 0 4px 14px rgba(211, 47, 47, 0.3) !important;
+}
+.btn-hover:active, .btn-crimson:active {
+  transform: scale(0.98);
+}
+
+/* Secondary / Slate Button:
+ * Rest: Dark Wine/Charcoal background with Slate border.
+ * Hover: Border switches to Slate Gray, text transitions from muted gray to white.
+ */
+.btn-slate-subtle {
+  background-color: var(--btn-secondary-bg);
+  border: 1px solid var(--btn-secondary-border);
+  color: var(--btn-secondary-text);
+  transition: border-color 200ms ease, color 200ms ease, background-color 200ms ease;
+}
+.btn-slate-subtle:hover {
+  border-color: var(--btn-secondary-border-hover) !important;
+  color: var(--btn-secondary-text-hover) !important;
+  background-color: rgba(74, 18, 26, 0.35);
+}
+
+/* C. Transaction Rows:
+ * Rest: Flat row with faint bottom hairline divider.
+ * Hover: Subtle horizontal shift: translateX(4px), background tint: rgba(255, 255, 255, 0.03), leading category icon scales slightly (1.06) with a subtle wine-red highlight.
+ */
+.txn-row-hover {
+  transition: transform 200ms ease, background-color 200ms ease, border-color 200ms ease;
+}
+.txn-row-hover:hover {
+  transform: translateX(4px);
+  background-color: var(--row-hover-bg) !important;
+}
+.txn-row-hover .txn-icon {
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms ease;
+}
+.txn-row-hover:hover .txn-icon {
+  transform: scale(1.06);
+  box-shadow: 0 0 10px rgba(74, 18, 26, 0.45);
+}
+
+/* D. Input Fields & Focus States:
+ * Rest: Slate border (1px, opacity: 0.2), deep dark background.
+ * Focus: Border transitions to Crimson/Wine (#D32F2F), box-shadow adds an understated 2px ruby focus ring (0 0 0 2px rgba(211, 47, 47, 0.2)). No blinding neon halo.
+ */
+.fin-input {
+  border: 1px solid var(--input-border);
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+.fin-input:focus, input:focus, select:focus, textarea:focus {
+  border-color: #D32F2F !important;
+  box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.2) !important;
+  outline: none !important;
+}
+
+/* Navigation items */
+.nav-item-hover {
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), 
+              background-color 200ms ease, 
+              color 200ms ease;
+}
+.nav-item-hover:hover {
+  transform: translateX(3px);
+  color: #FBFBFB !important;
+}
+
+/* ==============================================================================
+ * SCROLL & ENTRANCE ANIMATIONS
+ * - Sections reveal sequentially on scroll: opacity 0 → 1, translateY 16px → 0.
+ * - Animation timing: 400ms ease-out with a progressive stagger of 50ms between dashboard cards.
+ * ============================================================================== */
+
+@keyframes section-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal-on-scroll {
+  animation: section-reveal 400ms ease-out forwards;
+}
+
+.stagger-1 { animation-delay: 0ms; }
+.stagger-2 { animation-delay: 50ms; }
+.stagger-3 { animation-delay: 100ms; }
+.stagger-4 { animation-delay: 150ms; }
+.stagger-5 { animation-delay: 200ms; }
+.stagger-6 { animation-delay: 250ms; }
+.stagger-7 { animation-delay: 300ms; }
+.stagger-8 { animation-delay: 350ms; }
+
+/* Micro-interaction Keyframes */
 @keyframes micro-pop {
   0% {
-    transform: scale(0.85) translateY(10px);
+    transform: scale(0.92) translateY(8px);
     opacity: 0;
-  }
-  60% {
-    transform: scale(1.03) translateY(-2px);
-    opacity: 1;
   }
   100% {
     transform: scale(1) translateY(0);
@@ -62,39 +289,41 @@
   }
 }
 
-@keyframes micro-pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.08);
-  }
-}
-
-@keyframes cosmic-shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
 .animate-micro-pop {
-  animation: micro-pop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-micro-pulse {
-  animation: micro-pulse 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: micro-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .shimmer-skeleton {
-  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+  background: linear-gradient(90deg, rgba(255,255,255,0.02) 25%, rgba(74, 18, 26, 0.12) 50%, rgba(255,255,255,0.02) 75%);
   background-size: 200% 100%;
-  animation: cosmic-shimmer 2s infinite;
+  animation: cosmic-shimmer 2.2s infinite;
 }
 
-/* Print Stylesheet for Reports */
+@keyframes cosmic-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes input-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.animate-shake {
+  animation: input-shake 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+/* Print Stylesheet */
 @media print {
   nav, .no-print, button:not(.print-include) {
     display: none !important;
@@ -102,10 +331,5 @@
   body {
     background: white !important;
     color: black !important;
-  }
-  .print-page {
-    box-shadow: none !important;
-    border: none !important;
-    padding: 0 !important;
   }
 }
