@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 💸 RupeeWise — Daily Transaction Tracker & Expense Management App
 
 **RupeeWise** is a modern, responsive, mobile-first Daily Transaction Tracker and Personal Finance Management system built with **React 19, TypeScript, Tailwind CSS, Lucide Icons, and Recharts**. It is crafted to deliver a polished personal finance experience for daily financial operations across **Cash, UPI / Online, Debit Card, Credit Card, and Bank Transfers**.
