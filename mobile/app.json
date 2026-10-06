@@ -1,0 +1,67 @@
+{
+  "expo": {
+    "name": "Galaxy Finance",
+    "slug": "galaxy-finance",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "galaxyfinance",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#030712"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.galaxyfinance.app",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Enable biometric authentication to securely access your Galaxy Finance command center."
+      }
+    },
+    "android": {
+      "package": "com.galaxyfinance.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundColor": "#030712"
+      },
+      "permissions": [
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-dev-client",
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to authenticate with Face ID"
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to authenticate with Face ID"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#8b5cf6"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "galaxy-finance-core"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
