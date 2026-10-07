@@ -4,6 +4,10 @@ import fs from 'node:fs';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
+// Recreate __dirname for ES module scope
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Load environment variables if available
 try {
   if (typeof process.loadEnvFile === 'function') {
