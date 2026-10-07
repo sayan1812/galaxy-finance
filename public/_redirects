@@ -1,0 +1,5 @@
+# Netlify API Proxy to Render Backend
+/api/*  https://galaxy-finance-js0l.onrender.com/api/:splat  200
+
+# Single Page App routing
+/*  /index.html  200

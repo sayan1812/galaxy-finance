@@ -1,4 +1,5 @@
-const API_BASE = '/api';
+const RAW_API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://galaxy-finance-js0l.onrender.com/api' : '/api');
+const API_BASE = RAW_API_URL.replace(/\/+$/, '');
 
 class ApiClient {
   private token: string | null = null;
@@ -30,7 +31,10 @@ class ApiClient {
       headers.set('Authorization', `Bearer ${this.token}`);
     }
 
-    const response = await fetch(`${API_BASE}${endpoint}`, {
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const url = `${API_BASE}${cleanEndpoint}`;
+
+    const response = await fetch(url, {
       ...options,
       headers,
       credentials: 'include'

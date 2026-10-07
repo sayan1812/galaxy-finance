@@ -38,8 +38,14 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Bypass API routes from cache
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/download/')) {
+  // 1. Ignore non-HTTP/HTTPS schemes (such as chrome-extension://)
+  if (!url.protocol.startsWith('http')) {
+    return;
+  }
+
+  // 2. Bypass caching for backend API calls and Render endpoints
+  if (url.pathname.startsWith('/api') || url.hostname.includes('onrender.com') || url.pathname.startsWith('/download')) {
+    event.respondWith(fetch(event.request));
     return;
   }
 
@@ -50,15 +56,23 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      return fetch(event.request)
+        .then((response) => {
+          // Only cache valid GET responses with http/https scheme
+          if (!response || response.status !== 200 || response.type !== 'basic' || event.request.method !== 'GET') {
+            return response;
           }
-          return networkResponse;
+
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+
+          return response;
         })
         .catch(() => {
           // If offline and request is navigation, serve index.html
@@ -66,8 +80,6 @@ self.addEventListener('fetch', (event) => {
             return caches.match('/index.html');
           }
         });
-
-      return cachedResponse || fetchPromise;
     })
   );
 });

@@ -6,7 +6,8 @@ import axios, { type AxiosInstance, type InternalAxiosRequestConfig, type AxiosR
  * and 401 automatic session eviction.
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+const RAW_API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://galaxy-finance-js0l.onrender.com/api' : 'http://localhost:5000/api/v1');
+const BASE_URL = RAW_API_URL.replace(/\/+$/, '');
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
