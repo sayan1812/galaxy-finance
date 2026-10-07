@@ -1,14 +1,35 @@
+# Dependencies
 node_modules/
+
+# Local Expo & Vite Builds
 .expo/
 dist/
 build/
+
+# Environment Variables & Secrets
 .env
 .env.local
 .env.production
+
+# IDE & Editor Configs
 .idea/
+.vscode/
+
+# Local Database Files
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Credentials & Signing Keys
 *.keystore
 *.jks
 *.p8
 *.p12
 *.key
 .DS_Store
+
+# Android APK Release Whitelist (Exempt release APKs from ignore rules)
+!public/downloads/*.apk
+!server/downloads/*.apk
+!release/*.apk

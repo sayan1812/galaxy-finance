@@ -4,11 +4,34 @@ import fs from 'node:fs';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Load environment variables if available
+try {
+  if (typeof process.loadEnvFile === 'function') {
+    const envPath = path.resolve(process.cwd(), '.env');
+    if (fs.existsSync(envPath)) {
+      process.loadEnvFile(envPath);
+    }
+  }
+} catch {
+  // Ignored if .env already loaded
+}
 
-const dbPath = path.resolve(__dirname, 'rupeewise.db');
-const db = new DatabaseSync(dbPath);
+export const dbPath = process.env.DB_PATH
+  ? path.resolve(process.cwd(), process.env.DB_PATH)
+  : path.resolve(__dirname, 'rupeewise.db');
+
+// Ensure parent directory exists and check R/W permissions
+const dbDir = path.dirname(dbPath);
+if (!fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir, { recursive: true });
+}
+try {
+  fs.accessSync(dbDir, fs.constants.R_OK | fs.constants.W_OK);
+} catch (err) {
+  console.error(`[Database Error] Invalid directory permissions for ${dbDir}:`, err.message);
+}
+
+export const db = new DatabaseSync(dbPath);
 
 // Enable WAL mode & foreign keys for high performance and integrity
 db.exec('PRAGMA foreign_keys = ON;');
@@ -147,6 +170,7 @@ export function initDatabase() {
       created_at TEXT NOT NULL
     );
 
+    CREATE VIEW IF NOT EXISTS accounts AS SELECT * FROM banks;
     CREATE INDEX IF NOT EXISTS idx_transactions_user ON transactions(user_id, date);
     CREATE INDEX IF NOT EXISTS idx_banks_user ON banks(user_id);
     CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token_hash);
@@ -154,6 +178,37 @@ export function initDatabase() {
   `);
 
   seedDefaultUser();
+
+  const verification = verifyDatabaseSchema();
+  if (verification.success) {
+    console.log(`[Database] Schema migration verified: 'users' (${verification.metrics.users}), 'accounts' (${verification.metrics.accounts}), 'transactions' (${verification.metrics.transactions}) exist.`);
+  } else {
+    console.error(`[Database Error] Missing required tables/views:`, verification.missing);
+  }
+}
+
+export function verifyDatabaseSchema() {
+  const tables = db.prepare(`SELECT name, type FROM sqlite_master WHERE type IN ('table', 'view')`).all();
+  const tableNames = new Set(tables.map(t => t.name));
+  
+  const required = ['users', 'accounts', 'transactions'];
+  const missing = required.filter(t => !tableNames.has(t));
+  
+  const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get()?.count ?? 0;
+  const txCount = db.prepare('SELECT COUNT(*) as count FROM transactions').get()?.count ?? 0;
+  const accountCount = db.prepare('SELECT COUNT(*) as count FROM accounts').get()?.count ?? 0;
+
+  return {
+    success: missing.length === 0,
+    dbPath,
+    tables: Array.from(tableNames),
+    missing,
+    metrics: {
+      users: userCount,
+      accounts: accountCount,
+      transactions: txCount
+    }
+  };
 }
 
 function hashPassword(password) {

@@ -141,73 +141,19 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
     renderer.toneMappingExposure = 1.2;
     rendererRef.current = renderer;
 
-    // 4. Ambient & Directional Lights — Crimson Noir & Slate Edition
-    const ambientLight = new THREE.AmbientLight(0x8e929d, 0.45);
+    // 4. Ambient & Directional Lights — Jade & Emerald Edition
+    const ambientLight = new THREE.AmbientLight(0x89D7B7, 0.45);
     scene.add(ambientLight);
 
-    const wineBacklight = new THREE.DirectionalLight(0x4a121a, 1.2);
-    wineBacklight.position.set(40, 30, -20);
-    scene.add(wineBacklight);
+    const emeraldBacklight = new THREE.DirectionalLight(0x428475, 1.2);
+    emeraldBacklight.position.set(40, 30, -20);
+    scene.add(emeraldBacklight);
 
-    const coreLight = new THREE.PointLight(0xffffff, 2.8, 100, 0.8);
+    const coreLight = new THREE.PointLight(0xFFF4E1, 2.8, 100, 0.8);
     coreLight.position.set(0, 0, 0);
     scene.add(coreLight);
 
-    // 5. Starfield Background Particles
-    const starCount = settings.galaxyIntensity === 'high' ? 1800 : settings.galaxyIntensity === 'medium' ? 1000 : 500;
-    const starGeometry = new THREE.BufferGeometry();
-    const starPositions = new Float32Array(starCount * 3);
-    const starColors = new Float32Array(starCount * 3);
-
-    for (let i = 0; i < starCount; i++) {
-      const u = Math.random();
-      const v = Math.random();
-      const thetaS = u * 2.0 * Math.PI;
-      const phiS = Math.acos(2.0 * v - 1.0);
-      const r = 60 + Math.random() * 80;
-
-      const x = r * Math.sin(phiS) * Math.cos(thetaS);
-      const y = r * Math.sin(phiS) * Math.sin(thetaS);
-      const z = r * Math.cos(phiS);
-
-      starPositions[i * 3] = x;
-      starPositions[i * 3 + 1] = y;
-      starPositions[i * 3 + 2] = z;
-
-      // Color variation: cyan, violet, white, gold
-      const colorType = Math.random();
-      if (colorType > 0.75) {
-        starColors[i * 3] = 0.4;
-        starColors[i * 3 + 1] = 0.8;
-        starColors[i * 3 + 2] = 1.0; // Cyan
-      } else if (colorType > 0.5) {
-        starColors[i * 3] = 0.7;
-        starColors[i * 3 + 1] = 0.5;
-        starColors[i * 3 + 2] = 1.0; // Violet
-      } else if (colorType > 0.3) {
-        starColors[i * 3] = 1.0;
-        starColors[i * 3 + 1] = 0.85;
-        starColors[i * 3 + 2] = 0.4; // Gold
-      } else {
-        starColors[i * 3] = 0.9;
-        starColors[i * 3 + 1] = 0.95;
-        starColors[i * 3 + 2] = 1.0; // Crisp White
-      }
-    }
-
-    starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-    starGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
-
-    const starMaterial = new THREE.PointsMaterial({
-      size: 0.8,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.85,
-    });
-    const starField = new THREE.Points(starGeometry, starMaterial);
-    scene.add(starField);
-
-    // 6. Group holding orbital system
+    // 5. Orbital system group
     const planetsGroup = new THREE.Group();
     planetsGroupRef.current = planetsGroup;
     scene.add(planetsGroup);
@@ -245,10 +191,10 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
     }
     interactiveObjectsRef.current = [];
 
-    // Helper: Create Glowing Sun Core — Crimson Noir & Slate Edition
+    // Helper: Create Glowing Sun Core — Jade & Emerald Edition
     const sunRadius = galaxyMode === 'accounts' ? 3.4 : 3.0;
-    const sunColor = galaxyMode === 'accounts' ? 0xd32f2f : 0xe53935;
-    const sunEmissive = galaxyMode === 'accounts' ? 0x4a121a : 0x2e0b10;
+    const sunColor = galaxyMode === 'accounts' ? 0x89D7B7 : 0x428475;
+    const sunEmissive = galaxyMode === 'accounts' ? 0x428475 : 0x1A312C;
 
     const sunGeo = new THREE.SphereGeometry(sunRadius, 32, 32);
     const sunMat = new THREE.MeshStandardMaterial({
@@ -265,7 +211,7 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
       name: galaxyMode === 'accounts' ? 'NET AVAILABLE' : 'TOTAL EXPENSES',
       type: galaxyMode === 'accounts' ? 'Core Available Capital' : 'Monthly Outflow',
       balance: galaxyMode === 'accounts' ? netAvailableMoney : monthExpense,
-      color: galaxyMode === 'accounts' ? '#D32F2F' : '#E53935',
+      color: galaxyMode === 'accounts' ? '#89D7B7' : '#428475',
     };
     group.add(sunMesh);
     sunMeshRef.current = sunMesh;
@@ -584,7 +530,7 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
   return (
     <div 
       ref={containerRef}
-      className="relative w-full h-[400px] sm:h-[480px] lg:h-[540px] rounded-3xl overflow-hidden bg-[#0D0D11]/90 border border-[rgba(74,18,26,0.35)] shadow-2xl backdrop-blur-xl group select-none"
+      className="relative w-full h-[400px] sm:h-[480px] lg:h-[540px] rounded-3xl overflow-hidden bg-[var(--card-bg)] border border-[var(--card-border)] shadow-md backdrop-blur-xl group select-none"
     >
       {/* 3D WebGL Canvas */}
       <canvas
@@ -600,13 +546,13 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
 
       {/* Top Left: Galaxy Mode & Status Indicator */}
       <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
-        <div className="flex items-center p-1 rounded-2xl bg-[#13131A]/90 border border-white/[0.08] backdrop-blur-md shadow-lg">
+        <div className="flex items-center p-1 rounded-2xl bg-[var(--card-bg)]/90 border border-[var(--card-border)] backdrop-blur-md shadow-sm">
           <button
             onClick={() => setGalaxyMode('accounts')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
               galaxyMode === 'accounts'
-                ? 'bg-[#D32F2F] text-[#FBFBFB] shadow-md'
-                : 'text-[#8E929D] hover:text-[#FBFBFB]'
+                ? 'bg-[var(--accent-primary)] text-[var(--accent-contrast)] shadow-xs'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
             <Orbit size={14} />
@@ -616,8 +562,8 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
             onClick={() => setGalaxyMode('expenses')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
               galaxyMode === 'expenses'
-                ? 'bg-[#4A121A] text-[#E53935] border border-[#E53935]/40 shadow-md'
-                : 'text-[#8E929D] hover:text-[#FBFBFB]'
+                ? 'bg-[var(--accent-surface)] text-[var(--text-primary)] border border-[var(--accent-primary)]/40 shadow-xs'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
             <TrendingDown size={14} />
@@ -626,39 +572,39 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
         </div>
 
         {/* Live Orbit Status Pill */}
-        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#13131A]/80 border border-white/[0.06] text-[11px] font-mono font-semibold text-[#8E929D] backdrop-blur-md">
-          <span className={`w-2 h-2 rounded-full ${isRotating && !settings.reduceMotion ? 'bg-[#E53935] animate-ping' : 'bg-[#8E929D]'}`} />
+        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--card-bg)]/80 border border-[var(--card-border)] text-[11px] font-mono font-semibold text-[var(--text-secondary)] backdrop-blur-md">
+          <span className={`w-2 h-2 rounded-full ${isRotating && !settings.reduceMotion ? 'bg-[var(--accent-primary)] animate-ping' : 'bg-[var(--divider)]'}`} />
           <span>{isRotating && !settings.reduceMotion ? 'Orbital Motion' : 'Stationary'}</span>
         </div>
       </div>
 
       {/* Top Right: Cosmic Controls */}
-      <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 p-1 rounded-2xl bg-[#13131A]/90 border border-white/[0.08] backdrop-blur-md shadow-lg text-[#8E929D]">
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 p-1 rounded-2xl bg-[var(--card-bg)]/90 border border-[var(--card-border)] backdrop-blur-md shadow-sm text-[var(--text-secondary)]">
         <button
           onClick={() => setIsRotating(!isRotating)}
           title={isRotating ? 'Pause Orbit' : 'Resume Orbit'}
-          className="p-2 rounded-xl hover:bg-white/[0.08] hover:text-[#FBFBFB] transition cursor-pointer"
+          className="p-2 rounded-xl hover:bg-[var(--row-hover-bg)] hover:text-[var(--text-primary)] transition cursor-pointer"
         >
           {isRotating ? <Pause size={14} /> : <Play size={14} />}
         </button>
         <button
           onClick={() => handleZoom('in')}
           title="Zoom In"
-          className="p-2 rounded-xl hover:bg-white/[0.08] hover:text-[#FBFBFB] transition cursor-pointer"
+          className="p-2 rounded-xl hover:bg-[var(--row-hover-bg)] hover:text-[var(--text-primary)] transition cursor-pointer"
         >
           <ZoomIn size={14} />
         </button>
         <button
           onClick={() => handleZoom('out')}
           title="Zoom Out"
-          className="p-2 rounded-xl hover:bg-white/[0.08] hover:text-[#FBFBFB] transition cursor-pointer"
+          className="p-2 rounded-xl hover:bg-[var(--row-hover-bg)] hover:text-[var(--text-primary)] transition cursor-pointer"
         >
           <ZoomOut size={14} />
         </button>
         <button
           onClick={handleResetCamera}
           title="Reset View Angle"
-          className="p-2 rounded-xl hover:bg-white/[0.08] hover:text-[#FBFBFB] transition cursor-pointer"
+          className="p-2 rounded-xl hover:bg-[var(--row-hover-bg)] hover:text-[var(--text-primary)] transition cursor-pointer"
         >
           <RotateCcw size={14} />
         </button>
@@ -666,8 +612,8 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
 
       {/* Center Top: Cosmic Command Headline */}
       <div className="absolute top-16 left-1/2 -translate-x-1/2 pointer-events-none text-center hidden md:block">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#4A121A]/40 border border-[#E53935]/30 text-[10px] font-mono font-bold uppercase tracking-widest text-[#E53935] shadow-sm">
-          <Sparkles size={11} className="text-[#E53935]" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--card-bg)] border border-[var(--card-border)] text-[10px] font-mono font-bold uppercase tracking-widest text-[var(--text-secondary)] shadow-xs">
+          <Sparkles size={11} className="text-[var(--accent-primary)]" />
           <span>Fintech Galaxy Orbital Matrix</span>
         </div>
       </div>
@@ -675,7 +621,7 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
       {/* Dynamic Hover HUD Card */}
       {hoveredItem && (
         <div 
-          className="absolute z-20 pointer-events-none transition-all duration-75 p-3.5 rounded-2xl bg-[#13131A]/95 border border-[rgba(74,18,26,0.45)] shadow-2xl backdrop-blur-xl text-left min-w-[190px] animate-in fade-in zoom-in-95"
+          className="absolute z-20 pointer-events-none transition-all duration-75 p-3.5 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] shadow-xl backdrop-blur-xl text-left min-w-[190px] animate-in fade-in zoom-in-95"
           style={{
             left: Math.min(window.innerWidth - 220, Math.max(16, mousePos.x + 14)),
             top: Math.min(420, Math.max(16, mousePos.y - 45)),
@@ -686,32 +632,32 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
               className="w-3 h-3 rounded-full flex-shrink-0 shadow-xs" 
               style={{ backgroundColor: hoveredItem.color }} 
             />
-            <span className="text-xs font-black text-[#FBFBFB] truncate">{hoveredItem.name}</span>
+            <span className="text-xs font-black text-[var(--text-headings)] truncate">{hoveredItem.name}</span>
           </div>
 
-          <p className="text-[10px] uppercase font-mono font-bold tracking-wider text-[#8E929D] mb-2">
+          <p className="text-[10px] uppercase font-mono font-bold tracking-wider text-[var(--text-muted)] mb-2">
             {hoveredItem.type}
           </p>
 
           {hoveredItem.balance !== undefined && (
-            <div className="text-base font-black font-mono text-[#FBFBFB]">
+            <div className="text-base font-black font-mono text-[var(--text-primary)]">
               {formatCurrency(hoveredItem.balance, settings.currency)}
             </div>
           )}
 
           {hoveredItem.amount !== undefined && (
             <div className="space-y-1">
-              <div className="text-sm font-black font-mono text-[#E53935]">
+              <div className="text-sm font-black font-mono text-red-400">
                 {formatCurrency(hoveredItem.amount, settings.currency)}
               </div>
-              <div className="flex items-center justify-between text-[10px] text-[#8E929D] pt-1 border-t border-white/[0.06] font-mono">
+              <div className="flex items-center justify-between text-[10px] text-[var(--text-secondary)] pt-1 border-t border-[var(--divider)] font-mono">
                 <span>{hoveredItem.txCount} txs</span>
                 <span>Avg: {formatCurrency(hoveredItem.avgAmount || 0, settings.currency)}</span>
               </div>
             </div>
           )}
 
-          <div className="mt-2 pt-1 border-t border-white/[0.06] flex items-center justify-between text-[9px] text-[#E53935] font-semibold">
+          <div className="mt-2 pt-1 border-t border-[var(--divider)] flex items-center justify-between text-[9px] text-[var(--accent-primary)] font-semibold">
             <span>Click to explore</span>
             <ChevronRight size={10} />
           </div>
@@ -719,8 +665,8 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
       )}
 
       {/* Bottom Center: Quick Nav Hint */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#13131A]/90 border border-white/[0.08] backdrop-blur-md text-[11px] text-[#8E929D]">
-        <Info size={12} className="text-[#E53935]" />
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--card-bg)]/90 border border-[var(--card-border)] backdrop-blur-md text-[11px] text-[var(--text-secondary)]">
+        <Info size={12} className="text-[var(--accent-primary)]" />
         <span className="hidden sm:inline">Drag to rotate • Scroll to zoom • Click planet for telemetry</span>
         <span className="sm:hidden">Drag to orbit • Tap planet for telemetry</span>
       </div>

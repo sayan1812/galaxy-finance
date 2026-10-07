@@ -1,21 +1,35 @@
 /**
- * GALAXY FINANCE (MOBILE) — CRIMSON NOIR & SLATE EDITION
+ * GALAXY FINANCE (MOBILE) — WARM PASTEL LUXE EDITION
  * Centralized Color Tokens
  */
 
-export const crimsonNoirMobile = {
-  pitchBlack: '#0D0D11',
-  darkCharcoal: '#13131A',
-  subsurfaceWine: '#4A121A',
-  wineMuted: '#2E0B10',
-  wineGlow: 'rgba(74, 18, 26, 0.25)',
-  vividCrimson: '#D32F2F',
-  rubyRed: '#E53935',
-  coolSteelSlate: '#8E929D',
-  slateDark: '#4F525D',
-  crispWhite: '#FBFBFB',
-  borderDark: 'rgba(255, 255, 255, 0.08)',
-  borderWine: 'rgba(74, 18, 26, 0.35)',
-  borderWineHover: 'rgba(229, 57, 53, 0.35)',
-  borderSlate: 'rgba(142, 146, 157, 0.2)',
+export const warmPastelMobile = {
+  canvas: '#FAF7F3',        // Alabaster Warm White
+  cardSurface: '#F0E4D3',   // Soft Linen Cream
+  borderSand: '#DCC5B2',    // Warm Sand / Cashmere
+  primaryAccent: '#D9A299', // Muted Terracotta / Dusty Rose
+  highlights: '#FFFAD3',    // Pale Buttercream
+  secondaryAccent: '#FFDBB0',// Apricot Nude
+  tertiaryAccent: '#FFCCB8', // Blush Peach
+  errorUrgent: '#FFB1B1',   // Soft Coral Red
+  primaryText: '#2D2621',   // Deep Espresso
+  secondaryText: '#7A6F66', // Warm Driftwood Slate
 } as const;
+
+export const crimsonNoirMobile = {
+  pitchBlack: '#FAF7F3',
+  darkCharcoal: '#F0E4D3',
+  subsurfaceWine: '#FFDBB0',
+  wineMuted: '#FFCCB8',
+  wineGlow: 'rgba(217, 162, 153, 0.25)',
+  vividCrimson: '#FFB1B1',
+  rubyRed: '#D9A299',
+  coolSteelSlate: '#7A6F66',
+  slateDark: '#DCC5B2',
+  crispWhite: '#2D2621',
+  borderDark: '#DCC5B2',
+  borderWine: '#DCC5B2',
+  borderWineHover: '#D9A299',
+  borderSlate: '#DCC5B2',
+} as const;
+

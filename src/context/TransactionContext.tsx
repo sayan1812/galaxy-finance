@@ -180,10 +180,6 @@ export interface TransactionContextType {
   triggerMicroInteraction: (type: MicroInteractionType, title: string, message?: string, amount?: number, emoji?: string) => void;
   clearMicroInteraction: () => void;
 
-  // AI Assistant Modal
-  isAiModalOpen: boolean;
-  setIsAiModalOpen: (open: boolean) => void;
-
   // Delete Confirmation Modal
   deleteConfirmation: {
     isOpen: boolean;
@@ -342,9 +338,8 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [galaxyMode, setGalaxyMode] = useState<'accounts' | 'expenses'>('accounts');
 
-  // Micro-Interactions, AI, and Delete Confirmation
+  // Micro-Interactions and Delete Confirmation
   const [microInteraction, setMicroInteraction] = useState<MicroInteractionEvent | null>(null);
-  const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean;
     transactionId?: string;
@@ -449,6 +444,12 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       updatedAt: now,
     };
     setBankAccounts((prev) => [...prev, newBank]);
+    api.createAccount({
+      accountName: data.bankName,
+      accountType: 'bank',
+      balance: data.openingBalance,
+      accountNumberMask: data.accountNumberMasked,
+    }).catch(() => {});
     return newBank;
   }, []);
 
@@ -464,6 +465,10 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const deleteBankAccount = useCallback((id: string) => {
     setBankAccounts((prev) => prev.filter((bank) => bank.id !== id));
+    // Cascading delete associated transactions
+    setTransactions((prev) => prev.filter((tx) => tx.bankAccountId !== id));
+    api.deleteAccount(id).catch(() => {});
+    api.deleteBank(id).catch(() => {});
   }, []);
 
   const getBankById = useCallback((id: string): BankAccount | undefined => {
@@ -1383,12 +1388,10 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
         galaxyMode,
         setGalaxyMode,
 
-        // Micro-Interactions, AI, and Confirmation
+        // Micro-Interactions and Confirmation
         microInteraction,
         triggerMicroInteraction,
         clearMicroInteraction,
-        isAiModalOpen,
-        setIsAiModalOpen,
         deleteConfirmation,
         requestDeleteTransaction,
         cancelDeleteTransaction,

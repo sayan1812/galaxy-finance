@@ -69,6 +69,24 @@ class ApiClient {
     return res;
   }
 
+  async googleSync(payload: { email: string; name?: string; photoURL?: string; uid?: string; idToken?: string }) {
+    const res = await this.request<{ token: string; user: any; message: string }>('/auth/google-sync', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    if (res.token) this.setToken(res.token);
+    return res;
+  }
+
+  async deleteMyAccount(password?: string) {
+    const res = await this.request<{ success: boolean; message: string }>('/users/me', {
+      method: 'DELETE',
+      body: JSON.stringify({ password })
+    });
+    this.setToken(null);
+    return res;
+  }
+
   async logout() {
     try {
       await this.request('/auth/logout', { method: 'POST' });
@@ -159,6 +177,24 @@ class ApiClient {
 
   async deleteBank(id: string) {
     return this.request<{ message: string }>(`/banks/${id}`, {
+      method: 'DELETE'
+    });
+  }
+
+  // --- MongoDB Accounts / Vaults ---
+  async getAccounts() {
+    return this.request<{ accounts: any[]; count: number }>('/accounts');
+  }
+
+  async createAccount(accountData: any) {
+    return this.request<{ account: any; message: string }>('/accounts', {
+      method: 'POST',
+      body: JSON.stringify(accountData)
+    });
+  }
+
+  async deleteAccount(id: string) {
+    return this.request<{ message: string; deletedId?: string }>(`/accounts/${id}`, {
       method: 'DELETE'
     });
   }

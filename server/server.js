@@ -1,7 +1,23 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { initDatabase } from './db.js';
+import fs from 'node:fs';
+import path from 'node:path';
+
+// Automatically load environment variables from .env
+try {
+  if (typeof process.loadEnvFile === 'function') {
+    const envPath = path.resolve(process.cwd(), '.env');
+    if (fs.existsSync(envPath)) {
+      process.loadEnvFile(envPath);
+    }
+  }
+} catch {
+  // Ignored if .env already loaded
+}
+
+import { connectDB } from './config/db.js';
+import { initDatabase, dbPath } from './db.js';
 
 import authRoutes from './routes/auth.js';
 import usersRoutes from './routes/users.js';
@@ -11,14 +27,22 @@ import budgetsRoutes from './routes/budgets.js';
 import reportsRoutes from './routes/reports.js';
 import calendarRoutes from './routes/calendar.js';
 import settingsRoutes from './routes/settings.js';
-import aiRoutes from './routes/ai.js';
 import syncRoutes from './routes/sync.js';
 import notificationsRoutes from './routes/notifications.js';
+
+// MongoDB Core v1 Routes
+import accountsMongoRoutes from './routes/accountsMongo.js';
+import transactionsMongoRoutes from './routes/transactionsMongo.js';
+import dashboardMongoRoutes from './routes/dashboardMongo.js';
+import authMongoRoutes from './routes/authMongo.js';
+import usersMongoRoutes from './routes/usersMongo.js';
+import downloadRoutes from './routes/download.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Initialize Database & Seed Default Records
+// Initialize MongoDB Atlas connection & legacy SQLite fallbacks
+connectDB().catch((err) => console.warn('[MongoDB Init Non-fatal]:', err.message));
 initDatabase();
 
 // Middleware
@@ -45,27 +69,47 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health check
-app.get('/api/health', (req, res) => {
+// Health check routes
+const healthHandler = (req, res) => {
   res.json({
     status: 'ok',
     service: 'Galaxy Finance Mobile & Web Engine',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    database: 'MongoDB Atlas + SQLite Fallback Connected',
+    env: process.env.NODE_ENV || 'development'
   });
-});
+};
 
-// Mount Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/users', usersRoutes);
-app.use('/api/v1/users', usersRoutes);
-app.use('/api/banks', banksRoutes);
-app.use('/api/transactions', transactionsRoutes);
+app.get('/health', healthHandler);
+app.get('/api/health', healthHandler);
+app.get('/api/v1/health', healthHandler);
+
+// MongoDB Atlas Endpoints (v1 & General API prefixes)
+app.use('/api/v1/auth', authMongoRoutes);
+app.use('/api/auth', authMongoRoutes);
+
+app.use('/api/v1/users', usersMongoRoutes);
+app.use('/api/users', usersMongoRoutes);
+
+app.use('/api/v1/accounts', accountsMongoRoutes);
+app.use('/api/accounts', accountsMongoRoutes);
+app.use('/api/banks', accountsMongoRoutes); // Direct MongoDB Accounts alias
+
+app.use('/api/v1/transactions', transactionsMongoRoutes);
+app.use('/api/transactions', transactionsMongoRoutes);
+
+app.use('/api/v1/dashboard', dashboardMongoRoutes);
+app.use('/api/dashboard', dashboardMongoRoutes);
+
+app.use('/api/v1/download', downloadRoutes);
+app.use('/download', downloadRoutes);
+
+// Ancillary Routes (Budgets, Reports, Settings, Calendar, Sync)
 app.use('/api/budgets', budgetsRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/settings', settingsRoutes);
-app.use('/api/ai', aiRoutes);
 app.use('/api/sync', syncRoutes);
 app.use('/api/notifications', notificationsRoutes);
 
@@ -80,8 +124,10 @@ app.use((err, req, res, _next) => {
 // Start Server
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
-    console.log(`🌌 RupeeWise API Engine listening on http://localhost:${PORT}`);
-    console.log(`🔒 Security: Scrypt Password Hashing, Session Isolation, Scoped Queries Enabled`);
+    console.log(`🌌 Galaxy Finance API Engine listening on http://localhost:${PORT}`);
+    console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🍃 MongoDB Atlas: ${process.env.MONGODB_URI ? 'Connected' : 'Using Default'}`);
+    console.log(`📁 Fallback SQLite Path: ${dbPath}`);
   });
 }
 

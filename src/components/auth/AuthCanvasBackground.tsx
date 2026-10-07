@@ -120,12 +120,12 @@ export const AuthCanvasBackground: React.FC = () => {
       if (elapsed >= frameInterval) {
         lastFrameTime = currentTime - (elapsed % frameInterval);
 
-        // Fill pitch black background
-        ctx.fillStyle = '#0D0D11';
+        // Fill Deep Forest dark void background
+        ctx.fillStyle = '#1A312C';
         ctx.fillRect(0, 0, width, height);
 
-        // Soft ambient radial glows (wine top-right, slate bottom-left)
-        const wineGlow = ctx.createRadialGradient(
+        // Soft ambient radial glows (Jade top-right, Emerald bottom-left)
+        const jadeGlow = ctx.createRadialGradient(
           width * 0.8,
           height * 0.2,
           10,
@@ -133,12 +133,12 @@ export const AuthCanvasBackground: React.FC = () => {
           height * 0.2,
           width * 0.5
         );
-        wineGlow.addColorStop(0, 'rgba(74, 18, 26, 0.16)');
-        wineGlow.addColorStop(1, 'rgba(13, 13, 17, 0)');
-        ctx.fillStyle = wineGlow;
+        jadeGlow.addColorStop(0, 'rgba(137, 215, 183, 0.18)');
+        jadeGlow.addColorStop(1, 'rgba(26, 49, 44, 0)');
+        ctx.fillStyle = jadeGlow;
         ctx.fillRect(0, 0, width, height);
 
-        const slateGlow = ctx.createRadialGradient(
+        const emeraldGlow = ctx.createRadialGradient(
           width * 0.2,
           height * 0.85,
           10,
@@ -146,9 +146,9 @@ export const AuthCanvasBackground: React.FC = () => {
           height * 0.85,
           width * 0.45
         );
-        slateGlow.addColorStop(0, 'rgba(142, 146, 157, 0.06)');
-        slateGlow.addColorStop(1, 'rgba(13, 13, 17, 0)');
-        ctx.fillStyle = slateGlow;
+        emeraldGlow.addColorStop(0, 'rgba(66, 132, 117, 0.24)');
+        emeraldGlow.addColorStop(1, 'rgba(26, 49, 44, 0)');
+        ctx.fillStyle = emeraldGlow;
         ctx.fillRect(0, 0, width, height);
 
         // Update & Render nodes
@@ -177,7 +177,7 @@ export const AuthCanvasBackground: React.FC = () => {
           // Draw node
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(142, 146, 157, ${p.baseOpacity})`;
+          ctx.fillStyle = `rgba(255, 244, 225, ${p.baseOpacity * 0.8})`;
           ctx.fill();
 
           // Connect neighbor vectors
@@ -188,18 +188,18 @@ export const AuthCanvasBackground: React.FC = () => {
             const dist = Math.hypot(dx, dy);
 
             if (dist < 130) {
-              const linkOpacity = (1 - dist / 130) * 0.16;
+              const linkOpacity = (1 - dist / 130) * 0.3;
               ctx.beginPath();
               ctx.moveTo(p.x, p.y);
               ctx.lineTo(p2.x, p2.y);
-              ctx.strokeStyle = `rgba(142, 146, 157, ${linkOpacity})`;
-              ctx.lineWidth = 0.75;
+              ctx.strokeStyle = `rgba(137, 215, 183, ${linkOpacity})`;
+              ctx.lineWidth = 0.8;
               ctx.stroke();
             }
           }
         }
 
-        // Draw active handshake ruby pulses
+        // Draw active handshake jade pulses
         if (!prefersReducedMotion) {
           for (let k = pulses.length - 1; k >= 0; k--) {
             const pulse = pulses[k];
@@ -220,22 +220,22 @@ export const AuthCanvasBackground: React.FC = () => {
             const currentX = from.x + (to.x - from.x) * pulse.progress;
             const currentY = from.y + (to.y - from.y) * pulse.progress;
 
-            // Faint crimson trailing line segment
+            // Luminous jade trailing line segment
             ctx.beginPath();
             ctx.moveTo(
               from.x + (to.x - from.x) * Math.max(0, pulse.progress - 0.2),
               from.y + (to.y - from.y) * Math.max(0, pulse.progress - 0.2)
             );
             ctx.lineTo(currentX, currentY);
-            ctx.strokeStyle = 'rgba(211, 47, 47, 0.45)';
+            ctx.strokeStyle = 'rgba(137, 215, 183, 0.6)';
             ctx.lineWidth = 1.2;
             ctx.stroke();
 
-            // Ruby pulse core
+            // Jade pulse core
             ctx.beginPath();
-            ctx.arc(currentX, currentY, 2.2, 0, Math.PI * 2);
-            ctx.fillStyle = '#E53935';
-            ctx.shadowColor = '#D32F2F';
+            ctx.arc(currentX, currentY, 2.4, 0, Math.PI * 2);
+            ctx.fillStyle = '#89D7B7';
+            ctx.shadowColor = '#89D7B7';
             ctx.shadowBlur = 6;
             ctx.fill();
             ctx.shadowBlur = 0; // reset
@@ -258,7 +258,7 @@ export const AuthCanvasBackground: React.FC = () => {
   }, []);
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#0D0D11]">
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#1A312C]">
       <canvas ref={canvasRef} className="w-full h-full block" />
     </div>
   );

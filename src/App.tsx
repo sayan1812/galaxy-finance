@@ -4,7 +4,8 @@ import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Header } from './components/layout/Header';
 import { DesktopSidebar } from './components/layout/DesktopSidebar';
-import { BottomNav } from './components/layout/BottomNav';
+import { MobileDrawer } from './components/layout/MobileDrawer';
+import { InstallAppModal } from './components/common/InstallAppModal';
 import { CosmicBackground } from './components/galaxy/CosmicBackground';
 import { TransactionFormModal } from './components/transactions/TransactionFormModal';
 import { CashTransactionModal } from './components/transactions/CashTransactionModal';
@@ -16,9 +17,8 @@ import { ConfirmModal } from './components/layout/ConfirmModal';
 import { MicroInteractionToast } from './components/common/MicroInteractionToast';
 import { AuthModal } from './components/auth/AuthModal';
 import { AuthScreen } from './components/auth/AuthScreen';
-import { AiAssistantModal } from './components/ai/AiAssistantModal';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
-import { Bot, Sparkles, ShieldCheck, PlusCircle } from 'lucide-react';
+import { ShieldCheck, PlusCircle } from 'lucide-react';
 
 // Pages
 import { DashboardPage } from './pages/DashboardPage';
@@ -32,6 +32,7 @@ import { SettingsPage } from './pages/SettingsPage';
 
 const MainLayout: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [hasTriggeredOnboarding, setHasTriggeredOnboarding] = useState(false);
 
   const { 
@@ -46,12 +47,9 @@ const MainLayout: React.FC = () => {
     setEditingBank,
     microInteraction,
     clearMicroInteraction,
-    isAiModalOpen,
-    setIsAiModalOpen,
     deleteConfirmation,
     cancelDeleteTransaction,
     confirmDeleteTransaction,
-    triggerMicroInteraction
   } = useTransactions();
 
   // First-time user onboarding: If user has 0 linked accounts, open wizard
@@ -119,28 +117,32 @@ const MainLayout: React.FC = () => {
       <DesktopSidebar currentTab={currentTab} setCurrentTab={setCurrentTab} />
 
       {/* Main Content Area */}
-      <div className="relative z-10 flex-1 flex flex-col min-w-0 pb-20 lg:pb-8">
+      <div className="relative z-10 flex-1 flex flex-col min-w-0 pb-8">
         {/* Top Header */}
-        <Header currentTab={currentTab} setCurrentTab={setCurrentTab} />
+        <Header 
+          currentTab={currentTab} 
+          setCurrentTab={setCurrentTab} 
+          onOpenDrawer={() => setIsMobileDrawerOpen(true)} 
+        />
 
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-5 sm:pt-6">
           {/* First-time Onboarding Callout Banner if user has 0 linked accounts */}
           {bankAccounts && bankAccounts.length === 0 && (
-            <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-[rgba(74,18,26,0.25)] border border-[rgba(229,57,53,0.35)] shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-micro-pop">
+            <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-micro-pop">
               <div className="flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-[rgba(229,57,53,0.15)] border border-[rgba(229,57,53,0.3)] flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-5 h-5 text-[#E53935]" />
+                <div className="w-10 h-10 rounded-xl bg-[var(--row-hover-bg)] border border-[var(--card-border)] flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-5 h-5 text-[var(--accent-primary)]" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-[#FBFBFB]">Initialize Your First Account Vault</h4>
-                  <p className="text-xs text-[#8E929D] mt-0.5">
+                  <h4 className="text-sm font-bold text-[var(--text-headings)]">Initialize Your First Account Vault</h4>
+                  <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                     Link your primary bank account or setup your cash reserve to unlock automated financial telemetry.
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setIsAddBankModalOpen(true)}
-                className="btn-crimson shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white cursor-pointer"
+                className="btn-primary shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer"
               >
                 <PlusCircle className="w-4 h-4" />
                 <span>Add Bank / Cash Account</span>
@@ -152,19 +154,16 @@ const MainLayout: React.FC = () => {
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation */}
-      <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
+      {/* Mobile Slide-Out Drawer Navigation */}
+      <MobileDrawer 
+        isOpen={isMobileDrawerOpen} 
+        onClose={() => setIsMobileDrawerOpen(false)} 
+        currentTab={currentTab} 
+        setCurrentTab={setCurrentTab} 
+      />
 
-      {/* Floating AI Agent Trigger Button (Desktop / Tablet) */}
-      <button
-        onClick={() => setIsAiModalOpen(true)}
-        className="fixed bottom-6 right-6 z-40 hidden sm:flex items-center gap-2 px-4 py-3 rounded-2xl bg-gradient-to-tr from-cyan-500 via-indigo-600 to-purple-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-bold text-xs shadow-xl shadow-cyan-500/25 border border-cyan-300/40 active:scale-95 transition-all cursor-pointer group"
-        title="Open Cosmic AI Financial Agent"
-      >
-        <Bot size={18} className="text-slate-950 group-hover:rotate-12 transition-transform" />
-        <span className="text-slate-950 font-black tracking-wide">Cosmic AI Agent</span>
-        <Sparkles size={14} className="text-amber-300 animate-spin" style={{ animationDuration: '4s' }} />
-      </button>
+      {/* PWA & APK Download Notification Popup */}
+      <InstallAppModal />
 
       {/* Global Modals & Micro-Interactions */}
       <TransactionFormModal />
@@ -202,13 +201,6 @@ const MainLayout: React.FC = () => {
 
       {/* Authentication Modal */}
       <AuthModal />
-
-      {/* AI Assistant Modal */}
-      <AiAssistantModal
-        isOpen={isAiModalOpen}
-        onClose={() => setIsAiModalOpen(false)}
-        onTriggerMicroReaction={triggerMicroInteraction}
-      />
     </div>
   );
 };
@@ -219,13 +211,13 @@ const AppGate: React.FC = () => {
   // 1. Initializing state: High-security executive splash screen
   if (authState === 'INITIALIZING') {
     return (
-      <div className="min-h-screen bg-[#0D0D11] flex flex-col items-center justify-center text-[#FBFBFB] relative overflow-hidden select-none">
+      <div className="min-h-screen bg-[var(--bg-page)] flex flex-col items-center justify-center text-[var(--text-primary)] relative overflow-hidden select-none">
         <div className="relative flex items-center justify-center">
-          <div className="w-16 h-16 rounded-full border-2 border-[rgba(74,18,26,0.6)] border-t-[#D32F2F] animate-spin" />
-          <ShieldCheck className="w-6 h-6 text-[#E53935] absolute" />
+          <div className="w-16 h-16 rounded-full border-2 border-[var(--card-border)] border-t-[var(--accent-primary)] animate-spin" />
+          <ShieldCheck className="w-6 h-6 text-[var(--accent-primary)] absolute" />
         </div>
-        <div className="mt-5 font-mono text-xs uppercase tracking-widest text-[#8E929D] animate-pulse">
-          Restoring Quantum Security Telemetry...
+        <div className="mt-5 font-mono text-xs uppercase tracking-widest text-[var(--text-secondary)] animate-pulse">
+          Restoring Financial Telemetry...
         </div>
       </div>
     );

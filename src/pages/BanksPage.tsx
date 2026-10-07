@@ -14,6 +14,7 @@ import { BankModal } from '../components/banks/BankModal';
 import { BankDetailModal } from '../components/banks/BankDetailModal';
 import { CashExpenseModal } from '../components/cash/CashExpenseModal';
 import { SyncStatusBar } from '../components/sync/SyncStatusBar';
+import { ConfirmModal } from '../components/layout/ConfirmModal';
 import type { BankAccount } from '../types';
 
 export const BanksPage: React.FC = () => {
@@ -43,10 +44,10 @@ export const BanksPage: React.FC = () => {
       b.bank.accountType.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const [bankToDelete, setBankToDelete] = useState<BankAccount | null>(null);
+
   const handleDeleteBank = (bank: BankAccount) => {
-    if (window.confirm(`Are you sure you want to remove ${bank.bankName} (${bank.nickname})?`)) {
-      deleteBankAccount(bank.id);
-    }
+    setBankToDelete(bank);
   };
 
   const handleEditBank = (bank: BankAccount) => {
@@ -309,6 +310,21 @@ export const BanksPage: React.FC = () => {
         isOpen={isCashExpenseOpen}
         onClose={() => setIsCashExpenseOpen(false)}
       />
+
+      {bankToDelete && (
+        <ConfirmModal
+          isOpen={!!bankToDelete}
+          title="Delete Bank Account?"
+          message={`Are you sure you want to delete ${bankToDelete.bankName} (${bankToDelete.nickname})? All associated transaction records will be removed and Net Available Capital will be recalculated.`}
+          confirmLabel="Delete Account"
+          isDestructive={true}
+          onConfirm={() => {
+            deleteBankAccount(bankToDelete.id);
+            setBankToDelete(null);
+          }}
+          onCancel={() => setBankToDelete(null)}
+        />
+      )}
     </div>
   );
 };

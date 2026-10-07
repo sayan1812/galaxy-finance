@@ -10,10 +10,14 @@ import {
   Legend 
 } from 'recharts';
 import { useTransactions } from '../../context/TransactionContext';
-import { formatCurrency, formatCompactCurrency } from '../../utils/formatters';
+import { useTheme } from '../../context/ThemeContext';
+import { formatCompactCurrency } from '../../utils/formatters';
+import { CustomChartTooltip } from './CustomChartTooltip';
 
 export const IncomeExpenseChart: React.FC = () => {
   const { transactions, settings } = useTransactions();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark' || theme === 'galaxy';
 
   const data = useMemo(() => {
     const monthsData: { [key: string]: { monthKey: string; label: string; income: number; expense: number } } = {};
@@ -41,88 +45,75 @@ export const IncomeExpenseChart: React.FC = () => {
     return Object.values(monthsData);
   }, [transactions]);
 
+  // Color tokens
+  const gridStroke = isDark ? 'rgba(137, 215, 183, 0.15)' : 'rgba(40, 122, 116, 0.12)';
+  const tickColor = isDark ? 'rgba(255, 244, 225, 0.72)' : '#55A9A0';
+  const axisColor = isDark ? 'rgba(137, 215, 183, 0.22)' : 'rgba(40, 122, 116, 0.18)';
+  const cursorFill = isDark ? 'rgba(66, 132, 117, 0.2)' : 'rgba(174, 238, 211, 0.35)';
+  const inflowFill = isDark ? '#89D7B7' : '#287A74';
+  const outflowFill = isDark ? '#FF8A8A' : '#D9534F';
+
   return (
-    <div className="fin-card bg-[#13131A] p-5 rounded-2xl border border-[rgba(74,18,26,0.35)] shadow-xs flex flex-col justify-between">
+    <div className="fin-card p-5 rounded-2xl flex flex-col justify-between">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="font-bold text-sm sm:text-base text-[#FBFBFB] tracking-tight">
+          <h3 className="font-bold text-sm sm:text-base tracking-tight text-[var(--text-headings)]">
             Monthly Cash Flow
           </h3>
-          <p className="text-xs text-[#8E929D]">
+          <p className="text-xs text-[var(--text-secondary)]">
             6-Month Inflow vs Outflow Telemetry
           </p>
         </div>
       </div>
 
-      <div className="h-64 w-full">
+      <div className="h-64 w-full chart-container-fluid">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#8E929D" opacity={0.12} />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridStroke} opacity={0.8} />
             <XAxis 
               dataKey="label" 
-              tick={{ fontSize: 11, fill: '#8E929D' }} 
-              axisLine={false} 
+              tick={{ fontSize: 11, fill: tickColor }} 
+              axisLine={{ stroke: axisColor }} 
               tickLine={false} 
             />
             <YAxis 
-              tick={{ fontSize: 10, fill: '#8E929D' }} 
+              tick={{ fontSize: 10, fill: tickColor }} 
               axisLine={false} 
               tickLine={false}
               tickFormatter={(v) => formatCompactCurrency(v, settings.currency)}
             />
             <Tooltip
-              content={({ active, payload }) => {
-                if (active && payload && payload.length) {
-                  const item = payload[0].payload;
-                  const net = item.income - item.expense;
-                  return (
-                    <div className="bg-[#13131A] text-[#FBFBFB] px-3.5 py-2.5 rounded-xl text-xs shadow-xl border border-[rgba(74,18,26,0.5)] space-y-1.5 backdrop-blur-md">
-                      <div className="font-semibold text-[#8E929D] uppercase tracking-wider text-[10px]">{item.label}</div>
-                      <div className="flex items-center justify-between gap-4 text-emerald-400 font-mono">
-                        <span className="text-[#8E929D] font-sans">Inflow:</span>
-                        <span className="font-bold">+{formatCurrency(item.income, settings.currency)}</span>
-                      </div>
-                      <div className="flex items-center justify-between gap-4 text-[#E53935] font-mono">
-                        <span className="text-[#8E929D] font-sans">Outflow:</span>
-                        <span className="font-bold">-{formatCurrency(item.expense, settings.currency)}</span>
-                      </div>
-                      <div className="border-t border-[rgba(255,255,255,0.08)] pt-1 flex items-center justify-between gap-4 text-[#FBFBFB] font-mono">
-                        <span className="text-[#8E929D] font-sans">Net:</span>
-                        <span className={`font-bold ${net >= 0 ? 'text-emerald-400' : 'text-[#E53935]'}`}>
-                          {net >= 0 ? '+' : ''}{formatCurrency(net, settings.currency)}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
-              }}
+              cursor={{ fill: cursorFill, radius: 6 }}
+              offset={12}
+              content={<CustomChartTooltip currency={settings.currency} type="cashflow" />}
             />
             <Legend 
               verticalAlign="top" 
               align="right" 
               iconType="circle"
-              wrapperStyle={{ paddingBottom: '10px', fontSize: '11px', color: '#8E929D' }}
+              wrapperStyle={{ paddingBottom: '10px', fontSize: '11px', color: tickColor }}
             />
             <Bar 
               dataKey="income" 
               name="Inflow"
-              fill="#10B981" 
+              fill={inflowFill} 
               radius={[4, 4, 0, 0]} 
               maxBarSize={20}
               isAnimationActive={true}
               animationDuration={600}
               animationEasing="ease-out"
+              className="transition-opacity hover:opacity-90 cursor-pointer"
             />
             <Bar 
               dataKey="expense" 
               name="Outflow"
-              fill="#E53935" 
+              fill={outflowFill} 
               radius={[4, 4, 0, 0]} 
               maxBarSize={20}
               isAnimationActive={true}
               animationDuration={600}
               animationEasing="ease-out"
+              className="transition-opacity hover:opacity-90 cursor-pointer"
             />
           </BarChart>
         </ResponsiveContainer>
@@ -130,3 +121,5 @@ export const IncomeExpenseChart: React.FC = () => {
     </div>
   );
 };
+
+export const MonthlyCashFlowChart = IncomeExpenseChart;

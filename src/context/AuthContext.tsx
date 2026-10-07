@@ -32,6 +32,7 @@ interface AuthContextType {
   forgotPassword: (identifier: string) => Promise<any>;
   resetPassword: (data: any) => Promise<void>;
   refreshUser: () => Promise<void>;
+  deleteMyAccount: (password?: string) => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -107,16 +108,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     refreshUser();
   }, [refreshUser]);
 
-  // Listen for Firebase auth state changes
+  // Listen for Firebase auth state changes & synchronize with MongoDB
   useEffect(() => {
     const unsubscribe = onFirebaseAuthStateChanged(async (fbUser) => {
       if (fbUser) {
         try {
           const idToken = await fbUser.getIdToken();
-          api.setToken(idToken);
+          const syncRes = await api.googleSync({
+            email: fbUser.email || '',
+            name: fbUser.displayName || undefined,
+            photoURL: fbUser.photoURL || undefined,
+            uid: fbUser.uid,
+            idToken,
+          });
           const appUser: User = {
-            id: fbUser.uid,
-            name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Executive User',
+            id: syncRes.user?.id || fbUser.uid,
+            name: syncRes.user?.name || fbUser.displayName || fbUser.email?.split('@')[0] || 'Executive User',
             email: fbUser.email || '',
             emailVerified: fbUser.emailVerified,
             phoneVerified: false,
@@ -126,11 +133,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           localStorage.setItem('rupeewise_user', JSON.stringify(appUser));
           setAuthState('AUTHENTICATED');
         } catch {
-          // fallback to existing flow
+          // fallback
         }
       }
     });
-    return () => unsubscribe();
+
+    const handleUnauthorized = () => {
+      setUser(null);
+      setAuthState('UNAUTHENTICATED');
+    };
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    };
   }, []);
 
   const login = async (identifier: string, password: string, rememberMe = true) => {
@@ -150,16 +167,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithGoogle = async () => {
     setAuthState('AUTHENTICATING');
     try {
-      const { user: fbUser, token } = await signInWithGoogle();
+      const { user: fbUser, token: fbToken } = await signInWithGoogle();
+      const syncRes = await api.googleSync({
+        email: fbUser.email || '',
+        name: fbUser.displayName || undefined,
+        photoURL: fbUser.photoURL || undefined,
+        uid: fbUser.uid,
+        idToken: fbToken,
+      });
       const appUser: User = {
-        id: fbUser.uid,
-        name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Executive User',
+        id: syncRes.user?.id || fbUser.uid,
+        name: syncRes.user?.name || fbUser.displayName || fbUser.email?.split('@')[0] || 'Executive User',
         email: fbUser.email || '',
         emailVerified: fbUser.emailVerified,
         phoneVerified: false,
         avatarUrl: fbUser.photoURL || undefined
       };
-      api.setToken(token);
       setUser(appUser);
       localStorage.setItem('rupeewise_user', JSON.stringify(appUser));
       setAuthState('AUTHENTICATED');
@@ -199,6 +222,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     api.setToken(null);
     setUser(null);
     localStorage.removeItem('rupeewise_user');
+    setAuthState('UNAUTHENTICATED');
+  };
+
+  const deleteMyAccount = async (password?: string) => {
+    try {
+      await api.deleteMyAccount(password);
+    } catch {
+      // continue local cleanup
+    }
+    try {
+      await logOutFromFirebase();
+    } catch {
+      // continue local cleanup
+    }
+    api.setToken(null);
+    setUser(null);
+    localStorage.removeItem('rupeewise_user');
+    localStorage.removeItem('rupeewise_token');
     setAuthState('UNAUTHENTICATED');
   };
 
@@ -249,6 +290,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginWithGoogle,
         register,
         logout,
+        deleteMyAccount,
         verifyEmail,
         sendVerificationEmail,
         sendOtp,

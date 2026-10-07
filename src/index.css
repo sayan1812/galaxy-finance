@@ -1,121 +1,156 @@
 @import "tailwindcss";
 
 /**
- * GALAXY FINANCE — CRIMSON NOIR & SLATE EDITION
- * Design System Stylesheet & CSS Variables
+ * GALAXY FINANCE — BI-MODAL JADE/EMERALD & SOFT CREAM DESIGN SYSTEM
  *
- * Palette:
- * - Base Pitch Black:      #0D0D11
- * - Deep Wine / Maroon:    #4A121A
- * - Vivid Crimson / Ruby:  #D32F2F / #E53935
- * - Slate / Cool Steel:    #8E929D
- * - Crisp White:           #FBFBFB
- * - Subtle Border Stroke:  rgba(255, 255, 255, 0.08) in dark, rgba(74, 18, 26, 0.28) on wine surfaces
+ * Dark Mode:
+ * - Deep Forest / Canvas Void:     #1A312C
+ * - Mid Emerald / Surface Fill:     #428475
+ * - Luminous Jade / Primary Accent: #89D7B7
+ * - Soft Warm Cream / Typography:   #FFF4E1
+ * - Muted Text / Secondary:        rgba(255, 244, 225, 0.72)
+ * - Subtle Card Border / Rim:       rgba(137, 215, 183, 0.22)
+ * - Elevated Surface Dropshadow:    0 8px 30px -4px rgba(0, 0, 0, 0.5)
+ *
+ * Light Mode:
+ * - Rich Pine Teal / Primary Text:  #287A74
+ * - Soft Spruce / Secondary Text:   #55A9A0
+ * - Mint Glow / Surface & Hover:    #AEEED3
+ * - Butter Cream / Light Base:      #FFF8B0
+ * - High-Contrast Text:             #143834
+ * - Card Surface:                   #FFFFFF (with subtle tint of #FFF8B0)
+ * - Subtle Card Border:             rgba(40, 122, 116, 0.18)
  */
 
 @layer base {
-  :root, .dark, .galaxy {
-    --bg-pitch: #0D0D11;
-    --bg-page: #0D0D11;
-    --bg-secondary: #13131A;
-    --bg-subsurface: #4A121A;
-    --bg-wine-subtle: rgba(74, 18, 26, 0.35);
-    --bg-wine-glass: rgba(74, 18, 26, 0.18);
-
-    --card-bg: #13131A;
-    --card-border: rgba(74, 18, 26, 0.35);
-    --card-border-hover: rgba(229, 57, 53, 0.35);
-    --card-shadow-hover: 0 10px 25px -5px rgba(74, 18, 26, 0.25);
-
-    --text-primary: #FBFBFB;
-    --text-secondary: #8E929D;
-    --text-muted: #5A5D6B;
-
-    --accent-primary: #D32F2F;
-    --accent-ruby: #E53935;
-    --accent-wine: #4A121A;
-    --accent-slate: #8E929D;
-    --accent-glow: rgba(211, 47, 47, 0.2);
-
-    --btn-primary-bg: #D32F2F;
-    --btn-primary-hover-bg: #B71C1C;
-    --btn-primary-text: #FBFBFB;
-    --btn-primary-shadow: 0 4px 14px rgba(211, 47, 47, 0.3);
-
-    --btn-secondary-bg: rgba(74, 18, 26, 0.25);
-    --btn-secondary-border: rgba(142, 146, 157, 0.25);
-    --btn-secondary-text: #8E929D;
-    --btn-secondary-text-hover: #FBFBFB;
-    --btn-secondary-border-hover: #8E929D;
-
-    --row-hover-bg: rgba(255, 255, 255, 0.03);
-    --input-border: rgba(142, 146, 157, 0.2);
-    --input-focus-border: #D32F2F;
-    --input-focus-ring: 0 0 0 2px rgba(211, 47, 47, 0.2);
-
-    --header-bg: rgba(13, 13, 17, 0.88);
-    --sidebar-bg: rgba(13, 13, 17, 0.94);
-    --divider: rgba(255, 255, 255, 0.07);
-
-    color-scheme: dark;
-  }
-
-  .light {
-    --bg-pitch: #FBFBFB;
-    --bg-page: #FBFBFB;
-    --bg-secondary: #F3F4F6;
-    --bg-subsurface: #F5ECEE;
-    --bg-wine-subtle: rgba(74, 18, 26, 0.06);
-    --bg-wine-glass: rgba(74, 18, 26, 0.04);
+  /* ==============================================================================
+   * 1. LIGHT MODE THEME TOKENS (DEFAULT)
+   * ============================================================================== */
+  :root, .light, [data-theme="light"] {
+    --bg-pitch: #F4F8F6;
+    --bg-page: #F4F8F6;
+    --bg-secondary: #FFFFFF;
+    --bg-surface: #FFFFFF;
+    --bg-subsurface: rgba(40, 122, 116, 0.05);
+    --bg-glass: rgba(255, 255, 255, 0.88);
 
     --card-bg: #FFFFFF;
-    --card-border: rgba(74, 18, 26, 0.14);
-    --card-border-hover: rgba(229, 57, 53, 0.45);
-    --card-shadow-hover: 0 10px 25px -5px rgba(74, 18, 26, 0.15);
+    --card-border: rgba(40, 122, 116, 0.18);
+    --card-border-hover: #287A74;
+    --card-shadow: 0 4px 20px -2px rgba(40, 122, 116, 0.08), 0 2px 6px -1px rgba(40, 122, 116, 0.05);
+    --card-shadow-hover: 0 8px 24px -2px rgba(40, 122, 116, 0.14), 0 0 16px -2px rgba(85, 169, 160, 0.25);
 
-    --text-primary: #111116;
-    --text-secondary: #525560;
-    --text-muted: #8E929D;
+    --text-primary: #133834;
+    --text-headings: #133834;
+    --text-secondary: #3D6660;
+    --text-muted: #3D6660;
 
-    --accent-primary: #D32F2F;
-    --accent-ruby: #E53935;
-    --accent-wine: #4A121A;
-    --accent-slate: #606470;
-    --accent-glow: rgba(211, 47, 47, 0.12);
+    --accent-primary: #287A74;
+    --accent-secondary: #55A9A0;
+    --accent-mint: #89D7B7;
+    --accent-butter: #F4F8F6;
+    --accent-glow: rgba(40, 122, 116, 0.2);
+    --accent-outflow: #EF4444;
 
-    --btn-primary-bg: #D32F2F;
-    --btn-primary-hover-bg: #B71C1C;
-    --btn-primary-text: #FBFBFB;
-    --btn-primary-shadow: 0 4px 14px rgba(211, 47, 47, 0.25);
+    --btn-primary-bg: #287A74;
+    --btn-primary-hover-bg: #1e605b;
+    --btn-primary-text: #FFFFFF;
+    --btn-primary-shadow: 0 4px 14px rgba(40, 122, 116, 0.25);
+    --btn-primary-outline-hover: 1px solid rgba(40, 122, 116, 0.6);
 
-    --btn-secondary-bg: #F5ECEE;
-    --btn-secondary-border: rgba(74, 18, 26, 0.2);
-    --btn-secondary-text: #525560;
-    --btn-secondary-text-hover: #111116;
-    --btn-secondary-border-hover: #8E929D;
+    --btn-secondary-bg: #FFFFFF;
+    --btn-secondary-border: rgba(40, 122, 116, 0.25);
+    --btn-secondary-text: #287A74;
+    --btn-secondary-text-hover: #133834;
+    --btn-secondary-border-hover: #287A74;
 
-    --row-hover-bg: rgba(74, 18, 26, 0.04);
-    --input-border: rgba(74, 18, 26, 0.18);
-    --input-focus-border: #D32F2F;
-    --input-focus-ring: 0 0 0 2px rgba(211, 47, 47, 0.2);
+    --row-hover-bg: rgba(40, 122, 116, 0.06);
+    --input-bg: #FFFFFF;
+    --input-border: rgba(40, 122, 116, 0.28);
+    --input-focus-border: #287A74;
+    --input-focus-ring: 0 0 0 2px rgba(40, 122, 116, 0.3);
 
-    --header-bg: rgba(251, 251, 251, 0.92);
-    --sidebar-bg: rgba(251, 251, 251, 0.96);
-    --divider: rgba(74, 18, 26, 0.08);
+    --header-bg: rgba(244, 248, 246, 0.92);
+    --sidebar-bg: rgba(244, 248, 246, 0.96);
+    --divider: rgba(40, 122, 116, 0.18);
+    --chart-cursor-fill: rgba(40, 122, 116, 0.15);
 
     color-scheme: light;
   }
 
-  body {
+  /* ==============================================================================
+   * 2. DARK MODE & GALAXY THEME TOKENS
+   * ============================================================================== */
+  .dark, .galaxy, [data-theme="dark"], [data-theme="galaxy"] {
+    --bg-pitch: #10221E;
+    --bg-page: #10221E;
+    --bg-secondary: #1E3A34;
+    --bg-surface: #1E3A34;
+    --bg-subsurface: rgba(30, 58, 52, 0.6);
+    --bg-glass: rgba(30, 58, 52, 0.7);
+
+    --card-bg: #1E3A34;
+    --card-border: rgba(137, 215, 183, 0.22);
+    --card-border-hover: #89D7B7;
+    --card-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.5);
+    --card-shadow-hover: 0 12px 36px -4px rgba(0, 0, 0, 0.6), 0 0 24px -2px rgba(137, 215, 183, 0.28);
+
+    --text-primary: #FFF4E1;
+    --text-headings: #FFF4E1;
+    --text-secondary: rgba(255, 244, 225, 0.72);
+    --text-muted: rgba(255, 244, 225, 0.52);
+
+    --accent-primary: #89D7B7;
+    --accent-secondary: #55A9A0;
+    --accent-mint: #89D7B7;
+    --accent-butter: #FFF4E1;
+    --accent-glow: rgba(137, 215, 183, 0.25);
+    --accent-outflow: #EF4444;
+
+    --btn-primary-bg: #89D7B7;
+    --btn-primary-hover-bg: #a3e2c9;
+    --btn-primary-text: #10221E;
+    --btn-primary-shadow: 0 4px 16px rgba(137, 215, 183, 0.35);
+    --btn-primary-outline-hover: 1px solid rgba(255, 244, 225, 0.7);
+
+    --btn-secondary-bg: rgba(30, 58, 52, 0.6);
+    --btn-secondary-border: rgba(137, 215, 183, 0.25);
+    --btn-secondary-text: #FFF4E1;
+    --btn-secondary-text-hover: #89D7B7;
+    --btn-secondary-border-hover: #89D7B7;
+
+    --row-hover-bg: rgba(137, 215, 183, 0.1);
+    --input-bg: rgba(16, 34, 30, 0.85);
+    --input-border: rgba(137, 215, 183, 0.28);
+    --input-focus-border: #89D7B7;
+    --input-focus-ring: 0 0 0 2px rgba(137, 215, 183, 0.4);
+
+    --header-bg: rgba(16, 34, 30, 0.92);
+    --sidebar-bg: rgba(16, 34, 30, 0.96);
+    --divider: rgba(137, 215, 183, 0.18);
+    --chart-cursor-fill: rgba(137, 215, 183, 0.15);
+
+    color-scheme: dark;
+  }
+
+  html, body {
     background-color: var(--bg-page);
     color: var(--text-primary);
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     -webkit-tap-highlight-color: transparent;
-    transition: background-color 0.25s ease, color 0.25s ease;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Prevent iOS Safari auto-zoom on input focus */
+  input, select, textarea {
+    font-size: 16px !important;
   }
 }
 
-/* Reduced Motion Support - Strict zero motion compliance */
+/* Reduced Motion Support */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.001ms !important;
@@ -135,104 +170,135 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(142, 146, 157, 0.3);
+  background: var(--card-border);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(211, 47, 47, 0.6);
+  background: var(--accent-primary);
 }
 
 /* ==============================================================================
- * MICRO-INTERACTIONS SPECIFICATION
+ * MOBILE ERGONOMICS & SAFE AREA UTILITIES
  * ============================================================================== */
 
-/* A. Financial Cards:
- * Normal: Deep surface fill, 1px subtle wine-tinted border, scale: 1, translateY: 0.
- * Hover: translateY(-3px), scale: 1.012, border-color: rgba(229, 57, 53, 0.35), subtle wine drop-shadow: 0 10px 25px -5px rgba(74, 18, 26, 0.25).
- * Transition: 250ms cubic-bezier(0.2, 0.0, 0, 1.0).
- */
+.safe-top-padding {
+  padding-top: max(env(safe-area-inset-top, 0px), 12px);
+}
+
+.safe-bottom-padding {
+  padding-bottom: max(env(safe-area-inset-bottom, 16px), 16px);
+}
+
+.safe-bottom-fixed {
+  bottom: env(safe-area-inset-bottom, 16px);
+}
+
+/* Minimum 44x44 pt ergonomic touch targets for mobile */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Fluid responsive chart container */
+.chart-container-fluid {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  position: relative;
+}
+
+/* ==============================================================================
+ * MICRO-INTERACTIONS & CARDS SPECIFICATION
+ * ============================================================================== */
+
+/* Financial & Balance Cards */
 .hover-card, .fin-card {
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 16px !important;
+  color: var(--text-primary) !important;
+  box-shadow: var(--card-shadow) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
   transition: transform 250ms cubic-bezier(0.2, 0.0, 0, 1.0), 
               box-shadow 250ms cubic-bezier(0.2, 0.0, 0, 1.0), 
               border-color 250ms cubic-bezier(0.2, 0.0, 0, 1.0);
 }
 .hover-card:hover, .fin-card:hover {
-  transform: translateY(-3px) scale(1.012);
-  border-color: rgba(229, 57, 53, 0.35) !important;
-  box-shadow: 0 10px 25px -5px rgba(74, 18, 26, 0.25) !important;
+  transform: translateY(-3px) scale(1.01) !important;
+  border-color: var(--card-border-hover) !important;
+  box-shadow: var(--card-shadow-hover) !important;
 }
 
-/* B. Action Buttons:
- * Primary Crimson Button:
- * Rest: Crimson (#D32F2F) with crisp white text.
- * Hover: translateY(-1px), scale: 1.015, slight brightness lift (1.08), shadow: 0 4px 14px rgba(211, 47, 47, 0.3).
- * Active / Press: scale: 0.98.
- */
-.btn-hover, .btn-crimson {
-  background-color: #D32F2F;
-  color: #FBFBFB;
+/* Action Buttons: Primary Jade / Pine Teal */
+.btn-hover, .btn-crimson, .btn-primary {
+  background-color: var(--btn-primary-bg) !important;
+  color: var(--btn-primary-text) !important;
+  border-radius: 12px;
+  min-height: 44px;
+  font-weight: 700;
   transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), 
               filter 200ms ease, 
               box-shadow 200ms ease, 
-              background-color 200ms ease;
+              background-color 200ms ease,
+              outline 200ms ease;
 }
-.btn-hover:hover, .btn-crimson:hover {
-  transform: translateY(-1px) scale(1.015);
-  filter: brightness(1.08);
-  box-shadow: 0 4px 14px rgba(211, 47, 47, 0.3) !important;
+.btn-hover:hover, .btn-crimson:hover, .btn-primary:hover {
+  transform: translateY(-2px) scale(1.01) !important;
+  background-color: var(--btn-primary-hover-bg) !important;
+  box-shadow: var(--btn-primary-shadow) !important;
+  outline: var(--btn-primary-outline-hover);
 }
-.btn-hover:active, .btn-crimson:active {
-  transform: scale(0.98);
+.btn-hover:active, .btn-crimson:active, .btn-primary:active {
+  transform: scale(0.98) !important;
 }
 
-/* Secondary / Slate Button:
- * Rest: Dark Wine/Charcoal background with Slate border.
- * Hover: Border switches to Slate Gray, text transitions from muted gray to white.
- */
-.btn-slate-subtle {
-  background-color: var(--btn-secondary-bg);
-  border: 1px solid var(--btn-secondary-border);
-  color: var(--btn-secondary-text);
-  transition: border-color 200ms ease, color 200ms ease, background-color 200ms ease;
+/* Secondary Button */
+.btn-slate-subtle, .btn-secondary {
+  background-color: var(--btn-secondary-bg) !important;
+  border: 1px solid var(--btn-secondary-border) !important;
+  color: var(--btn-secondary-text) !important;
+  border-radius: 12px;
+  min-height: 44px;
+  transition: border-color 200ms ease, color 200ms ease, background-color 200ms ease, transform 200ms ease;
 }
-.btn-slate-subtle:hover {
-  border-color: var(--btn-secondary-border-hover) !important;
+.btn-slate-subtle:hover, .btn-secondary:hover {
+  border-color: var(--card-border-hover) !important;
   color: var(--btn-secondary-text-hover) !important;
-  background-color: rgba(74, 18, 26, 0.35);
+  transform: translateY(-1px);
 }
 
-/* C. Transaction Rows:
- * Rest: Flat row with faint bottom hairline divider.
- * Hover: Subtle horizontal shift: translateX(4px), background tint: rgba(255, 255, 255, 0.03), leading category icon scales slightly (1.06) with a subtle wine-red highlight.
- */
+/* Transaction Rows */
 .txn-row-hover {
   transition: transform 200ms ease, background-color 200ms ease, border-color 200ms ease;
+  min-height: 44px;
 }
 .txn-row-hover:hover {
-  transform: translateX(4px);
+  transform: translateX(3px);
   background-color: var(--row-hover-bg) !important;
 }
 .txn-row-hover .txn-icon {
   transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms ease;
 }
 .txn-row-hover:hover .txn-icon {
-  transform: scale(1.06);
-  box-shadow: 0 0 10px rgba(74, 18, 26, 0.45);
+  transform: scale(1.05);
+  box-shadow: 0 0 12px var(--accent-glow);
 }
 
-/* D. Input Fields & Focus States:
- * Rest: Slate border (1px, opacity: 0.2), deep dark background.
- * Focus: Border transitions to Crimson/Wine (#D32F2F), box-shadow adds an understated 2px ruby focus ring (0 0 0 2px rgba(211, 47, 47, 0.2)). No blinding neon halo.
- */
+/* Input Fields & Focus States */
 .fin-input {
-  border: 1px solid var(--input-border);
-  background-color: var(--card-bg);
-  color: var(--text-primary);
+  border: 1px solid var(--input-border) !important;
+  background-color: var(--input-bg) !important;
+  color: var(--text-primary) !important;
+  border-radius: 12px !important;
   transition: border-color 200ms ease, box-shadow 200ms ease;
 }
 .fin-input:focus, input:focus, select:focus, textarea:focus {
-  border-color: #D32F2F !important;
-  box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.2) !important;
+  border-color: var(--input-focus-border) !important;
+  box-shadow: var(--input-focus-ring) !important;
   outline: none !important;
 }
 
@@ -241,22 +307,19 @@
   transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), 
               background-color 200ms ease, 
               color 200ms ease;
+  min-height: 44px;
 }
 .nav-item-hover:hover {
   transform: translateX(3px);
-  color: #FBFBFB !important;
+  color: var(--text-primary) !important;
+  background-color: var(--row-hover-bg) !important;
 }
 
-/* ==============================================================================
- * SCROLL & ENTRANCE ANIMATIONS
- * - Sections reveal sequentially on scroll: opacity 0 → 1, translateY 16px → 0.
- * - Animation timing: 400ms ease-out with a progressive stagger of 50ms between dashboard cards.
- * ============================================================================== */
-
+/* Entrance Animations */
 @keyframes section-reveal {
   0% {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(14px);
   }
   100% {
     opacity: 1;
@@ -265,22 +328,22 @@
 }
 
 .reveal-on-scroll {
-  animation: section-reveal 400ms ease-out forwards;
+  animation: section-reveal 350ms ease-out forwards;
 }
 
 .stagger-1 { animation-delay: 0ms; }
-.stagger-2 { animation-delay: 50ms; }
-.stagger-3 { animation-delay: 100ms; }
-.stagger-4 { animation-delay: 150ms; }
-.stagger-5 { animation-delay: 200ms; }
-.stagger-6 { animation-delay: 250ms; }
-.stagger-7 { animation-delay: 300ms; }
-.stagger-8 { animation-delay: 350ms; }
+.stagger-2 { animation-delay: 40ms; }
+.stagger-3 { animation-delay: 80ms; }
+.stagger-4 { animation-delay: 120ms; }
+.stagger-5 { animation-delay: 160ms; }
+.stagger-6 { animation-delay: 200ms; }
+.stagger-7 { animation-delay: 240ms; }
+.stagger-8 { animation-delay: 280ms; }
 
 /* Micro-interaction Keyframes */
 @keyframes micro-pop {
   0% {
-    transform: scale(0.92) translateY(8px);
+    transform: scale(0.94) translateY(6px);
     opacity: 0;
   }
   100% {
@@ -290,24 +353,13 @@
 }
 
 .animate-micro-pop {
-  animation: micro-pop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.shimmer-skeleton {
-  background: linear-gradient(90deg, rgba(255,255,255,0.02) 25%, rgba(74, 18, 26, 0.12) 50%, rgba(255,255,255,0.02) 75%);
-  background-size: 200% 100%;
-  animation: cosmic-shimmer 2.2s infinite;
-}
-
-@keyframes cosmic-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  animation: micro-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes input-shake {
   0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-6px); }
-  40%, 80% { transform: translateX(6px); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
 }
 
 .animate-shake {
@@ -320,7 +372,7 @@
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.25s ease-out forwards;
+  animation: fadeIn 0.2s ease-out forwards;
 }
 
 /* Print Stylesheet */

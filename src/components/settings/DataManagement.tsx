@@ -21,6 +21,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { AVAILABLE_CURRENCIES } from '../../constants/categories';
 import { ConfirmModal } from '../layout/ConfirmModal';
+import { DeleteAccountModal } from './DeleteAccountModal';
 
 export const DataManagement: React.FC = () => {
   const { 
@@ -39,6 +40,7 @@ export const DataManagement: React.FC = () => {
   const [importStatus, setImportStatus] = useState<string>('');
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false);
+  const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = useState(false);
 
   const handleExportBackup = () => {
     const jsonStr = exportBackupJSON();
@@ -455,13 +457,23 @@ export const DataManagement: React.FC = () => {
             <span>Load Demo / Sample Data</span>
           </button>
 
-          <button
-            onClick={() => setIsClearConfirmOpen(true)}
-            className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900 hover:bg-rose-100 text-xs font-bold transition cursor-pointer"
-          >
-            <Trash2 size={14} />
-            <span>Clear All Data</span>
-          </button>
+          <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={() => setIsClearConfirmOpen(true)}
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-bold transition cursor-pointer"
+            >
+              <Trash2 size={14} />
+              <span>Reset Data</span>
+            </button>
+
+            <button
+              onClick={() => setIsDeleteAccountModalOpen(true)}
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900 hover:bg-rose-100 text-xs font-black transition cursor-pointer"
+            >
+              <Trash2 size={14} />
+              <span>Delete Account & Purge Data</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -489,6 +501,11 @@ export const DataManagement: React.FC = () => {
           setIsClearConfirmOpen(false);
         }}
         onCancel={() => setIsClearConfirmOpen(false)}
+      />
+
+      <DeleteAccountModal
+        isOpen={isDeleteAccountModalOpen}
+        onClose={() => setIsDeleteAccountModalOpen(false)}
       />
     </div>
   );

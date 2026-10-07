@@ -1,11 +1,11 @@
 import React from 'react';
-import { CanvasBackground } from './CanvasBackground';
+import { SmokyCanvasBackground } from './SmokyCanvasBackground';
 
 /**
  * CosmicBackground
- * Crimson Noir & Slate Edition
- * Provides ambient wine-slate radial mesh with interactive micro-node constellation grid.
+ * Bi-Modal Jade/Emerald & Soft Cream Edition
+ * Hosts the interactive GPU-accelerated "Smoky Aura" fluid canvas animation.
  */
 export const CosmicBackground: React.FC = () => {
-  return <CanvasBackground />;
+  return <SmokyCanvasBackground />;
 };

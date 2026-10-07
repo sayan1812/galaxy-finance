@@ -1,5 +1,4 @@
-import React from 'react';
-import { ArrowUpRight, ArrowDownLeft, Copy, Edit3 } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Copy, Edit3, Trash2 } from 'lucide-react';
 import type { Transaction } from '../../types';
 import { useTransactions } from '../../context/TransactionContext';
 import { formatCurrency } from '../../utils/formatters';
@@ -14,10 +13,10 @@ interface TransactionRowProps {
 }
 
 /**
- * TransactionRow — Crimson Noir & Slate Edition
- * Exact micro-interaction specifications:
- * - Rest: Flat row with faint bottom hairline divider (rgba(255, 255, 255, 0.06)).
- * - Hover: translateX(4px), background tint rgba(255, 255, 255, 0.03), leading category icon scales slightly (1.06) with subtle wine-red highlight.
+ * TransactionRow — Adaptive Bi-Modal Fintech Telemetry Row
+ * - Theme-compliant surface with responsive borders
+ * - Emerald for inflows, soft coral/crimson for outflows
+ * - High-contrast headings and metadata
  */
 export const TransactionRow: React.FC<TransactionRowProps> = ({
   transaction,
@@ -29,6 +28,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
     setEditingTransaction, 
     setIsAddModalOpen, 
     duplicateTransaction,
+    requestDeleteTransaction,
     settings 
   } = useTransactions();
 
@@ -53,38 +53,42 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
     setIsAddModalOpen(true);
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    requestDeleteTransaction(transaction.id);
+  };
+
   const timeDisplay = transaction.time || formatTime(transaction.createdAt || transaction.date);
 
   return (
     <div
       onClick={handleClick}
-      className="group relative flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-[#13131A] border border-[rgba(74,18,26,0.3)] txn-row-hover cursor-pointer select-none border-b border-b-white/[0.06]"
+      className="group relative flex items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] hover:bg-[var(--row-hover-bg)] cursor-pointer select-none transition-all duration-150 shadow-xs"
     >
       {/* Left: Category Icon & Metadata */}
       <div className="flex items-center gap-3.5 min-w-0 flex-1 mr-3">
-        {/* Leading Category Icon with hover scale 1.06 & wine-red glow */}
         <div className="txn-icon transition-transform duration-200">
           <CategoryIcon categoryName={transaction.category} size={20} />
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h4 className="font-semibold text-sm text-[#FBFBFB] truncate">
+            <h4 className="font-semibold text-sm text-[var(--text-headings)] truncate">
               {transaction.merchant || transaction.category}
             </h4>
             {transaction.merchant && (
-              <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#4A121A]/30 text-[#8E929D] border border-white/[0.04] truncate max-w-[130px]">
+              <span className="text-[11px] px-2 py-0.5 rounded-md bg-[var(--surface-sunken)] text-[var(--text-secondary)] border border-[var(--card-border)] truncate max-w-[130px]">
                 {transaction.category}
               </span>
             )}
             {transaction.account && (
-              <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.04] text-[#8E929D] border border-white/[0.06] truncate max-w-[120px] hidden sm:inline-block font-mono">
+              <span className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--surface-sunken)] text-[var(--text-secondary)] border border-[var(--card-border)] truncate max-w-[120px] hidden sm:inline-block font-mono">
                 {transaction.account}
               </span>
             )}
           </div>
 
-          <div className="flex items-center gap-2 mt-1 text-xs text-[#8E929D] flex-wrap">
+          <div className="flex items-center gap-2 mt-1 text-xs text-[var(--text-secondary)] flex-wrap">
             <span>
               {showDate ? `${formatDate(transaction.date)}, ${timeDisplay}` : timeDisplay}
             </span>
@@ -98,7 +102,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
             {transaction.description && (
               <>
                 <span className="hidden sm:inline">•</span>
-                <span className="hidden sm:inline truncate max-w-[200px] text-[#8E929D]">
+                <span className="hidden sm:inline truncate max-w-[200px] text-[var(--text-muted)]">
                   {transaction.description}
                 </span>
               </>
@@ -113,8 +117,8 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
           <div
             className={`flex items-center justify-end font-bold text-sm sm:text-base font-mono tracking-tight ${
               isIncome
-                ? 'text-emerald-400'
-                : 'text-[#E53935]'
+                ? 'text-emerald-500 dark:text-emerald-400'
+                : 'text-red-500 dark:text-red-400'
             }`}
           >
             {isIncome ? (
@@ -128,7 +132,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
           </div>
 
           {transaction.transactionReference && (
-            <span className="text-[10px] text-[#8E929D]/70 font-mono hidden sm:block truncate max-w-[130px]">
+            <span className="text-[10px] text-[var(--text-muted)] font-mono hidden sm:block truncate max-w-[130px]">
               {transaction.transactionReference}
             </span>
           )}
@@ -138,7 +142,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
         <div className="hidden lg:flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-1">
           <button
             onClick={handleDuplicate}
-            className="p-1.5 rounded-lg text-[#8E929D] hover:text-[#FBFBFB] hover:bg-white/[0.06] transition"
+            className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-sunken)] transition"
             title="Duplicate"
             aria-label="Duplicate"
           >
@@ -146,11 +150,19 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
           </button>
           <button
             onClick={handleEdit}
-            className="p-1.5 rounded-lg text-[#8E929D] hover:text-[#E53935] hover:bg-[#4A121A]/40 transition"
+            className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--accent-primary)] hover:bg-[var(--surface-sunken)] transition"
             title="Edit"
             aria-label="Edit"
           >
             <Edit3 size={14} />
+          </button>
+          <button
+            onClick={handleDelete}
+            className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10 transition"
+            title="Delete Transaction"
+            aria-label="Delete Transaction"
+          >
+            <Trash2 size={14} />
           </button>
         </div>
       </div>

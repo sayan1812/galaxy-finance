@@ -8,8 +8,8 @@ interface BalanceCardProps {
 }
 
 /**
- * BalanceCard — Crimson Noir & Slate Edition
- * Executive, high-contrast fintech telemetry display with precision wine sub-surface and crimson accents.
+ * BalanceCard — Adaptive Bi-Modal Fintech Telemetry Display
+ * High-contrast, theme-aware capital telemetry with jade/emerald accents.
  */
 export const BalanceCard: React.FC<BalanceCardProps> = ({ className = '' }) => {
   const { commandCenterStats, settings, setIsAddModalOpen, setIsAddCashModalOpen } = useTransactions();
@@ -17,57 +17,54 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ className = '' }) => {
 
   return (
     <div
-      className={`relative p-6 sm:p-7 rounded-3xl overflow-hidden fin-card bg-[#13131A] border border-[rgba(74,18,26,0.35)] shadow-xl ${className}`}
-      style={{
-        boxShadow: '0 8px 24px -4px rgba(0, 0, 0, 0.45)',
-      }}
+      className={`relative p-6 sm:p-7 rounded-3xl overflow-hidden fin-card bg-[var(--card-bg)] border border-[var(--card-border)] shadow-xl transition-colors duration-200 ${className}`}
     >
-      {/* Ambient Deep Wine Sub-surface Flare (Precision non-neon mesh) */}
+      {/* Ambient Jade Glow Sub-surface */}
       <div 
-        className="absolute top-0 right-0 w-80 h-80 rounded-full pointer-events-none blur-3xl opacity-20"
+        className="absolute top-0 right-0 w-80 h-80 rounded-full pointer-events-none blur-3xl opacity-15"
         style={{
-          background: 'radial-gradient(circle, #4A121A 0%, transparent 70%)',
+          background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
         }}
       />
 
       {/* Top Header Row */}
-      <div className="flex items-center justify-between pb-5 border-b border-white/[0.06]">
+      <div className="flex items-center justify-between pb-5 border-b border-[var(--divider)]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#4A121A]/40 border border-[#4A121A] flex items-center justify-center text-[#E53935] shadow-inner">
+          <div className="w-10 h-10 rounded-xl bg-[var(--accent-primary)]/15 border border-[var(--accent-primary)]/30 flex items-center justify-center text-[var(--accent-primary)] shadow-inner">
             <Wallet size={20} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-bold tracking-wider text-[#8E929D] uppercase">
+              <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-secondary)] uppercase">
                 Liquidity Telemetry
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#8E929D] bg-white/[0.04] px-2 py-0.5 rounded-full border border-white/[0.06]">
-                <ShieldCheck size={11} className="text-[#E53935]" /> Verified
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[var(--text-secondary)] bg-[var(--surface-sunken)] px-2 py-0.5 rounded-full border border-[var(--card-border)]">
+                <ShieldCheck size={11} className="text-[var(--accent-primary)]" /> Verified
               </span>
             </div>
-            <h2 className="text-sm font-semibold text-[#FBFBFB]">
+            <h2 className="text-sm font-semibold text-[var(--text-headings)]">
               Net Available Capital
             </h2>
           </div>
         </div>
 
         {/* Vital Metric Tag */}
-        <span className="px-3 py-1 rounded-full bg-[#4A121A]/30 border border-[#E53935]/30 text-[#E53935] text-xs font-mono font-bold tracking-tight">
+        <span className="px-3 py-1 rounded-full bg-[var(--accent-primary)]/15 border border-[var(--accent-primary)]/30 text-[var(--accent-primary)] text-xs font-mono font-bold tracking-tight">
           SYS•ONLINE
         </span>
       </div>
 
       {/* Hero Financial Metric */}
       <div className="my-6">
-        <span className="text-xs font-medium text-[#8E929D] block mb-1">
+        <span className="text-xs font-medium text-[var(--text-secondary)] block mb-1">
           True Available Money (Bank Vaults + Physical Cash)
         </span>
         <div className="flex items-baseline gap-3 flex-wrap">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-[#FBFBFB] font-mono">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-[var(--text-headings)] font-mono">
             {formatCurrency(netAvailableMoney, settings.currency)}
           </h1>
-          <span className="text-xs font-semibold text-[#8E929D] flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#E53935] animate-pulse" />
+          <span className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)] animate-pulse" />
             Real-time Solvency
           </span>
         </div>
@@ -75,34 +72,34 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ className = '' }) => {
 
       {/* Vault Breakdown Telemetry */}
       <div className="grid grid-cols-2 gap-3 mb-6">
-        <div className="p-3.5 rounded-2xl bg-[#0D0D11]/80 border border-white/[0.06]">
-          <div className="flex items-center justify-between text-xs text-[#8E929D] mb-1">
+        <div className="p-3.5 rounded-2xl bg-[var(--surface-sunken)] border border-[var(--card-border)]">
+          <div className="flex items-center justify-between text-xs text-[var(--text-secondary)] mb-1">
             <span className="flex items-center gap-1.5 font-medium">
-              <Building2 size={13} className="text-[#8E929D]" /> Bank Vaults ({totalBanks})
+              <Building2 size={13} className="text-[var(--text-secondary)]" /> Bank Vaults ({totalBanks})
             </span>
           </div>
-          <div className="text-lg font-bold text-[#FBFBFB] font-mono">
+          <div className="text-lg font-bold text-[var(--text-headings)] font-mono">
             {formatCurrency(totalBankBalance, settings.currency)}
           </div>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-[#0D0D11]/80 border border-white/[0.06]">
-          <div className="flex items-center justify-between text-xs text-[#8E929D] mb-1">
+        <div className="p-3.5 rounded-2xl bg-[var(--surface-sunken)] border border-[var(--card-border)]">
+          <div className="flex items-center justify-between text-xs text-[var(--text-secondary)] mb-1">
             <span className="flex items-center gap-1.5 font-medium">
-              <Sparkles size={13} className="text-[#E53935]" /> Physical Cash Wallet
+              <Sparkles size={13} className="text-[var(--accent-primary)]" /> Physical Cash Wallet
             </span>
           </div>
-          <div className="text-lg font-bold text-[#FBFBFB] font-mono">
+          <div className="text-lg font-bold text-[var(--text-headings)] font-mono">
             {formatCurrency(cashBalance, settings.currency)}
           </div>
         </div>
       </div>
 
-      {/* Action Buttons: Primary Crimson CTA & Secondary Slate Button */}
+      {/* Action Buttons */}
       <div className="flex items-center gap-3 pt-2">
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="flex-1 btn-crimson px-5 py-3 rounded-2xl font-bold text-sm tracking-wide flex items-center justify-center gap-2 cursor-pointer"
+          className="flex-1 px-5 py-3 rounded-2xl font-bold text-sm tracking-wide flex items-center justify-center gap-2 cursor-pointer bg-[var(--accent-primary)] text-[var(--bg-primary)] hover:opacity-90 active:scale-[0.98] transition shadow-md"
         >
           <Plus size={16} className="stroke-[2.5]" />
           <span>Post Transaction</span>
@@ -110,7 +107,7 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ className = '' }) => {
 
         <button
           onClick={() => setIsAddCashModalOpen(true)}
-          className="btn-slate-subtle px-4 py-3 rounded-2xl font-semibold text-xs tracking-wide flex items-center justify-center gap-1.5 cursor-pointer"
+          className="px-4 py-3 rounded-2xl font-semibold text-xs tracking-wide flex items-center justify-center gap-1.5 cursor-pointer bg-[var(--surface-sunken)] text-[var(--text-primary)] border border-[var(--card-border)] hover:bg-[var(--row-hover-bg)] active:scale-[0.98] transition"
         >
           <ArrowUpRight size={14} />
           <span>Adjust Cash</span>

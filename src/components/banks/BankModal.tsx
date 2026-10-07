@@ -3,11 +3,13 @@ import {
   X, 
   Building2, 
   ShieldCheck, 
-  Sparkles 
+  Sparkles,
+  Trash2
 } from 'lucide-react';
 import { useTransactions } from '../../context/TransactionContext';
 import { POPULAR_BANKS, BANK_ACCOUNT_TYPES, PLANET_PALETTE } from '../../constants/categories';
 import type { BankAccount, BankAccountType } from '../../types';
+import { ConfirmModal } from '../layout/ConfirmModal';
 
 interface BankModalProps {
   isOpen: boolean;
@@ -20,7 +22,8 @@ export const BankModal: React.FC<BankModalProps> = ({
   onClose,
   editingBank,
 }) => {
-  const { addBankAccount, updateBankAccount, updateBankBalance } = useTransactions();
+  const { addBankAccount, updateBankAccount, updateBankBalance, deleteBankAccount } = useTransactions();
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   const [bankName, setBankName] = useState<string>('HDFC Bank');
   const [customBankName, setCustomBankName] = useState<string>('');
@@ -298,23 +301,52 @@ export const BankModal: React.FC<BankModalProps> = ({
           </div>
 
           {/* Form Actions */}
-          <div className="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-black shadow-md shadow-cyan-500/20 transition cursor-pointer"
-            >
-              {editingBank ? 'Save Changes' : 'Launch Financial Planet'}
-            </button>
+          <div className="pt-4 border-t border-[var(--card-border)] flex items-center justify-between gap-3">
+            {editingBank ? (
+              <button
+                type="button"
+                onClick={() => setIsDeleteConfirmOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-500 hover:bg-rose-500/10 border border-rose-500/30 transition cursor-pointer"
+              >
+                <Trash2 size={14} />
+                <span>Delete Account</span>
+              </button>
+            ) : <div />}
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-sunken)] transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2.5 rounded-xl bg-[var(--accent-primary)] hover:opacity-90 text-[var(--bg-primary)] text-xs font-black shadow-md transition cursor-pointer"
+              >
+                {editingBank ? 'Save Changes' : 'Create Account'}
+              </button>
+            </div>
           </div>
         </form>
       </div>
+
+      {editingBank && (
+        <ConfirmModal
+          isOpen={isDeleteConfirmOpen}
+          title="Delete Bank Account?"
+          message={`Are you sure you want to delete ${editingBank.bankName} (${editingBank.nickname})? All associated transaction records will be removed and Net Available Capital will be recalculated.`}
+          confirmLabel="Delete Account"
+          isDestructive={true}
+          onConfirm={() => {
+            deleteBankAccount(editingBank.id);
+            setIsDeleteConfirmOpen(false);
+            onClose();
+          }}
+          onCancel={() => setIsDeleteConfirmOpen(false)}
+        />
+      )}
     </div>
   );
 };

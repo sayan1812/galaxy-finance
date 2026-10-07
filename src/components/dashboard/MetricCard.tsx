@@ -11,8 +11,8 @@ interface MetricCardProps {
 }
 
 /**
- * MetricCard — Crimson Noir & Slate Edition
- * Executive financial telemetry card with wine-tinted border and precision crimson rim light on hover.
+ * MetricCard — Adaptive Bi-Modal Fintech Telemetry Card
+ * High-contrast, theme-aware card with jade/emerald accents.
  */
 export const MetricCard: React.FC<MetricCardProps> = ({
   title,
@@ -26,34 +26,34 @@ export const MetricCard: React.FC<MetricCardProps> = ({
     switch (variant) {
       case 'emerald':
         return {
-          iconBg: 'bg-emerald-950/40 text-emerald-400 border border-emerald-800/40',
-          accent: 'text-emerald-400',
+          iconBg: 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30',
+          accent: 'text-emerald-500 dark:text-emerald-400',
         };
       case 'rose':
         return {
-          iconBg: 'bg-[#4A121A]/40 text-[#E53935] border border-[#4A121A]',
-          accent: 'text-[#E53935]',
+          iconBg: 'bg-rose-500/15 text-rose-500 border border-rose-500/30',
+          accent: 'text-rose-500 dark:text-rose-400',
         };
       case 'indigo':
         return {
-          iconBg: 'bg-[#4A121A]/30 text-[#E53935] border border-[#4A121A]/50',
-          accent: 'text-[#FBFBFB]',
+          iconBg: 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] border border-[var(--accent-primary)]/30',
+          accent: 'text-[var(--text-headings)]',
         };
       case 'amber':
         return {
-          iconBg: 'bg-amber-950/40 text-amber-400 border border-amber-800/40',
-          accent: 'text-amber-400',
+          iconBg: 'bg-amber-500/15 text-amber-500 border border-amber-500/30',
+          accent: 'text-amber-500 dark:text-amber-400',
         };
       case 'sky':
         return {
-          iconBg: 'bg-slate-800/50 text-[#8E929D] border border-slate-700/50',
-          accent: 'text-[#FBFBFB]',
+          iconBg: 'bg-sky-500/15 text-sky-500 border border-sky-500/30',
+          accent: 'text-[var(--text-headings)]',
         };
       case 'default':
       default:
         return {
-          iconBg: 'bg-[#181822] text-[#8E929D] border border-white/[0.08]',
-          accent: 'text-[#FBFBFB]',
+          iconBg: 'bg-[var(--surface-sunken)] text-[var(--text-secondary)] border border-[var(--card-border)]',
+          accent: 'text-[var(--text-headings)]',
         };
     }
   };
@@ -62,10 +62,10 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 
   return (
     <div
-      className="relative p-4 sm:p-5 rounded-3xl fin-card bg-[#13131A] dark:bg-[#13131A] light:bg-white border border-[rgba(74,18,26,0.35)] shadow-md select-none overflow-hidden"
+      className="relative p-4 sm:p-5 rounded-3xl fin-card bg-[var(--card-bg)] border border-[var(--card-border)] shadow-md select-none overflow-hidden transition-colors duration-200"
     >
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-semibold text-[#8E929D] tracking-wide">
+        <span className="text-xs font-semibold text-[var(--text-secondary)] tracking-wide">
           {title}
         </span>
         <div className={`p-2 rounded-xl ${styles.iconBg} flex items-center justify-center`}>
@@ -78,14 +78,14 @@ export const MetricCard: React.FC<MetricCardProps> = ({
           {amount}
         </h3>
         {subtitle && (
-          <p className="text-[11px] text-[#8E929D] font-medium truncate">
+          <p className="text-[11px] text-[var(--text-secondary)] font-medium truncate">
             {subtitle}
           </p>
         )}
       </div>
 
       {badge && (
-        <span className="absolute bottom-3.5 right-3.5 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-white/[0.04] text-[#8E929D] border border-white/[0.08]">
+        <span className="absolute bottom-3.5 right-3.5 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[var(--surface-sunken)] text-[var(--text-secondary)] border border-[var(--card-border)]">
           {badge}
         </span>
       )}

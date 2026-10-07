@@ -41,23 +41,23 @@ export const PaymentMethodChart: React.FC = () => {
 
   const getMethodColor = (m: PaymentMethod) => {
     switch (m) {
-      case 'UPI': return 'bg-[#E53935]';
-      case 'CASH': return 'bg-[#4A121A]';
-      case 'CREDIT_CARD': return 'bg-[#D32F2F]';
-      case 'DEBIT_CARD': return 'bg-[#8E929D]';
-      case 'BANK_TRANSFER': return 'bg-[#5A5D6B]';
-      default: return 'bg-[#8E929D]';
+      case 'UPI': return 'bg-[#89D7B7]';
+      case 'CASH': return 'bg-amber-500';
+      case 'CREDIT_CARD': return 'bg-rose-500';
+      case 'DEBIT_CARD': return 'bg-[#55A9A0]';
+      case 'BANK_TRANSFER': return 'bg-[#287A74]';
+      default: return 'bg-[var(--text-secondary)]';
     }
   };
 
   return (
-    <div className="bg-[#13131A] p-5 rounded-3xl border border-[rgba(74,18,26,0.35)] shadow-md flex flex-col justify-between">
+    <div className="bg-[var(--card-bg)] p-5 rounded-3xl border border-[var(--card-border)] shadow-md flex flex-col justify-between fin-card">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="font-bold text-sm sm:text-base text-[#FBFBFB]">
+          <h3 className="font-bold text-sm sm:text-base text-[var(--text-headings)]">
             Payment Mode Spending
           </h3>
-          <p className="text-xs text-[#8E929D] font-mono">
+          <p className="text-xs text-[var(--text-secondary)] font-mono">
             This Month • Total {formatCurrency(totalExpense, settings.currency)}
           </p>
         </div>
@@ -65,7 +65,7 @@ export const PaymentMethodChart: React.FC = () => {
 
       {totalExpense > 0 ? (
         <div className="space-y-4">
-          <div className="h-3 w-full bg-[#0D0D11] border border-white/[0.04] rounded-full overflow-hidden flex">
+          <div className="h-3 w-full bg-[var(--bg-subsurface)] border border-[var(--card-border)] rounded-full overflow-hidden flex">
             {methodStats.map((item) => {
               if (item.percent <= 0) return null;
               return (
@@ -87,10 +87,10 @@ export const PaymentMethodChart: React.FC = () => {
                   <PaymentMethodBadge method={item.method} size="sm" showIcon={false} />
                 </div>
                 <div className="flex items-center gap-3 font-mono">
-                  <span className="font-bold text-[#FBFBFB]">
+                  <span className="font-bold text-[var(--text-primary)]">
                     {formatCurrency(item.amount, settings.currency)}
                   </span>
-                  <span className="text-[11px] text-[#8E929D] font-medium w-9 text-right">
+                  <span className="text-[11px] text-[var(--text-secondary)] font-medium w-9 text-right">
                     {formatPercentage(item.percent)}
                   </span>
                 </div>
@@ -99,7 +99,7 @@ export const PaymentMethodChart: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="py-12 text-center text-xs text-[#8E929D]">
+        <div className="py-12 text-center text-xs text-[var(--text-secondary)]">
           Zero expense entries recorded for this month.
         </div>
       )}

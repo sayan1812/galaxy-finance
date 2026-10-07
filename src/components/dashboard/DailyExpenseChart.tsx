@@ -9,10 +9,14 @@ import {
   CartesianGrid 
 } from 'recharts';
 import { useTransactions } from '../../context/TransactionContext';
+import { useTheme } from '../../context/ThemeContext';
 import { formatCurrency, formatCompactCurrency } from '../../utils/formatters';
+import { CustomChartTooltip } from './CustomChartTooltip';
 
 export const DailyExpenseChart: React.FC = () => {
   const { transactions, settings } = useTransactions();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark' || theme === 'galaxy';
   const [daysCount, setDaysCount] = useState<7 | 14 | 30>(7);
 
   const chartData = useMemo(() => {
@@ -54,28 +58,35 @@ export const DailyExpenseChart: React.FC = () => {
   const totalPeriodExpense = chartData.reduce((sum, d) => sum + d.amount, 0);
   const avgDailyExpense = Math.round(totalPeriodExpense / daysCount);
 
+  // Bi-modal tokens
+  const gridStroke = isDark ? 'rgba(137, 215, 183, 0.15)' : 'rgba(40, 122, 116, 0.12)';
+  const tickColor = isDark ? 'rgba(255, 244, 225, 0.72)' : '#55A9A0';
+  const axisColor = isDark ? 'rgba(137, 215, 183, 0.22)' : 'rgba(40, 122, 116, 0.18)';
+  const cursorFill = isDark ? 'rgba(66, 132, 117, 0.2)' : 'rgba(174, 238, 211, 0.35)';
+  const barFill = isDark ? '#FF8A8A' : '#D9534F';
+
   return (
-    <div className="bg-[#13131A] p-5 rounded-3xl border border-[rgba(74,18,26,0.35)] shadow-md flex flex-col justify-between">
+    <div className="fin-card p-5 rounded-3xl flex flex-col justify-between">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
         <div>
-          <h3 className="font-bold text-sm sm:text-base text-[#FBFBFB]">
+          <h3 className="font-bold text-sm sm:text-base text-[var(--text-headings)]">
             Daily Outflow Trajectory
           </h3>
-          <p className="text-xs text-[#8E929D] font-mono">
+          <p className="text-xs text-[var(--text-secondary)] font-mono">
             Avg {formatCurrency(avgDailyExpense, settings.currency)}/day • Total {formatCurrency(totalPeriodExpense, settings.currency)}
           </p>
         </div>
 
         {/* Days count toggle pills */}
-        <div className="flex items-center p-1 bg-[#0D0D11] border border-white/[0.06] rounded-xl">
+        <div className="flex items-center p-1 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl">
           {([7, 14, 30] as const).map((count) => (
             <button
               key={count}
               onClick={() => setDaysCount(count)}
               className={`px-2.5 py-1 text-xs font-mono font-bold rounded-lg transition-all cursor-pointer ${
                 daysCount === count
-                  ? 'bg-[#D32F2F] text-[#FBFBFB] shadow-xs'
-                  : 'text-[#8E929D] hover:text-[#FBFBFB]'
+                  ? 'bg-[var(--accent-primary)] text-[var(--bg-page)] shadow-xs'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
               {count}D
@@ -84,47 +95,37 @@ export const DailyExpenseChart: React.FC = () => {
         </div>
       </div>
 
-      <div className="h-64 w-full">
+      <div className="h-64 w-full chart-container-fluid">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridStroke} opacity={0.8} />
             <XAxis 
               dataKey="displayDate" 
-              tick={{ fontSize: 11, fill: '#8E929D' }} 
-              axisLine={false} 
+              tick={{ fontSize: 11, fill: tickColor }} 
+              axisLine={{ stroke: axisColor }} 
               tickLine={false} 
             />
             <YAxis 
-              tick={{ fontSize: 10, fill: '#8E929D' }} 
+              tick={{ fontSize: 10, fill: tickColor }} 
               axisLine={false} 
               tickLine={false}
               tickFormatter={(v) => formatCompactCurrency(v, settings.currency)}
             />
             <Tooltip
-              cursor={{ fill: 'rgba(74, 18, 26, 0.25)' }}
-              content={({ active, payload }) => {
-                if (active && payload && payload.length) {
-                  const data = payload[0].payload;
-                  return (
-                    <div className="bg-[#13131A] text-[#FBFBFB] px-3 py-2 rounded-xl text-xs shadow-2xl border border-[rgba(74,18,26,0.5)]">
-                      <div className="font-mono text-[#8E929D]">{data.displayDate}</div>
-                      <div className="font-bold font-mono text-sm text-[#E53935] mt-0.5">
-                        {formatCurrency(data.amount, settings.currency)}
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
-              }}
+              cursor={{ fill: cursorFill, radius: 6 }}
+              offset={12}
+              content={<CustomChartTooltip currency={settings.currency} type="daily" />}
             />
             <Bar 
               dataKey="amount" 
-              fill="#E53935" 
-              radius={[6, 6, 0, 0]} 
-              maxBarSize={36} 
+              name="Outflow"
+              fill={barFill} 
+              radius={[4, 4, 0, 0]} 
+              maxBarSize={24}
               isAnimationActive={true}
-              animationDuration={500}
+              animationDuration={600}
               animationEasing="ease-out"
+              className="transition-opacity hover:opacity-90 cursor-pointer"
             />
           </BarChart>
         </ResponsiveContainer>
