@@ -112,11 +112,11 @@ export const BudgetModal: React.FC<BudgetModalProps> = ({
           {/* Monthly Limit Input */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">
-              Monthly Limit ({settings.currency.code})
+              Monthly Limit ({settings?.currency?.code || 'INR'})
             </label>
             <div className="relative rounded-xl border-2 border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500 bg-white dark:bg-slate-950">
               <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-lg font-bold text-slate-400">
-                {settings.currency.symbol}
+                {settings?.currency?.symbol || '₹'}
               </span>
               <input
                 type="number"
@@ -140,7 +140,7 @@ export const BudgetModal: React.FC<BudgetModalProps> = ({
                   onClick={() => setMonthlyLimit(preset.toString())}
                   className="px-2.5 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition cursor-pointer"
                 >
-                  {settings.currency.symbol}{preset.toLocaleString()}
+                  {settings?.currency?.symbol || '₹'}{preset.toLocaleString()}
                 </button>
               ))}
             </div>

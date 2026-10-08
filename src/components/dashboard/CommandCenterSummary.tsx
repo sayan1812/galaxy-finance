@@ -4,13 +4,13 @@ import {
   Wallet, 
   Sparkles, 
   Award, 
-  CreditCard,
-  PieChart,
-  TrendingDown,
-  TrendingUp
+  CreditCard, 
+  PieChart, 
+  TrendingDown, 
+  TrendingUp 
 } from 'lucide-react';
 import { useTransactions } from '../../context/TransactionContext';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, maskCurrency } from '../../utils/formatters';
 
 /**
  * CommandCenterSummary — Crimson Noir & Slate Edition
@@ -61,7 +61,7 @@ export const CommandCenterSummary: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <span className="px-3 py-1 rounded-full bg-[var(--row-hover-bg)] border border-[var(--card-border)] text-[var(--accent-primary)] text-xs font-mono font-bold tracking-tight">
-            NET AVAILABLE: {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(netAvailableMoney, settings.currency)}
+            NET AVAILABLE: {isMasked ? maskCurrency(settings?.currency) : formatCurrency(netAvailableMoney, settings?.currency)}
           </span>
         </div>
       </div>
@@ -74,7 +74,7 @@ export const CommandCenterSummary: React.FC = () => {
             Net Available
           </span>
           <div className="text-lg sm:text-xl font-black text-[var(--text-headings)] font-mono truncate">
-            {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(netAvailableMoney, settings.currency)}
+            {isMasked ? maskCurrency(settings?.currency) : formatCurrency(netAvailableMoney, settings?.currency)}
           </div>
           <span className="text-[10px] text-[var(--text-secondary)] mt-1 block">
             Banks + Cash
@@ -101,7 +101,7 @@ export const CommandCenterSummary: React.FC = () => {
             Bank Balances
           </span>
           <div className="text-lg sm:text-xl font-black text-[var(--text-primary)] font-mono truncate">
-            {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(totalBankBalance, settings.currency)}
+            {isMasked ? maskCurrency(settings?.currency) : formatCurrency(totalBankBalance, settings?.currency)}
           </div>
           <span className="text-[10px] text-[var(--text-secondary)] mt-1 block">
             All Bank Vaults
@@ -115,7 +115,7 @@ export const CommandCenterSummary: React.FC = () => {
           </span>
           <div className="text-lg sm:text-xl font-black text-[var(--text-primary)] flex items-center gap-1.5 font-mono truncate">
             <Wallet size={16} className="text-[var(--text-secondary)]" />
-            <span>{isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(cashBalance, settings.currency)}</span>
+            <span>{isMasked ? maskCurrency(settings?.currency) : formatCurrency(cashBalance, settings?.currency)}</span>
           </div>
           <span className="text-[10px] text-[var(--text-secondary)] mt-1 block">
             Physical Reserves
@@ -128,10 +128,10 @@ export const CommandCenterSummary: React.FC = () => {
             <TrendingDown size={11} /> Total Outflow
           </span>
           <div className="text-lg sm:text-xl font-black text-rose-500 font-mono truncate">
-            {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(totalExpenseAllTime, settings.currency)}
+            {isMasked ? maskCurrency(settings?.currency) : formatCurrency(totalExpenseAllTime, settings?.currency)}
           </div>
           <span className="text-[10px] text-[var(--text-secondary)] mt-1 block truncate">
-            Month: {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(thisMonthExpense, settings.currency)}
+            Month: {isMasked ? maskCurrency(settings?.currency) : formatCurrency(thisMonthExpense, settings?.currency)}
           </span>
         </div>
 
@@ -141,10 +141,10 @@ export const CommandCenterSummary: React.FC = () => {
             <TrendingUp size={11} /> Total Inflow
           </span>
           <div className="text-lg sm:text-xl font-black text-emerald-500 font-mono truncate">
-            {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(totalIncomeAllTime, settings.currency)}
+            {isMasked ? maskCurrency(settings?.currency) : formatCurrency(totalIncomeAllTime, settings?.currency)}
           </div>
           <span className="text-[10px] text-[var(--text-secondary)] mt-1 block truncate">
-            Month: {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(thisMonthIncome, settings.currency)}
+            Month: {isMasked ? maskCurrency(settings?.currency) : formatCurrency(thisMonthIncome, settings?.currency)}
           </span>
         </div>
       </div>
@@ -165,7 +165,7 @@ export const CommandCenterSummary: React.FC = () => {
             </div>
             {highestExpenseCategory && (
               <span className="text-[11px] text-rose-500 font-mono font-semibold">
-                {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(highestExpenseCategory.amount, settings.currency)}
+                {isMasked ? maskCurrency(settings?.currency) : formatCurrency(highestExpenseCategory.amount, settings?.currency)}
               </span>
             )}
           </div>
@@ -185,7 +185,7 @@ export const CommandCenterSummary: React.FC = () => {
             </div>
             {largestTransaction && (
               <span className="text-[11px] text-[var(--text-primary)] font-mono font-semibold">
-                {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(largestTransaction.amount, settings.currency)}
+                {isMasked ? maskCurrency(settings?.currency) : formatCurrency(largestTransaction.amount, settings?.currency)}
               </span>
             )}
           </div>
@@ -201,7 +201,7 @@ export const CommandCenterSummary: React.FC = () => {
               Primary Payment Channel
             </span>
             <div className="text-sm font-black text-[var(--text-primary)]">
-              {mostUsedPaymentMethod.replace('_', ' ')}
+              {(mostUsedPaymentMethod || 'UPI').replace('_', ' ')}
             </div>
             <span className="text-[11px] text-[var(--text-secondary)] font-medium">
               Most Frequent
@@ -223,7 +223,7 @@ export const CommandCenterSummary: React.FC = () => {
             </div>
             {highestBalanceBank && (
               <span className="text-[11px] text-emerald-500 font-mono font-semibold">
-                {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(highestBalanceBank.balance, settings.currency)}
+                {isMasked ? maskCurrency(settings?.currency) : formatCurrency(highestBalanceBank.balance, settings?.currency)}
               </span>
             )}
           </div>

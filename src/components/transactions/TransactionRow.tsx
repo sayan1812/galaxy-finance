@@ -1,7 +1,7 @@
 import { ArrowUpRight, ArrowDownLeft, Copy, Edit3, Trash2 } from 'lucide-react';
 import type { Transaction } from '../../types';
 import { useTransactions } from '../../context/TransactionContext';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, maskCurrency } from '../../utils/formatters';
 import { formatTime, formatDate } from '../../utils/dateUtils';
 import { CategoryIcon } from '../common/CategoryIcon';
 import { PaymentMethodBadge } from '../common/PaymentMethodBadge';
@@ -128,7 +128,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
               <ArrowUpRight size={16} className="inline mr-0.5" />
             )}
             <span>
-              {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(transaction.amount, settings.currency)}
+              {isMasked ? maskCurrency(settings?.currency) : formatCurrency(transaction.amount, settings?.currency)}
             </span>
           </div>
 

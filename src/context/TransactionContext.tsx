@@ -307,7 +307,15 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.SETTINGS);
       if (stored) {
-        return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+        const parsed = JSON.parse(stored);
+        const validCurrency = (parsed && parsed.currency && parsed.currency.symbol)
+          ? parsed.currency
+          : DEFAULT_SETTINGS.currency;
+        return {
+          ...DEFAULT_SETTINGS,
+          ...parsed,
+          currency: validCurrency,
+        };
       }
     } catch (e) {
       console.error('Failed to parse stored settings:', e);
@@ -1281,12 +1289,14 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     // 3. Most Used Payment Method
     const methodCounts = new Map<string, number>();
     transactions.forEach((t) => {
-      methodCounts.set(t.paymentMethod, (methodCounts.get(t.paymentMethod) || 0) + 1);
+      if (t && t.paymentMethod) {
+        methodCounts.set(t.paymentMethod, (methodCounts.get(t.paymentMethod) || 0) + 1);
+      }
     });
     let topMethod = 'UPI';
     let topCount = 0;
     methodCounts.forEach((cnt, m) => {
-      if (cnt > topCount) {
+      if (m && cnt > topCount) {
         topCount = cnt;
         topMethod = m;
       }
@@ -1295,8 +1305,8 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     // 4. Highest Balance Bank
     let highestBank: { name: string; balance: number } | null = null;
     bankStatsList.forEach((bs) => {
-      if (!highestBank || bs.currentBalance > highestBank.balance) {
-        highestBank = { name: bs.bank.bankName, balance: bs.currentBalance };
+      if (bs && bs.bank && (!highestBank || (bs.currentBalance || 0) > highestBank.balance)) {
+        highestBank = { name: bs.bank.bankName || 'Primary Vault', balance: bs.currentBalance || 0 };
       }
     });
 
@@ -1470,10 +1480,129 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   );
 };
 
+export const DEFAULT_FALLBACK_TRANSACTION_CONTEXT: TransactionContextType = {
+  transactions: [],
+  budgets: [],
+  recurring: [],
+  categories: DEFAULT_CATEGORIES,
+  settings: DEFAULT_SETTINGS,
+  connectedAccounts: [],
+  syncStatus: {
+    state: 'IDLE',
+    lastSyncedAt: new Date().toISOString(),
+    message: 'Accounts synchronized and up to date.',
+  },
+  bankAccounts: DEFAULT_BANK_ACCOUNTS,
+  cashWalletConfig: DEFAULT_CASH_WALLET,
+  bankStatsList: [],
+  totalBankBalance: 0,
+  netAvailableMoney: 0,
+  commandCenterStats: {
+    netAvailableMoney: 0,
+    totalBanks: 0,
+    totalBankBalance: 0,
+    cashBalance: 0,
+    totalExpenseAllTime: 0,
+    totalIncomeAllTime: 0,
+    thisMonthExpense: 0,
+    thisMonthIncome: 0,
+    highestExpenseCategory: null,
+    largestTransaction: null,
+    mostUsedPaymentMethod: 'UPI',
+    highestBalanceBank: null,
+  },
+  addBankAccount: () => ({} as any),
+  updateBankAccount: () => {},
+  deleteBankAccount: () => {},
+  updateBankBalance: () => {},
+  getBankById: () => undefined,
+  updateCashWalletOpening: () => {},
+  addTransaction: () => ({} as any),
+  addCashTransaction: () => ({} as any),
+  addCashExpense: () => ({} as any),
+  updateTransaction: () => {},
+  deleteTransaction: () => {},
+  duplicateTransaction: () => null,
+  bulkDeleteTransactions: () => {},
+  getTransactionById: () => undefined,
+  triggerSync: async () => {},
+  resolveDuplicateCandidate: () => {},
+  importExternalPayload: () => ({ success: false, message: 'Fallback' }),
+  addBudget: () => {},
+  updateBudget: () => {},
+  deleteBudget: () => {},
+  getBudgetStatusList: () => [],
+  addRecurring: () => {},
+  updateRecurring: () => {},
+  deleteRecurring: () => {},
+  toggleRecurringActive: () => {},
+  processRecurringItem: () => {},
+  dueRecurringCount: 0,
+  addCategory: () => {},
+  deleteCategory: () => {},
+  isMasked: false,
+  toggleMask: () => {},
+  updateSettings: () => {},
+  setGalaxyIntensity: () => {},
+  toggleReduceMotion: () => {},
+  setCosmicTheme: () => {},
+  resetToSampleData: () => {},
+  clearAllData: () => {},
+  exportBackupJSON: () => '',
+  importBackupJSON: () => false,
+  todayIncome: 0,
+  todayExpense: 0,
+  todayBalance: 0,
+  monthIncome: 0,
+  monthExpense: 0,
+  monthBalance: 0,
+  cashBalance: 0,
+  onlineUpiSpendingMonth: 0,
+  cardSpendingMonth: 0,
+  bankSpendingMonth: 0,
+  totalIncomeAllTime: 0,
+  totalExpenseAllTime: 0,
+  netWorthAllTime: 0,
+  isAddModalOpen: false,
+  setIsAddModalOpen: () => {},
+  isAddCashModalOpen: false,
+  setIsAddCashModalOpen: () => {},
+  isCashExpenseModalOpen: false,
+  setIsCashExpenseModalOpen: () => {},
+  isAddBankModalOpen: false,
+  setIsAddBankModalOpen: () => {},
+  editingBank: null,
+  setEditingBank: () => {},
+  selectedBankDetail: null,
+  setSelectedBankDetail: () => {},
+  editingTransaction: null,
+  setEditingTransaction: () => {},
+  selectedTransaction: null,
+  setSelectedTransaction: () => {},
+  duplicateCandidate: null,
+  setDuplicateCandidate: () => {},
+  galaxyMode: 'accounts',
+  setGalaxyMode: () => {},
+  microInteraction: null,
+  triggerMicroInteraction: () => {},
+  clearMicroInteraction: () => {},
+  deleteConfirmation: {
+    isOpen: false,
+    title: '',
+    message: '',
+  },
+  requestDeleteTransaction: () => {},
+  cancelDeleteTransaction: () => {},
+  confirmDeleteTransaction: () => {},
+};
+
 export const useTransactions = () => {
   const context = useContext(TransactionContext);
   if (!context) {
-    throw new Error('useTransactions must be used within a TransactionProvider');
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn('[Galaxy Finance]: useTransactions invoked outside TransactionProvider. Providing safe fallback context.');
+    }
+    return DEFAULT_FALLBACK_TRANSACTION_CONTEXT;
   }
   return context;
 };

@@ -178,11 +178,11 @@ export const RecurringModal: React.FC<RecurringModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
-                Amount ({settings.currency.code}) *
+                Amount ({settings?.currency?.code || 'INR'}) *
               </label>
               <div className="relative">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">
-                  {settings.currency.symbol}
+                  {settings?.currency?.symbol || '₹'}
                 </span>
                 <input
                   type="number"

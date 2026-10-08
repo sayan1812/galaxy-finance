@@ -15,14 +15,15 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
   className = '',
   prefix = ''
 }) => {
-  const [displayValue, setDisplayValue] = useState<number>(value);
-  const prevValueRef = useRef<number>(value);
+  const safeValue = (value === null || value === undefined || Number.isNaN(Number(value))) ? 0 : Number(value);
+  const [displayValue, setDisplayValue] = useState<number>(safeValue);
+  const prevValueRef = useRef<number>(safeValue);
   const animationFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
     const startValue = prevValueRef.current;
-    const endValue = value;
-    prevValueRef.current = value;
+    const endValue = safeValue;
+    prevValueRef.current = safeValue;
 
     if (startValue === endValue) {
       setDisplayValue(endValue);
@@ -55,11 +56,14 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [value, duration]);
+  }, [safeValue, duration]);
+
+  const num = Number(displayValue);
+  const safeNum = Number.isNaN(num) ? 0 : num;
 
   const formatted = formatter 
-    ? formatter(displayValue) 
-    : Math.round(displayValue).toLocaleString('en-IN');
+    ? formatter(safeNum) 
+    : Math.round(safeNum).toLocaleString('en-IN');
 
   return (
     <span className={`inline-block transition-colors duration-300 ${className}`}>

@@ -13,7 +13,7 @@ import {
   Info
 } from 'lucide-react';
 import { useTransactions } from '../../context/TransactionContext';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, maskCurrency } from '../../utils/formatters';
 import type { BankComputedStats } from '../../types';
 
 interface FinancialGalaxy3DProps {
@@ -576,8 +576,8 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
 
           {/* Live Orbit Status Pill */}
           <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--card-bg)]/80 border border-[var(--card-border)] text-[11px] font-mono font-semibold text-[var(--text-secondary)] backdrop-blur-md shrink-0">
-            <span className={`w-2 h-2 rounded-full ${isRotating && !settings.reduceMotion ? 'bg-[var(--accent-primary)] animate-ping' : 'bg-[var(--divider)]'}`} />
-            <span>{isRotating && !settings.reduceMotion ? 'Orbital Motion' : 'Stationary'}</span>
+            <span className={`w-2 h-2 rounded-full ${isRotating && !settings?.reduceMotion ? 'bg-[var(--accent-primary)] animate-ping' : 'bg-[var(--divider)]'}`} />
+            <span>{isRotating && !settings?.reduceMotion ? 'Orbital Motion' : 'Stationary'}</span>
           </div>
         </div>
 
@@ -645,18 +645,18 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
 
           {hoveredItem.balance !== undefined && (
             <div className="text-base font-black font-mono text-[var(--text-primary)]">
-              {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(hoveredItem.balance, settings.currency)}
+              {isMasked ? maskCurrency(settings?.currency) : formatCurrency(hoveredItem.balance, settings?.currency)}
             </div>
           )}
 
           {hoveredItem.amount !== undefined && (
             <div className="space-y-1">
               <div className="text-sm font-black font-mono text-red-400">
-                {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(hoveredItem.amount, settings.currency)}
+                {isMasked ? maskCurrency(settings?.currency) : formatCurrency(hoveredItem.amount, settings?.currency)}
               </div>
               <div className="flex items-center justify-between text-[10px] text-[var(--text-secondary)] pt-1 border-t border-[var(--divider)] font-mono">
                 <span>{hoveredItem.txCount} txs</span>
-                <span>Avg: {isMasked ? `${settings.currency.symbol} •••` : formatCurrency(hoveredItem.avgAmount || 0, settings.currency)}</span>
+                <span>Avg: {isMasked ? `${settings?.currency?.symbol || '₹'} •••` : formatCurrency(hoveredItem.avgAmount || 0, settings?.currency)}</span>
               </div>
             </div>
           )}

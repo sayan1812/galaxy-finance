@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import type { BankComputedStats } from '../../types';
 import { useTransactions } from '../../context/TransactionContext';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, maskCurrency } from '../../utils/formatters';
 
 interface BankCardProps {
   bankStats: BankComputedStats;
@@ -89,7 +89,7 @@ export const BankCard: React.FC<BankCardProps> = ({
             Current Available Balance
           </span>
           <div className="text-2xl font-black text-white tracking-tight">
-            {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(currentBalance, settings.currency)}
+            {isMasked ? maskCurrency(settings?.currency) : formatCurrency(currentBalance, settings?.currency)}
           </div>
           <div className="text-[11px] text-slate-400 mt-1 font-mono">
             {bank.accountNumberMasked || 'XXXX XXXX 4521'}
@@ -104,7 +104,7 @@ export const BankCard: React.FC<BankCardProps> = ({
               <span>Income</span>
             </div>
             <div className="font-extrabold text-slate-100">
-              {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(totalIncome, settings.currency)}
+              {isMasked ? maskCurrency(settings?.currency) : formatCurrency(totalIncome, settings?.currency)}
             </div>
           </div>
 
@@ -114,7 +114,7 @@ export const BankCard: React.FC<BankCardProps> = ({
               <span>Expenses</span>
             </div>
             <div className="font-extrabold text-slate-100">
-              {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(totalExpense, settings.currency)}
+              {isMasked ? maskCurrency(settings?.currency) : formatCurrency(totalExpense, settings?.currency)}
             </div>
           </div>
         </div>

@@ -18,7 +18,7 @@ import {
   EyeOff
 } from 'lucide-react';
 import { useTransactions } from '../context/TransactionContext';
-import { formatCurrency } from '../utils/formatters';
+import { formatCurrency, maskCurrency } from '../utils/formatters';
 import { FinancialGalaxy3D } from '../components/galaxy/FinancialGalaxy3D';
 import { CommandCenterSummary } from '../components/dashboard/CommandCenterSummary';
 import { WhereIsMoneyGoingChart } from '../components/dashboard/WhereIsMoneyGoingChart';
@@ -140,12 +140,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             <div className="flex items-baseline gap-3">
               {isMasked ? (
                 <span className="text-4xl sm:text-5xl lg:text-6xl font-black font-mono tracking-tight text-[var(--text-headings)]">
-                  {settings.currency.symbol} ••••••
+                  {maskCurrency(settings?.currency)}
                 </span>
               ) : (
                 <AnimatedCounter
                   value={netAvailableMoney}
-                  prefix={settings.currency.symbol}
+                  prefix={settings?.currency?.symbol || '₹'}
                   className="text-4xl sm:text-5xl lg:text-6xl font-black font-mono tracking-tight text-[var(--text-headings)]"
                 />
               )}
@@ -163,7 +163,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <div className="p-3.5 rounded-2xl bg-[var(--bg-subsurface)] border border-[var(--card-border)] text-xs text-[var(--text-secondary)] space-y-1 animate-in fade-in duration-150">
                 <span className="font-bold text-[var(--accent-primary)] block">Strict Available Money Formula:</span>
                 <p className="font-mono text-[11px] text-[var(--text-primary)]">
-                  Net Available = Total Available Bank Balance ({isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(totalBankBalance, settings.currency)}) + Cash Balance ({isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(cashBalance, settings.currency)})
+                  Net Available = Total Available Bank Balance ({isMasked ? maskCurrency(settings?.currency) : formatCurrency(totalBankBalance, settings?.currency)}) + Cash Balance ({isMasked ? maskCurrency(settings?.currency) : formatCurrency(cashBalance, settings?.currency)})
                 </p>
                 <p className="text-[10px] text-[var(--text-secondary)]">
                   Bank Balances reflect each institution's opening balance + net reconciled inflows.
@@ -177,9 +177,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 <TrendingUp size={14} />
                 <span>Inflows:</span>
                 {isMasked ? (
-                  <span className="text-[var(--text-primary)] font-bold">{settings.currency.symbol} ••••••</span>
+                  <span className="text-[var(--text-primary)] font-bold">{maskCurrency(settings?.currency)}</span>
                 ) : (
-                  <AnimatedCounter value={totalIncomeAllTime} prefix={settings.currency.symbol} className="text-[var(--text-primary)] font-bold" />
+                  <AnimatedCounter value={totalIncomeAllTime} prefix={settings?.currency?.symbol || '₹'} className="text-[var(--text-primary)] font-bold" />
                 )}
               </span>
 
@@ -189,9 +189,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 <TrendingDown size={14} />
                 <span>Outflows:</span>
                 {isMasked ? (
-                  <span className="text-rose-500 font-bold">{settings.currency.symbol} ••••••</span>
+                  <span className="text-rose-500 font-bold">{maskCurrency(settings?.currency)}</span>
                 ) : (
-                  <AnimatedCounter value={totalExpenseAllTime} prefix={settings.currency.symbol} className="text-rose-500 font-bold" />
+                  <AnimatedCounter value={totalExpenseAllTime} prefix={settings?.currency?.symbol || '₹'} className="text-rose-500 font-bold" />
                 )}
               </span>
 
@@ -201,9 +201,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 <Building2 size={14} />
                 <span>Banks:</span>
                 {isMasked ? (
-                  <span className="text-[var(--text-primary)] font-bold">{settings.currency.symbol} ••••••</span>
+                  <span className="text-[var(--text-primary)] font-bold">{maskCurrency(settings?.currency)}</span>
                 ) : (
-                  <AnimatedCounter value={totalBankBalance} prefix={settings.currency.symbol} className="text-[var(--text-primary)] font-bold" />
+                  <AnimatedCounter value={totalBankBalance} prefix={settings?.currency?.symbol || '₹'} className="text-[var(--text-primary)] font-bold" />
                 )}
               </span>
 
@@ -213,9 +213,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 <Wallet size={14} />
                 <span>Cash:</span>
                 {isMasked ? (
-                  <span className="text-[var(--text-primary)] font-bold">{settings.currency.symbol} ••••••</span>
+                  <span className="text-[var(--text-primary)] font-bold">{maskCurrency(settings?.currency)}</span>
                 ) : (
-                  <AnimatedCounter value={cashBalance} prefix={settings.currency.symbol} className="text-[var(--text-primary)] font-bold" />
+                  <AnimatedCounter value={cashBalance} prefix={settings?.currency?.symbol || '₹'} className="text-[var(--text-primary)] font-bold" />
                 )}
               </span>
             </div>
@@ -273,13 +273,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           <div>
             <span className="text-[10px] uppercase font-mono font-bold text-[var(--text-secondary)] block">This Month's Inflow</span>
             <span className="text-base font-black font-mono text-emerald-500">
-              {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(monthIncome, settings.currency)}
+              {isMasked ? maskCurrency(settings?.currency) : formatCurrency(monthIncome, settings?.currency)}
             </span>
           </div>
           <div>
             <span className="text-[10px] uppercase font-mono font-bold text-[var(--text-secondary)] block">This Month's Outflow</span>
             <span className="text-base font-black font-mono text-rose-500">
-              {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(monthExpense, settings.currency)}
+              {isMasked ? maskCurrency(settings?.currency) : formatCurrency(monthExpense, settings?.currency)}
             </span>
           </div>
           <div>
@@ -291,7 +291,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           <div>
             <span className="text-[10px] uppercase font-mono font-bold text-[var(--text-secondary)] block">Physical Cash Reserves</span>
             <span className="text-base font-black font-mono text-[var(--text-primary)]">
-              {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(cashBalance, settings.currency)}
+              {isMasked ? maskCurrency(settings?.currency) : formatCurrency(cashBalance, settings?.currency)}
             </span>
           </div>
         </div>
@@ -339,7 +339,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 </span>
               </h3>
               <p className="text-xs text-[var(--text-secondary)]">
-                Total Bank Balance: <strong className="text-[var(--text-primary)] font-mono">{isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(totalBankBalance, settings.currency)}</strong>
+                Total Bank Balance: <strong className="text-[var(--text-primary)] font-mono">{isMasked ? maskCurrency(settings?.currency) : formatCurrency(totalBankBalance, settings?.currency)}</strong>
               </p>
             </div>
 
@@ -386,13 +386,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   </div>
 
                   <div className="mt-3 text-lg font-black font-mono text-[var(--text-headings)]">
-                    {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(bs.currentBalance, settings.currency)}
+                    {isMasked ? maskCurrency(settings?.currency) : formatCurrency(bs.currentBalance, settings?.currency)}
                   </div>
                 </div>
 
                 <div className="mt-3 pt-2 border-t border-[var(--divider)] flex items-center justify-between text-[11px] text-[var(--text-secondary)] font-mono">
-                  <span className="text-emerald-500 font-semibold">{isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(bs.totalIncome, settings.currency)}</span>
-                  <span className="text-rose-500 font-semibold">{isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(bs.totalExpense, settings.currency)}</span>
+                  <span className="text-emerald-500 font-semibold">{isMasked ? maskCurrency(settings?.currency) : formatCurrency(bs.totalIncome, settings?.currency)}</span>
+                  <span className="text-rose-500 font-semibold">{isMasked ? maskCurrency(settings?.currency) : formatCurrency(bs.totalExpense, settings?.currency)}</span>
                   <span className="text-[var(--text-secondary)]">{bs.transactionCount} txs</span>
                 </div>
               </div>
@@ -422,7 +422,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 Cash Available
               </span>
               <div className="text-3xl font-black font-mono text-[var(--text-headings)] tracking-tight">
-                {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(cashBalance, settings.currency)}
+                {isMasked ? maskCurrency(settings?.currency) : formatCurrency(cashBalance, settings?.currency)}
               </div>
             </div>
           </div>

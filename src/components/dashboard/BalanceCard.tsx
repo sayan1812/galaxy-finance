@@ -1,7 +1,7 @@
 import React from 'react';
 import { Wallet, ArrowUpRight, Plus, Sparkles, Building2, Eye, EyeOff } from 'lucide-react';
 import { useTransactions } from '../../context/TransactionContext';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, maskCurrency } from '../../utils/formatters';
 
 interface BalanceCardProps {
   className?: string;
@@ -66,7 +66,7 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ className = '' }) => {
         </span>
         <div className="flex items-baseline gap-3 flex-wrap">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-[var(--text-headings)] font-mono">
-            {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(netAvailableMoney, settings.currency)}
+            {isMasked ? maskCurrency(settings?.currency) : formatCurrency(netAvailableMoney, settings?.currency)}
           </h1>
           <span className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)] animate-pulse" />
@@ -84,7 +84,7 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ className = '' }) => {
             </span>
           </div>
           <div className="text-lg font-bold text-[var(--text-headings)] font-mono">
-            {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(totalBankBalance, settings.currency)}
+            {isMasked ? maskCurrency(settings?.currency) : formatCurrency(totalBankBalance, settings?.currency)}
           </div>
         </div>
 
@@ -95,7 +95,7 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ className = '' }) => {
             </span>
           </div>
           <div className="text-lg font-bold text-[var(--text-headings)] font-mono">
-            {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(cashBalance, settings.currency)}
+            {isMasked ? maskCurrency(settings?.currency) : formatCurrency(cashBalance, settings?.currency)}
           </div>
         </div>
       </div>

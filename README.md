@@ -374,7 +374,7 @@ npm run preview
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/galaxy-finance.git
+git clone https://github.com/sayan1812/galaxy-finance.git
 ```
 
 ```bash

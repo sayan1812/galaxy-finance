@@ -138,7 +138,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                 Galaxy Finance
               </span>
               <span className="text-[10px] font-mono text-[var(--accent-primary)] font-bold">
-                {settings.currency.symbol} Cosmic Vaults
+                {settings?.currency?.symbol || '₹'} Cosmic Vaults
               </span>
             </div>
           </div>

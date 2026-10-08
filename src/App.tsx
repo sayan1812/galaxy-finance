@@ -229,11 +229,7 @@ const AppGate: React.FC = () => {
   }
 
   // 3. Authenticated state: Protected Application Shell
-  return (
-    <TransactionProvider>
-      <MainLayout />
-    </TransactionProvider>
-  );
+  return <MainLayout />;
 };
 
 export function App() {
@@ -241,7 +237,9 @@ export function App() {
     <ErrorBoundary>
       <ThemeProvider>
         <AuthProvider>
-          <AppGate />
+          <TransactionProvider>
+            <AppGate />
+          </TransactionProvider>
         </AuthProvider>
       </ThemeProvider>
     </ErrorBoundary>

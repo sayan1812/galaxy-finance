@@ -290,11 +290,11 @@ export const TransactionFormModal: React.FC = () => {
           {/* Amount Input */}
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
-              Amount ({settings.currency.code}) *
+              Amount ({settings?.currency?.code || 'INR'}) *
             </label>
             <div className="relative rounded-2xl border-2 border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500 transition-colors bg-white dark:bg-slate-950">
               <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-2xl font-bold text-slate-400 dark:text-slate-500 select-none">
-                {settings.currency.symbol}
+                {settings?.currency?.symbol || '₹'}
               </span>
               <input
                 type="number"
@@ -318,7 +318,7 @@ export const TransactionFormModal: React.FC = () => {
                   onClick={() => handleAddAmount(val)}
                   className="px-2.5 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition cursor-pointer"
                 >
-                  {settings.currency.symbol}{val}
+                  {settings?.currency?.symbol || '₹'}{val}
                 </button>
               ))}
             </div>
