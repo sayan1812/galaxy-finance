@@ -128,6 +128,10 @@ export interface TransactionContextType {
   addCategory: (category: Omit<Category, 'id' | 'isCustom'>) => void;
   deleteCategory: (id: string) => void;
 
+  // Privacy Masking (OFF by default)
+  isMasked: boolean;
+  toggleMask: () => void;
+
   // Settings & Storage
   updateSettings: (newSettings: Partial<AppSettings>) => void;
   setGalaxyIntensity: (intensity: GalaxyIntensity) => void;
@@ -337,6 +341,28 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [galaxyMode, setGalaxyMode] = useState<'accounts' | 'expenses'>('accounts');
+
+  // 10. Privacy Masking State (OFF by default)
+  const [isMasked, setIsMasked] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('galaxy_mask_balances');
+      return saved !== null ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleMask = useCallback(() => {
+    setIsMasked((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('galaxy_mask_balances', JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  }, []);
 
   // Micro-Interactions and Delete Confirmation
   const [microInteraction, setMicroInteraction] = useState<MicroInteractionEvent | null>(null);
@@ -1424,6 +1450,10 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
         setDuplicateCandidate,
         galaxyMode,
         setGalaxyMode,
+
+        // Privacy Masking (OFF by default)
+        isMasked,
+        toggleMask,
 
         // Micro-Interactions and Confirmation
         microInteraction,

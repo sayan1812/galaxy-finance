@@ -29,7 +29,8 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
     setIsAddModalOpen, 
     duplicateTransaction,
     requestDeleteTransaction,
-    settings 
+    settings,
+    isMasked
   } = useTransactions();
 
   const isIncome = transaction.type === 'INCOME';
@@ -127,7 +128,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
               <ArrowUpRight size={16} className="inline mr-0.5" />
             )}
             <span>
-              {formatCurrency(transaction.amount, settings.currency)}
+              {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(transaction.amount, settings.currency)}
             </span>
           </div>
 

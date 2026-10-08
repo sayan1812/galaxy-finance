@@ -1,5 +1,5 @@
 import React from 'react';
-import { Wallet, ShieldCheck, ArrowUpRight, Plus, Sparkles, Building2 } from 'lucide-react';
+import { Wallet, ArrowUpRight, Plus, Sparkles, Building2, Eye, EyeOff } from 'lucide-react';
 import { useTransactions } from '../../context/TransactionContext';
 import { formatCurrency } from '../../utils/formatters';
 
@@ -12,7 +12,7 @@ interface BalanceCardProps {
  * High-contrast, theme-aware capital telemetry with jade/emerald accents.
  */
 export const BalanceCard: React.FC<BalanceCardProps> = ({ className = '' }) => {
-  const { commandCenterStats, settings, setIsAddModalOpen, setIsAddCashModalOpen } = useTransactions();
+  const { commandCenterStats, settings, setIsAddModalOpen, setIsAddCashModalOpen, isMasked, toggleMask } = useTransactions();
   const { netAvailableMoney, totalBankBalance, cashBalance, totalBanks } = commandCenterStats;
 
   return (
@@ -38,9 +38,14 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ className = '' }) => {
               <span className="text-xs font-mono font-bold tracking-wider text-[var(--text-secondary)] uppercase">
                 Liquidity Telemetry
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[var(--text-secondary)] bg-[var(--surface-sunken)] px-2 py-0.5 rounded-full border border-[var(--card-border)]">
-                <ShieldCheck size={11} className="text-[var(--accent-primary)]" /> Verified
-              </span>
+              <button
+                type="button"
+                onClick={toggleMask}
+                className="p-1 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-headings)] hover:bg-[var(--row-hover-bg)] transition cursor-pointer"
+                title={isMasked ? "Show Balances" : "Mask Balances"}
+              >
+                {isMasked ? <EyeOff size={13} /> : <Eye size={13} />}
+              </button>
             </div>
             <h2 className="text-sm font-semibold text-[var(--text-headings)]">
               Net Available Capital
@@ -61,7 +66,7 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ className = '' }) => {
         </span>
         <div className="flex items-baseline gap-3 flex-wrap">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-[var(--text-headings)] font-mono">
-            {formatCurrency(netAvailableMoney, settings.currency)}
+            {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(netAvailableMoney, settings.currency)}
           </h1>
           <span className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)] animate-pulse" />
@@ -79,7 +84,7 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ className = '' }) => {
             </span>
           </div>
           <div className="text-lg font-bold text-[var(--text-headings)] font-mono">
-            {formatCurrency(totalBankBalance, settings.currency)}
+            {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(totalBankBalance, settings.currency)}
           </div>
         </div>
 
@@ -90,7 +95,7 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ className = '' }) => {
             </span>
           </div>
           <div className="text-lg font-bold text-[var(--text-headings)] font-mono">
-            {formatCurrency(cashBalance, settings.currency)}
+            {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(cashBalance, settings.currency)}
           </div>
         </div>
       </div>

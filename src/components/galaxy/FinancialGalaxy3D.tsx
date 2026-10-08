@@ -36,7 +36,8 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
     transactions,
     settings,
     galaxyMode,
-    setGalaxyMode
+    setGalaxyMode,
+    isMasked
   } = useTransactions();
 
   const [isRotating, setIsRotating] = useState<boolean>(true);
@@ -544,70 +545,73 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
         className="w-full h-full block touch-none"
       />
 
-      {/* Top Left: Galaxy Mode & Status Indicator */}
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
-        <div className="flex items-center p-1 rounded-2xl bg-[var(--card-bg)]/90 border border-[var(--card-border)] backdrop-blur-md shadow-sm">
-          <button
-            onClick={() => setGalaxyMode('accounts')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-              galaxyMode === 'accounts'
-                ? 'bg-[var(--accent-primary)] text-[var(--accent-contrast)] shadow-xs'
-                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-            }`}
-          >
-            <Orbit size={14} />
-            <span>Accounts Orbit</span>
-          </button>
-          <button
-            onClick={() => setGalaxyMode('expenses')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-              galaxyMode === 'expenses'
-                ? 'bg-[var(--accent-surface)] text-[var(--text-primary)] border border-[var(--accent-primary)]/40 shadow-xs'
-                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-            }`}
-          >
-            <TrendingDown size={14} />
-            <span>Expense Universe</span>
-          </button>
+      {/* Top Header: Decoupled View Switcher & Simulation Controls */}
+      <div className="absolute top-3 sm:top-4 left-3 sm:left-4 right-3 sm:right-4 z-10 pointer-events-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+        {/* View Switcher Tabs with no-scrollbar and shrink-0 */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto pointer-events-auto">
+          <div className="flex items-center p-1 rounded-2xl bg-[var(--card-bg)]/90 border border-[var(--card-border)] backdrop-blur-md shadow-sm shrink-0">
+            <button
+              onClick={() => setGalaxyMode('accounts')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap shrink-0 ${
+                galaxyMode === 'accounts'
+                  ? 'bg-[var(--accent-primary)] text-[var(--accent-contrast)] shadow-xs'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <Orbit size={14} className="shrink-0" />
+              <span className="whitespace-nowrap">Accounts Orbit</span>
+            </button>
+            <button
+              onClick={() => setGalaxyMode('expenses')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap shrink-0 ${
+                galaxyMode === 'expenses'
+                  ? 'bg-[var(--accent-surface)] text-[var(--text-primary)] border border-[var(--accent-primary)]/40 shadow-xs'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <TrendingDown size={14} className="shrink-0" />
+              <span className="whitespace-nowrap">Expense Universe</span>
+            </button>
+          </div>
+
+          {/* Live Orbit Status Pill */}
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--card-bg)]/80 border border-[var(--card-border)] text-[11px] font-mono font-semibold text-[var(--text-secondary)] backdrop-blur-md shrink-0">
+            <span className={`w-2 h-2 rounded-full ${isRotating && !settings.reduceMotion ? 'bg-[var(--accent-primary)] animate-ping' : 'bg-[var(--divider)]'}`} />
+            <span>{isRotating && !settings.reduceMotion ? 'Orbital Motion' : 'Stationary'}</span>
+          </div>
         </div>
 
-        {/* Live Orbit Status Pill */}
-        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--card-bg)]/80 border border-[var(--card-border)] text-[11px] font-mono font-semibold text-[var(--text-secondary)] backdrop-blur-md">
-          <span className={`w-2 h-2 rounded-full ${isRotating && !settings.reduceMotion ? 'bg-[var(--accent-primary)] animate-ping' : 'bg-[var(--divider)]'}`} />
-          <span>{isRotating && !settings.reduceMotion ? 'Orbital Motion' : 'Stationary'}</span>
+        {/* Floating Glassmorphic Camera Controls Pill */}
+        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[var(--card-bg)]/90 border border-[var(--card-border)] backdrop-blur-md shadow-sm text-[var(--text-secondary)] pointer-events-auto self-end sm:self-auto shrink-0">
+          <button
+            onClick={() => setIsRotating(!isRotating)}
+            title={isRotating ? 'Pause Orbit' : 'Resume Orbit'}
+            className="p-2 rounded-xl hover:bg-[var(--row-hover-bg)] hover:text-[var(--text-primary)] transition cursor-pointer"
+          >
+            {isRotating ? <Pause size={14} /> : <Play size={14} />}
+          </button>
+          <button
+            onClick={() => handleZoom('in')}
+            title="Zoom In"
+            className="p-2 rounded-xl hover:bg-[var(--row-hover-bg)] hover:text-[var(--text-primary)] transition cursor-pointer"
+          >
+            <ZoomIn size={14} />
+          </button>
+          <button
+            onClick={() => handleZoom('out')}
+            title="Zoom Out"
+            className="p-2 rounded-xl hover:bg-[var(--row-hover-bg)] hover:text-[var(--text-primary)] transition cursor-pointer"
+          >
+            <ZoomOut size={14} />
+          </button>
+          <button
+            onClick={handleResetCamera}
+            title="Reset View Angle"
+            className="p-2 rounded-xl hover:bg-[var(--row-hover-bg)] hover:text-[var(--text-primary)] transition cursor-pointer"
+          >
+            <RotateCcw size={14} />
+          </button>
         </div>
-      </div>
-
-      {/* Top Right: Cosmic Controls */}
-      <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 p-1 rounded-2xl bg-[var(--card-bg)]/90 border border-[var(--card-border)] backdrop-blur-md shadow-sm text-[var(--text-secondary)]">
-        <button
-          onClick={() => setIsRotating(!isRotating)}
-          title={isRotating ? 'Pause Orbit' : 'Resume Orbit'}
-          className="p-2 rounded-xl hover:bg-[var(--row-hover-bg)] hover:text-[var(--text-primary)] transition cursor-pointer"
-        >
-          {isRotating ? <Pause size={14} /> : <Play size={14} />}
-        </button>
-        <button
-          onClick={() => handleZoom('in')}
-          title="Zoom In"
-          className="p-2 rounded-xl hover:bg-[var(--row-hover-bg)] hover:text-[var(--text-primary)] transition cursor-pointer"
-        >
-          <ZoomIn size={14} />
-        </button>
-        <button
-          onClick={() => handleZoom('out')}
-          title="Zoom Out"
-          className="p-2 rounded-xl hover:bg-[var(--row-hover-bg)] hover:text-[var(--text-primary)] transition cursor-pointer"
-        >
-          <ZoomOut size={14} />
-        </button>
-        <button
-          onClick={handleResetCamera}
-          title="Reset View Angle"
-          className="p-2 rounded-xl hover:bg-[var(--row-hover-bg)] hover:text-[var(--text-primary)] transition cursor-pointer"
-        >
-          <RotateCcw size={14} />
-        </button>
       </div>
 
       {/* Center Top: Cosmic Command Headline */}
@@ -641,18 +645,18 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
 
           {hoveredItem.balance !== undefined && (
             <div className="text-base font-black font-mono text-[var(--text-primary)]">
-              {formatCurrency(hoveredItem.balance, settings.currency)}
+              {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(hoveredItem.balance, settings.currency)}
             </div>
           )}
 
           {hoveredItem.amount !== undefined && (
             <div className="space-y-1">
               <div className="text-sm font-black font-mono text-red-400">
-                {formatCurrency(hoveredItem.amount, settings.currency)}
+                {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(hoveredItem.amount, settings.currency)}
               </div>
               <div className="flex items-center justify-between text-[10px] text-[var(--text-secondary)] pt-1 border-t border-[var(--divider)] font-mono">
                 <span>{hoveredItem.txCount} txs</span>
-                <span>Avg: {formatCurrency(hoveredItem.avgAmount || 0, settings.currency)}</span>
+                <span>Avg: {isMasked ? `${settings.currency.symbol} •••` : formatCurrency(hoveredItem.avgAmount || 0, settings.currency)}</span>
               </div>
             </div>
           )}

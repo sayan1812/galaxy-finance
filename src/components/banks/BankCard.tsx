@@ -24,7 +24,7 @@ export const BankCard: React.FC<BankCardProps> = ({
   onDelete,
   onViewTransactions,
 }) => {
-  const { settings } = useTransactions();
+  const { settings, isMasked } = useTransactions();
   const { bank, currentBalance, totalIncome, totalExpense, transactionCount } = bankStats;
 
   return (
@@ -89,7 +89,7 @@ export const BankCard: React.FC<BankCardProps> = ({
             Current Available Balance
           </span>
           <div className="text-2xl font-black text-white tracking-tight">
-            {formatCurrency(currentBalance, settings.currency)}
+            {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(currentBalance, settings.currency)}
           </div>
           <div className="text-[11px] text-slate-400 mt-1 font-mono">
             {bank.accountNumberMasked || 'XXXX XXXX 4521'}
@@ -104,7 +104,7 @@ export const BankCard: React.FC<BankCardProps> = ({
               <span>Income</span>
             </div>
             <div className="font-extrabold text-slate-100">
-              {formatCurrency(totalIncome, settings.currency)}
+              {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(totalIncome, settings.currency)}
             </div>
           </div>
 
@@ -114,7 +114,7 @@ export const BankCard: React.FC<BankCardProps> = ({
               <span>Expenses</span>
             </div>
             <div className="font-extrabold text-slate-100">
-              {formatCurrency(totalExpense, settings.currency)}
+              {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(totalExpense, settings.currency)}
             </div>
           </div>
         </div>

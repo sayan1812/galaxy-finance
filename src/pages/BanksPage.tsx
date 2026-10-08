@@ -29,6 +29,7 @@ export const BanksPage: React.FC = () => {
     triggerSync,
     syncStatus,
     setIsAddCashModalOpen,
+    isMasked
   } = useTransactions();
 
   const [isAddBankModalOpen, setIsAddBankModalOpen] = useState<boolean>(false);
@@ -109,7 +110,7 @@ export const BanksPage: React.FC = () => {
             </span>
           </div>
           <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            {formatCurrency(totalBankBalance, settings.currency)}
+            {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(totalBankBalance, settings.currency)}
           </div>
           <p className="text-[11px] text-slate-400 mt-2">
             Combined sum of all savings, salary, and current bank accounts
@@ -129,7 +130,7 @@ export const BanksPage: React.FC = () => {
               </span>
             </div>
             <div className="text-2xl sm:text-3xl font-black text-amber-400 tracking-tight">
-              {formatCurrency(cashBalance, settings.currency)}
+              {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(cashBalance, settings.currency)}
             </div>
           </div>
 
@@ -159,12 +160,12 @@ export const BanksPage: React.FC = () => {
             <Sparkles size={16} className="text-cyan-400" />
           </div>
           <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            {formatCurrency(netAvailableMoney, settings.currency)}
+            {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(netAvailableMoney, settings.currency)}
           </div>
           <div className="text-[11px] text-slate-300 mt-2 font-mono flex items-center justify-between pt-1 border-t border-slate-800">
-            <span>Bank: {formatCurrency(totalBankBalance, settings.currency)}</span>
+            <span>Bank: {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(totalBankBalance, settings.currency)}</span>
             <span>+</span>
-            <span>Cash: {formatCurrency(cashBalance, settings.currency)}</span>
+            <span>Cash: {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(cashBalance, settings.currency)}</span>
           </div>
         </div>
       </div>
@@ -264,13 +265,13 @@ export const BanksPage: React.FC = () => {
                   </td>
                   <td className="py-3 text-slate-400">{row.bank.accountType}</td>
                   <td className="py-3 text-right font-black text-white">
-                    {formatCurrency(row.currentBalance, settings.currency)}
+                    {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(row.currentBalance, settings.currency)}
                   </td>
                   <td className="py-3 text-right font-bold text-emerald-400">
-                    {formatCurrency(row.totalIncome, settings.currency)}
+                    {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(row.totalIncome, settings.currency)}
                   </td>
                   <td className="py-3 text-right font-bold text-rose-400">
-                    {formatCurrency(row.totalExpense, settings.currency)}
+                    {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(row.totalExpense, settings.currency)}
                   </td>
                   <td className="py-3 text-right pr-2">
                     <button

@@ -13,7 +13,9 @@ import {
   Info,
   ChevronRight,
   Orbit,
-  ShieldCheck
+  ShieldCheck,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { useTransactions } from '../context/TransactionContext';
 import { formatCurrency } from '../utils/formatters';
@@ -53,6 +55,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     netAvailableMoney,
     totalIncomeAllTime,
     totalExpenseAllTime,
+    isMasked,
+    toggleMask
   } = useTransactions();
 
   const [selectedBank, setSelectedBank] = useState<BankAccount | null>(null);
@@ -117,17 +121,34 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <span>Capital Solvency Engine</span>
             </div>
 
-            <h1 className="text-xs uppercase font-mono font-bold tracking-widest text-[var(--text-secondary)]">
-              NET AVAILABLE CAPITAL
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xs uppercase font-mono font-bold tracking-widest text-[var(--text-secondary)]">
+                NET AVAILABLE CAPITAL
+              </h1>
+              <button
+                type="button"
+                onClick={toggleMask}
+                className="p-1 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-headings)] hover:bg-[var(--row-hover-bg)] transition cursor-pointer"
+                title={isMasked ? "Show Balances (Privacy Mask OFF)" : "Mask Balances (Privacy Mask ON)"}
+                aria-label={isMasked ? "Show Balances" : "Mask Balances"}
+              >
+                {isMasked ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
 
             {/* Central Metric */}
             <div className="flex items-baseline gap-3">
-              <AnimatedCounter
-                value={netAvailableMoney}
-                prefix={settings.currency.symbol}
-                className="text-4xl sm:text-5xl lg:text-6xl font-black font-mono tracking-tight text-[var(--text-headings)]"
-              />
+              {isMasked ? (
+                <span className="text-4xl sm:text-5xl lg:text-6xl font-black font-mono tracking-tight text-[var(--text-headings)]">
+                  {settings.currency.symbol} ••••••
+                </span>
+              ) : (
+                <AnimatedCounter
+                  value={netAvailableMoney}
+                  prefix={settings.currency.symbol}
+                  className="text-4xl sm:text-5xl lg:text-6xl font-black font-mono tracking-tight text-[var(--text-headings)]"
+                />
+              )}
               <button
                 onClick={() => setShowFormulaTooltip(!showFormulaTooltip)}
                 className="text-[var(--text-secondary)] hover:text-[var(--text-headings)] transition cursor-pointer p-1"
@@ -142,7 +163,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <div className="p-3.5 rounded-2xl bg-[var(--bg-subsurface)] border border-[var(--card-border)] text-xs text-[var(--text-secondary)] space-y-1 animate-in fade-in duration-150">
                 <span className="font-bold text-[var(--accent-primary)] block">Strict Available Money Formula:</span>
                 <p className="font-mono text-[11px] text-[var(--text-primary)]">
-                  Net Available = Total Available Bank Balance ({formatCurrency(totalBankBalance, settings.currency)}) + Cash Balance ({formatCurrency(cashBalance, settings.currency)})
+                  Net Available = Total Available Bank Balance ({isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(totalBankBalance, settings.currency)}) + Cash Balance ({isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(cashBalance, settings.currency)})
                 </p>
                 <p className="text-[10px] text-[var(--text-secondary)]">
                   Bank Balances reflect each institution's opening balance + net reconciled inflows.
@@ -155,7 +176,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <span className="flex items-center gap-1.5 text-emerald-500 font-mono">
                 <TrendingUp size={14} />
                 <span>Inflows:</span>
-                <AnimatedCounter value={totalIncomeAllTime} prefix={settings.currency.symbol} className="text-[var(--text-primary)] font-bold" />
+                {isMasked ? (
+                  <span className="text-[var(--text-primary)] font-bold">{settings.currency.symbol} ••••••</span>
+                ) : (
+                  <AnimatedCounter value={totalIncomeAllTime} prefix={settings.currency.symbol} className="text-[var(--text-primary)] font-bold" />
+                )}
               </span>
 
               <span className="text-[var(--text-muted)] opacity-30 hidden sm:inline">•</span>
@@ -163,7 +188,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <span className="flex items-center gap-1.5 text-rose-500 font-mono">
                 <TrendingDown size={14} />
                 <span>Outflows:</span>
-                <AnimatedCounter value={totalExpenseAllTime} prefix={settings.currency.symbol} className="text-rose-500 font-bold" />
+                {isMasked ? (
+                  <span className="text-rose-500 font-bold">{settings.currency.symbol} ••••••</span>
+                ) : (
+                  <AnimatedCounter value={totalExpenseAllTime} prefix={settings.currency.symbol} className="text-rose-500 font-bold" />
+                )}
               </span>
 
               <span className="text-[var(--text-muted)] opacity-30 hidden sm:inline">•</span>
@@ -171,7 +200,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <span className="flex items-center gap-1.5 text-[var(--text-secondary)] font-mono">
                 <Building2 size={14} />
                 <span>Banks:</span>
-                <AnimatedCounter value={totalBankBalance} prefix={settings.currency.symbol} className="text-[var(--text-primary)] font-bold" />
+                {isMasked ? (
+                  <span className="text-[var(--text-primary)] font-bold">{settings.currency.symbol} ••••••</span>
+                ) : (
+                  <AnimatedCounter value={totalBankBalance} prefix={settings.currency.symbol} className="text-[var(--text-primary)] font-bold" />
+                )}
               </span>
 
               <span className="text-[var(--text-muted)] opacity-30 hidden sm:inline">•</span>
@@ -179,14 +212,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <span className="flex items-center gap-1.5 text-[var(--text-secondary)] font-mono">
                 <Wallet size={14} />
                 <span>Cash:</span>
-                <AnimatedCounter value={cashBalance} prefix={settings.currency.symbol} className="text-[var(--text-primary)] font-bold" />
+                {isMasked ? (
+                  <span className="text-[var(--text-primary)] font-bold">{settings.currency.symbol} ••••••</span>
+                ) : (
+                  <AnimatedCounter value={cashBalance} prefix={settings.currency.symbol} className="text-[var(--text-primary)] font-bold" />
+                )}
               </span>
             </div>
           </div>
 
           {/* Quick Action Hub: Responsive Ergonomic Split Action Triggers */}
           <div className="w-full lg:w-auto flex flex-col lg:items-end gap-2.5">
-            {/* Primary Action CTA (Full width on mobile, balanced on desktop) */}
+            {/* Primary Action CTA + Responsive Balanced Action Grid */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto">
               <button
                 onClick={() => setIsAddModalOpen(true)}
@@ -196,33 +233,37 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 <span>Record Transaction</span>
               </button>
 
-              <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
-                {/* Cash Inflow Action */}
+              <div className="grid grid-cols-3 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+                {/* Cash Action */}
                 <button
                   onClick={() => setIsAddCashModalOpen(true)}
-                  className="inline-flex items-center justify-center font-bold text-xs transition-all duration-200 cursor-pointer active:scale-[0.98] hover:-translate-y-0.5 px-4 py-2.5 rounded-xl border border-emerald-500/35 bg-emerald-500/15 text-emerald-500 dark:text-emerald-400 gap-1.5"
+                  className="inline-flex items-center justify-center font-bold text-xs transition-all duration-200 cursor-pointer active:scale-[0.98] hover:-translate-y-0.5 px-3 sm:px-4 py-2.5 rounded-xl border border-emerald-500/35 bg-emerald-500/15 text-emerald-500 dark:text-emerald-400 gap-1.5"
+                  title="Cash Inflow"
                 >
                   <ArrowDownLeft size={15} className="stroke-[2.5]" />
-                  <span>Cash Inflow</span>
+                  <span>Cash</span>
                 </button>
 
-                {/* Log Outflow Action */}
+                {/* Outflow Action */}
                 <button
                   onClick={() => setIsCashExpenseOpen(true)}
-                  className="inline-flex items-center justify-center font-bold text-xs transition-all duration-200 cursor-pointer active:scale-[0.98] hover:-translate-y-0.5 px-4 py-2.5 rounded-xl border border-rose-500/35 bg-rose-500/15 text-rose-500 dark:text-rose-400 gap-1.5"
+                  className="inline-flex items-center justify-center font-bold text-xs transition-all duration-200 cursor-pointer active:scale-[0.98] hover:-translate-y-0.5 px-3 sm:px-4 py-2.5 rounded-xl border border-rose-500/35 bg-rose-500/15 text-rose-500 dark:text-rose-400 gap-1.5"
+                  title="Log Outflow"
                 >
                   <ArrowUpRight size={15} className="stroke-[2.5]" />
-                  <span>Log Outflow</span>
+                  <span>Outflow</span>
+                </button>
+
+                {/* Vaults & Banks */}
+                <button
+                  onClick={() => onNavigate('banks')}
+                  className="btn-secondary inline-flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer"
+                  title="Manage Vaults & Banks"
+                >
+                  <Building2 size={14} />
+                  <span className="truncate">Vaults & Banks</span>
                 </button>
               </div>
-
-              <button
-                onClick={() => onNavigate('banks')}
-                className="btn-secondary hidden sm:inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer"
-              >
-                <Building2 size={14} />
-                <span>Vaults & Banks</span>
-              </button>
             </div>
           </div>
         </div>
@@ -232,13 +273,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           <div>
             <span className="text-[10px] uppercase font-mono font-bold text-[var(--text-secondary)] block">This Month's Inflow</span>
             <span className="text-base font-black font-mono text-emerald-500">
-              {formatCurrency(monthIncome, settings.currency)}
+              {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(monthIncome, settings.currency)}
             </span>
           </div>
           <div>
             <span className="text-[10px] uppercase font-mono font-bold text-[var(--text-secondary)] block">This Month's Outflow</span>
             <span className="text-base font-black font-mono text-rose-500">
-              {formatCurrency(monthExpense, settings.currency)}
+              {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(monthExpense, settings.currency)}
             </span>
           </div>
           <div>
@@ -250,7 +291,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           <div>
             <span className="text-[10px] uppercase font-mono font-bold text-[var(--text-secondary)] block">Physical Cash Reserves</span>
             <span className="text-base font-black font-mono text-[var(--text-primary)]">
-              {formatCurrency(cashBalance, settings.currency)}
+              {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(cashBalance, settings.currency)}
             </span>
           </div>
         </div>
@@ -298,7 +339,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 </span>
               </h3>
               <p className="text-xs text-[var(--text-secondary)]">
-                Total Bank Balance: <strong className="text-[var(--text-primary)] font-mono">{formatCurrency(totalBankBalance, settings.currency)}</strong>
+                Total Bank Balance: <strong className="text-[var(--text-primary)] font-mono">{isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(totalBankBalance, settings.currency)}</strong>
               </p>
             </div>
 
@@ -345,13 +386,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                   </div>
 
                   <div className="mt-3 text-lg font-black font-mono text-[var(--text-headings)]">
-                    {formatCurrency(bs.currentBalance, settings.currency)}
+                    {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(bs.currentBalance, settings.currency)}
                   </div>
                 </div>
 
                 <div className="mt-3 pt-2 border-t border-[var(--divider)] flex items-center justify-between text-[11px] text-[var(--text-secondary)] font-mono">
-                  <span className="text-emerald-500 font-semibold">{formatCurrency(bs.totalIncome, settings.currency)}</span>
-                  <span className="text-rose-500 font-semibold">{formatCurrency(bs.totalExpense, settings.currency)}</span>
+                  <span className="text-emerald-500 font-semibold">{isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(bs.totalIncome, settings.currency)}</span>
+                  <span className="text-rose-500 font-semibold">{isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(bs.totalExpense, settings.currency)}</span>
                   <span className="text-[var(--text-secondary)]">{bs.transactionCount} txs</span>
                 </div>
               </div>
@@ -381,7 +422,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 Cash Available
               </span>
               <div className="text-3xl font-black font-mono text-[var(--text-headings)] tracking-tight">
-                {formatCurrency(cashBalance, settings.currency)}
+                {isMasked ? `${settings.currency.symbol} ••••••` : formatCurrency(cashBalance, settings.currency)}
               </div>
             </div>
           </div>
