@@ -434,12 +434,41 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     document.documentElement.setAttribute('data-theme', 'light');
   }, [settings]);
 
+  // Sync live accounts from MongoDB Atlas on initial load
+  useEffect(() => {
+    let isMounted = true;
+    api.getAccounts().then((res: any) => {
+      if (isMounted && res && Array.isArray(res.accounts) && res.accounts.length > 0) {
+        const liveBanks: BankAccount[] = res.accounts
+          .filter((a: any) => a.accountType !== 'cash')
+          .map((a: any) => ({
+            id: a._id || a.id,
+            bankName: a.accountName,
+            accountType: 'Savings' as const,
+            nickname: a.accountName,
+            openingBalance: a.balance,
+            accountNumberMasked: a.accountNumberMask || 'XXXX XXXX 0000',
+            createdAt: a.createdAt || new Date().toISOString(),
+            updatedAt: a.updatedAt || new Date().toISOString(),
+          }));
+
+        if (liveBanks.length > 0) {
+          setBankAccounts(liveBanks);
+        }
+      }
+    }).catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // --- Bank Operations ---
   const addBankAccount = useCallback((data: Omit<BankAccount, 'id' | 'createdAt' | 'updatedAt'>): BankAccount => {
     const now = new Date().toISOString();
+    const tempId = `bank-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const newBank: BankAccount = {
       ...data,
-      id: `bank-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      id: tempId,
       createdAt: now,
       updatedAt: now,
     };
@@ -449,6 +478,13 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       accountType: 'bank',
       balance: data.openingBalance,
       accountNumberMask: data.accountNumberMasked,
+    }).then((res: any) => {
+      const serverId = res?.account?._id || res?.account?.id;
+      if (serverId) {
+        setBankAccounts((prev) =>
+          prev.map((b) => (b.id === tempId ? { ...b, id: serverId } : b))
+        );
+      }
     }).catch(() => {});
     return newBank;
   }, []);
@@ -526,7 +562,8 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       description: data.description,
       date: data.date,
       time: data.time || defaultTime,
-      bankId: data.bankAccountId
+      bankId: data.bankAccountId,
+      accountId: data.bankAccountId
     }).catch(() => {});
 
     return newTx;

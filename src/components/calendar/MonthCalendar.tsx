@@ -176,12 +176,12 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = ({
                 <div className="mt-1 space-y-0.5 text-right overflow-hidden">
                   {income > 0 && (
                     <div className="text-[10px] sm:text-xs font-extrabold text-emerald-600 dark:text-emerald-400 truncate">
-                      +{formatCompactCurrency(income, settings.currency)}
+                      {formatCompactCurrency(income, settings.currency)}
                     </div>
                   )}
                   {expense > 0 && (
                     <div className="text-[10px] sm:text-xs font-extrabold text-rose-600 dark:text-rose-400 truncate">
-                      -{formatCompactCurrency(expense, settings.currency)}
+                      {formatCompactCurrency(expense, settings.currency)}
                     </div>
                   )}
 
@@ -193,12 +193,12 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = ({
                         : 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
                     }`}
                   >
-                    Net: {net >= 0 ? '+' : ''}{formatCompactCurrency(net, settings.currency)}
+                    Net: {formatCompactCurrency(net, settings.currency)}
                   </div>
                 </div>
               ) : (
                 <div className="hidden group-hover:block text-[10px] text-slate-300 dark:text-slate-600 text-center py-2">
-                  + Add
+                  Add
                 </div>
               )}
             </div>

@@ -86,13 +86,13 @@ export const CustomChartTooltip: React.FC<CustomChartTooltipProps> = ({
           <div className="flex items-center justify-between gap-4">
             <span className="text-[12px] font-medium" style={{ color: labelColor }}>Inflow</span>
             <span className="font-mono font-bold text-[12px] tabular-nums" style={{ color: inflowColor }}>
-              +{formatCurrency(Number(rawData.income || 0), currency)}
+              {formatCurrency(Number(rawData.income || 0), currency)}
             </span>
           </div>
           <div className="flex items-center justify-between gap-4">
             <span className="text-[12px] font-medium" style={{ color: labelColor }}>Outflow</span>
             <span className="font-mono font-bold text-[12px] tabular-nums" style={{ color: outflowColor }}>
-              -{formatCurrency(Number(rawData.expense || 0), currency)}
+              {formatCurrency(Number(rawData.expense || 0), currency)}
             </span>
           </div>
           {('income' in rawData || 'expense' in rawData) && (() => {
@@ -107,7 +107,7 @@ export const CustomChartTooltip: React.FC<CustomChartTooltipProps> = ({
                   className="font-mono font-bold text-[13px] tabular-nums"
                   style={{ color: net >= 0 ? inflowColor : outflowColor }}
                 >
-                  {net >= 0 ? '+' : ''}{formatCurrency(net, currency)}
+                  {formatCurrency(net, currency)}
                 </span>
               </div>
             );

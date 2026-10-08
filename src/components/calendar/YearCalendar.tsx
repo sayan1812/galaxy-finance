@@ -67,7 +67,7 @@ export const YearCalendar: React.FC<YearCalendarProps> = ({ year, onSelectMonth 
                 <span>Income</span>
               </span>
               <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                +{formatCurrency(m.income, settings.currency)}
+                {formatCurrency(m.income, settings.currency)}
               </span>
             </div>
 
@@ -77,7 +77,7 @@ export const YearCalendar: React.FC<YearCalendarProps> = ({ year, onSelectMonth 
                 <span>Expense</span>
               </span>
               <span className="font-bold text-rose-600 dark:text-rose-400">
-                -{formatCurrency(m.expense, settings.currency)}
+                {formatCurrency(m.expense, settings.currency)}
               </span>
             </div>
 
@@ -90,7 +90,7 @@ export const YearCalendar: React.FC<YearCalendarProps> = ({ year, onSelectMonth 
                     : 'text-rose-600 dark:text-rose-400'
                 }
               >
-                {m.net >= 0 ? '+' : ''}{formatCurrency(m.net, settings.currency)}
+                {formatCurrency(m.net, settings.currency)}
               </span>
             </div>
           </div>

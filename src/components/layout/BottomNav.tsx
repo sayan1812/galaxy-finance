@@ -60,7 +60,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, setCurrentTab 
                 <Banknote size={17} />
               </div>
               <div>
-                <span className="block font-bold text-xs text-[var(--text-primary)]">+ Add Cash Inflow</span>
+                <span className="block font-bold text-xs text-[var(--text-primary)]">Cash Inflow</span>
                 <span className="text-[10px] text-[var(--text-secondary)] font-medium">Physical cash deposit</span>
               </div>
             </button>
@@ -77,7 +77,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, setCurrentTab 
                 <Minus size={17} />
               </div>
               <div>
-                <span className="block font-bold text-xs text-[var(--text-primary)]">− Cash Outflow</span>
+                <span className="block font-bold text-xs text-[var(--text-primary)]">Cash Outflow</span>
                 <span className="text-[10px] text-[var(--text-secondary)] font-medium">Wallet cash spending</span>
               </div>
             </button>

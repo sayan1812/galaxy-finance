@@ -105,7 +105,7 @@ export const TransactionDetailModal: React.FC = () => {
             <div className={`text-3xl sm:text-4xl font-black tracking-tight ${
               isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
             }`}>
-              {isIncome ? '+' : '-'}{formatCurrency(selectedTransaction.amount, settings.currency)}
+              {formatCurrency(selectedTransaction.amount, settings.currency)}
             </div>
 
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">

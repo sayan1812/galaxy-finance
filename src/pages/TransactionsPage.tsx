@@ -127,7 +127,7 @@ export const TransactionsPage: React.FC = () => {
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80 text-xs font-bold hover:bg-amber-100 transition cursor-pointer"
           >
             <Banknote size={15} />
-            <span>+ Add Cash</span>
+            <span>Cash</span>
           </button>
 
           <button
@@ -135,7 +135,7 @@ export const TransactionsPage: React.FC = () => {
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/20 cursor-pointer"
           >
             <Plus size={16} />
-            <span>+ Record</span>
+            <span>Record</span>
           </button>
         </div>
       </div>
@@ -152,19 +152,19 @@ export const TransactionsPage: React.FC = () => {
         <div>
           <span className="text-[11px] font-semibold text-slate-400 block">Filtered Income</span>
           <span className="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400">
-            +{formatCurrency(filteredIncome, settings.currency)}
+            {formatCurrency(filteredIncome, settings.currency)}
           </span>
         </div>
         <div>
           <span className="text-[11px] font-semibold text-slate-400 block">Filtered Expense</span>
           <span className="text-sm sm:text-base font-bold text-rose-600 dark:text-rose-400">
-            -{formatCurrency(filteredExpense, settings.currency)}
+            {formatCurrency(filteredExpense, settings.currency)}
           </span>
         </div>
         <div>
           <span className="text-[11px] font-semibold text-slate-400 block">Filtered Net</span>
           <span className={`text-sm sm:text-base font-extrabold ${filteredNet >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-            {filteredNet >= 0 ? '+' : ''}{formatCurrency(filteredNet, settings.currency)}
+            {formatCurrency(filteredNet, settings.currency)}
           </span>
         </div>
       </div>

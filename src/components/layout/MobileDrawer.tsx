@@ -24,6 +24,7 @@ import { useTransactions } from '../../context/TransactionContext';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { formatCurrency } from '../../utils/formatters';
+import { AVAILABLE_CURRENCIES } from '../../constants/categories';
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -40,6 +41,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
 }) => {
   const { 
     settings, 
+    updateSettings,
     bankAccounts,
     totalBankBalance,
     cashBalance,
@@ -49,7 +51,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
   } = useTransactions();
 
   const { user, isAuthenticated, logout, setIsAuthModalOpen, setAuthModalMode } = useAuth();
-  const { theme, cycleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   // Close drawer on escape key
   useEffect(() => {
@@ -205,14 +207,14 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
             </div>
           )}
 
-          {/* Dedicated Quick Action: Highlighted + Add Transaction button */}
+          {/* Dedicated Quick Action: Highlighted Record Transaction & Cash buttons */}
           <div className="space-y-1.5">
             <button
               onClick={handleAddTransactionClick}
               className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[var(--accent-primary)] text-[var(--btn-primary-text)] font-extrabold text-xs shadow-md shadow-[var(--accent-glow)] transition transform active:scale-98 cursor-pointer"
             >
               <Plus size={16} className="stroke-[3]" />
-              <span>+ Add Transaction</span>
+              <span>Record Transaction</span>
             </button>
 
             <button
@@ -220,7 +222,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
               className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-[var(--card-bg)] hover:bg-[var(--row-hover-bg)] border border-[var(--card-border)] text-xs font-bold text-[var(--text-primary)] transition cursor-pointer"
             >
               <Banknote size={14} className="text-emerald-500" />
-              <span>+ Quick Cash Entry</span>
+              <span>Quick Cash Entry</span>
             </button>
           </div>
 
@@ -265,23 +267,72 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
           </nav>
         </div>
 
-        {/* System Options anchored at the bottom: Theme Toggle & Logout */}
+        {/* System Options anchored at the bottom: Currency, Theme/Orbit Toggle & Logout */}
         <div className="pt-3 border-t border-[var(--divider)] space-y-2">
-          {/* Theme Mode Toggle */}
-          <button
-            onClick={cycleTheme}
-            className="w-full flex items-center justify-between p-2.5 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--row-hover-bg)] transition cursor-pointer"
-          >
-            <div className="flex items-center gap-2.5">
-              {theme === 'light' && <Sun size={16} className="text-amber-500" />}
-              {theme === 'dark' && <Moon size={16} className="text-[#89D7B7]" />}
-              {theme === 'galaxy' && <Orbit size={16} className="text-[#89D7B7]" />}
-              <span>Theme: <strong className="capitalize">{theme}</strong></span>
+          {/* Currency Switcher */}
+          <div className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-xs font-semibold text-[var(--text-primary)]">
+            <span className="text-[var(--text-secondary)] font-medium">Currency</span>
+            <select
+              value={settings.currency.code}
+              onChange={(e) => {
+                const found = AVAILABLE_CURRENCIES.find((c) => c.code === e.target.value);
+                if (found) updateSettings({ currency: found });
+              }}
+              className="bg-[var(--row-hover-bg)] text-[var(--accent-primary)] font-mono font-bold text-xs px-2.5 py-1 rounded-lg border border-[var(--card-border)] cursor-pointer focus:outline-none"
+              aria-label="Select Currency"
+            >
+              {AVAILABLE_CURRENCIES.map((c) => (
+                <option key={c.code} value={c.code} className="bg-[var(--card-bg)] text-[var(--text-primary)]">
+                  {c.symbol} {c.code} - {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Theme & Orbit Mode Switcher */}
+          <div className="p-2.5 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[var(--text-secondary)] font-medium">Theme & Orbit</span>
+              <span className="text-[10px] uppercase font-bold text-[var(--accent-primary)] font-mono">
+                {theme}
+              </span>
             </div>
-            <span className="text-[10px] uppercase font-bold text-[var(--accent-primary)] bg-[var(--row-hover-bg)] px-2 py-0.5 rounded-md border border-[var(--card-border)]">
-              Switch
-            </span>
-          </button>
+            <div className="grid grid-cols-3 gap-1.5">
+              <button
+                onClick={() => setTheme('light')}
+                className={`flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                  theme === 'light'
+                    ? 'bg-[var(--accent-primary)] text-[var(--btn-primary-text)] border-[var(--accent-primary)] shadow-xs'
+                    : 'bg-[var(--row-hover-bg)] text-[var(--text-secondary)] border-[var(--card-border)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                <Sun size={12} className={theme === 'light' ? 'text-[var(--btn-primary-text)]' : 'text-amber-500'} />
+                <span>Light</span>
+              </button>
+              <button
+                onClick={() => setTheme('dark')}
+                className={`flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                  theme === 'dark'
+                    ? 'bg-[var(--accent-primary)] text-[var(--btn-primary-text)] border-[var(--accent-primary)] shadow-xs'
+                    : 'bg-[var(--row-hover-bg)] text-[var(--text-secondary)] border-[var(--card-border)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                <Moon size={12} className={theme === 'dark' ? 'text-[var(--btn-primary-text)]' : 'text-[#89D7B7]'} />
+                <span>Dark</span>
+              </button>
+              <button
+                onClick={() => setTheme('galaxy')}
+                className={`flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+                  theme === 'galaxy'
+                    ? 'bg-[var(--accent-primary)] text-[var(--btn-primary-text)] border-[var(--accent-primary)] shadow-xs'
+                    : 'bg-[var(--row-hover-bg)] text-[var(--text-secondary)] border-[var(--card-border)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                <Orbit size={12} className={theme === 'galaxy' ? 'text-[var(--btn-primary-text)]' : 'text-[#89D7B7]'} />
+                <span>Orbit</span>
+              </button>
+            </div>
+          </div>
 
           {/* Logout / Sign Out Button */}
           {isAuthenticated && user && (
@@ -298,7 +349,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
           )}
 
           {/* Version / PWA Info */}
-          <div className="text-center pt-1 text-[10px] text-[var(--text-secondary)] opacity-70 font-mono">
+          <div className="text-center pt-0.5 text-[10px] text-[var(--text-secondary)] opacity-70 font-mono">
             Galaxy Finance v1.0 • PWA Ready
           </div>
         </div>

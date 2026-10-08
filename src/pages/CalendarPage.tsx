@@ -138,7 +138,7 @@ export const CalendarPage: React.FC = () => {
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80 font-bold text-xs hover:bg-amber-100 transition cursor-pointer"
           >
             <Banknote size={15} />
-            <span>+ Add Cash</span>
+            <span>Cash</span>
           </button>
 
           <button
@@ -146,7 +146,7 @@ export const CalendarPage: React.FC = () => {
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition cursor-pointer"
           >
             <Plus size={15} />
-            <span>+ Record</span>
+            <span>Record</span>
           </button>
         </div>
       </div>
@@ -241,7 +241,7 @@ export const CalendarPage: React.FC = () => {
               <span>Month's Income</span>
             </div>
             <div className="text-lg font-black text-emerald-700 dark:text-emerald-300 mt-1">
-              +{formatCurrency(monthIncome, settings.currency)}
+              {formatCurrency(monthIncome, settings.currency)}
             </div>
           </div>
 
@@ -251,7 +251,7 @@ export const CalendarPage: React.FC = () => {
               <span>Month's Expense</span>
             </div>
             <div className="text-lg font-black text-rose-700 dark:text-rose-300 mt-1">
-              -{formatCurrency(monthExpense, settings.currency)}
+              {formatCurrency(monthExpense, settings.currency)}
             </div>
           </div>
 
@@ -260,7 +260,7 @@ export const CalendarPage: React.FC = () => {
               Month's Net Balance
             </div>
             <div className={`text-lg font-black mt-1 ${monthNet >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-rose-600 dark:text-rose-400'}`}>
-              {monthNet >= 0 ? '+' : ''}{formatCurrency(monthNet, settings.currency)}
+              {formatCurrency(monthNet, settings.currency)}
             </div>
           </div>
 

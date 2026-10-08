@@ -4,7 +4,8 @@ import {
   TrendingUp, 
   TrendingDown, 
   Plus, 
-  Minus, 
+  ArrowDownLeft,
+  ArrowUpRight, 
   ArrowRight, 
   Sparkles, 
   Building2, 
@@ -183,58 +184,41 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          {/* Quick Action Hub: Modern Split Action Buttons */}
-          <div className="flex flex-wrap lg:flex-col items-center lg:items-end gap-2.5">
-            <div className="flex items-center gap-2">
+          {/* Quick Action Hub: Responsive Ergonomic Split Action Triggers */}
+          <div className="w-full lg:w-auto flex flex-col lg:items-end gap-2.5">
+            {/* Primary Action CTA (Full width on mobile, balanced on desktop) */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto">
               <button
                 onClick={() => setIsAddModalOpen(true)}
-                className="btn-primary inline-flex items-center gap-1.5 px-4 py-2.5 rounded-[10px] font-bold text-xs sm:text-sm tracking-wide shadow-md transition cursor-pointer"
+                className="btn-primary w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl font-black text-sm tracking-wide shadow-md transition cursor-pointer active:scale-[0.98]"
               >
-                <Plus size={16} className="stroke-[2.5]" />
+                <Plus size={17} className="stroke-[2.8]" />
                 <span>Record Transaction</span>
               </button>
 
-              {/* Inflow Button (+ Cash) */}
-              <button
-                onClick={() => setIsAddCashModalOpen(true)}
-                className="inline-flex items-center justify-center font-semibold text-xs transition-all duration-200 cursor-pointer active:scale-[0.98] hover:-translate-y-0.5"
-                style={{
-                  backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                  border: '1px solid rgba(16, 185, 129, 0.35)',
-                  color: '#10B981',
-                  fontWeight: 600,
-                  gap: '6px',
-                  padding: '10px 18px',
-                  borderRadius: '10px',
-                }}
-              >
-                <Plus size={15} className="stroke-[2.5]" />
-                <span>+ Cash</span>
-              </button>
-            </div>
+              <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
+                {/* Cash Inflow Action */}
+                <button
+                  onClick={() => setIsAddCashModalOpen(true)}
+                  className="inline-flex items-center justify-center font-bold text-xs transition-all duration-200 cursor-pointer active:scale-[0.98] hover:-translate-y-0.5 px-4 py-2.5 rounded-xl border border-emerald-500/35 bg-emerald-500/15 text-emerald-500 dark:text-emerald-400 gap-1.5"
+                >
+                  <ArrowDownLeft size={15} className="stroke-[2.5]" />
+                  <span>Cash Inflow</span>
+                </button>
 
-            <div className="flex items-center gap-2">
-              {/* Outflow Button (- Outflow) */}
-              <button
-                onClick={() => setIsCashExpenseOpen(true)}
-                className="inline-flex items-center justify-center font-semibold text-xs transition-all duration-200 cursor-pointer active:scale-[0.98] hover:-translate-y-0.5"
-                style={{
-                  backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                  border: '1px solid rgba(239, 68, 68, 0.35)',
-                  color: '#EF4444',
-                  fontWeight: 600,
-                  gap: '6px',
-                  padding: '10px 18px',
-                  borderRadius: '10px',
-                }}
-              >
-                <Minus size={15} className="stroke-[2.5]" />
-                <span>− Outflow</span>
-              </button>
+                {/* Log Outflow Action */}
+                <button
+                  onClick={() => setIsCashExpenseOpen(true)}
+                  className="inline-flex items-center justify-center font-bold text-xs transition-all duration-200 cursor-pointer active:scale-[0.98] hover:-translate-y-0.5 px-4 py-2.5 rounded-xl border border-rose-500/35 bg-rose-500/15 text-rose-500 dark:text-rose-400 gap-1.5"
+                >
+                  <ArrowUpRight size={15} className="stroke-[2.5]" />
+                  <span>Log Outflow</span>
+                </button>
+              </div>
 
               <button
                 onClick={() => onNavigate('banks')}
-                className="btn-secondary inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] text-xs font-semibold transition cursor-pointer"
+                className="btn-secondary hidden sm:inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer"
               >
                 <Building2 size={14} />
                 <span>Vaults & Banks</span>
@@ -243,18 +227,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* This Month's Income & Expense Strip */}
+        {/* This Month's Income & Expense Strip (Clean Currency Without Jarring Prefix Glyphs) */}
         <div className="mt-6 pt-4 border-t border-[var(--divider)] grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
           <div>
             <span className="text-[10px] uppercase font-mono font-bold text-[var(--text-secondary)] block">This Month's Inflow</span>
             <span className="text-base font-black font-mono text-emerald-500">
-              +{formatCurrency(monthIncome, settings.currency)}
+              {formatCurrency(monthIncome, settings.currency)}
             </span>
           </div>
           <div>
             <span className="text-[10px] uppercase font-mono font-bold text-[var(--text-secondary)] block">This Month's Outflow</span>
             <span className="text-base font-black font-mono text-rose-500">
-              -{formatCurrency(monthExpense, settings.currency)}
+              {formatCurrency(monthExpense, settings.currency)}
             </span>
           </div>
           <div>
@@ -326,7 +310,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 }}
                 className="btn-primary px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer"
               >
-                + Add Bank
+                Add Bank
               </button>
               <button
                 onClick={() => onNavigate('banks')}
@@ -366,8 +350,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 </div>
 
                 <div className="mt-3 pt-2 border-t border-[var(--divider)] flex items-center justify-between text-[11px] text-[var(--text-secondary)] font-mono">
-                  <span className="text-emerald-500 font-semibold">+{formatCurrency(bs.totalIncome, settings.currency)}</span>
-                  <span className="text-rose-500 font-semibold">-{formatCurrency(bs.totalExpense, settings.currency)}</span>
+                  <span className="text-emerald-500 font-semibold">{formatCurrency(bs.totalIncome, settings.currency)}</span>
+                  <span className="text-rose-500 font-semibold">{formatCurrency(bs.totalExpense, settings.currency)}</span>
                   <span className="text-[var(--text-secondary)]">{bs.transactionCount} txs</span>
                 </div>
               </div>
@@ -407,13 +391,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               onClick={() => setIsAddCashModalOpen(true)}
               className="w-full py-2.5 rounded-xl btn-primary font-bold text-xs shadow-xs transition cursor-pointer"
             >
-              + Add Cash
+              Add Cash
             </button>
             <button
               onClick={() => setIsCashExpenseOpen(true)}
               className="w-full py-2.5 rounded-xl btn-secondary font-bold text-xs transition cursor-pointer text-rose-500"
             >
-              − Cash Outflow
+              Cash Outflow
             </button>
           </div>
         </div>
@@ -505,7 +489,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         <div className="space-y-2">
           {recentTransactions.length === 0 ? (
             <div className="py-8 text-center text-xs text-[var(--text-secondary)]">
-              No transactions recorded yet. Click "+ Record Transaction" to begin.
+              No transactions recorded yet. Click "Record Transaction" to begin.
             </div>
           ) : (
             recentTransactions.map((tx) => (

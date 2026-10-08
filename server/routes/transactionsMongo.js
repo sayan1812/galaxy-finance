@@ -98,9 +98,13 @@ router.post('/', authenticateOrDemo, async (req, res) => {
     }
 
     // Resolve or find default account if accountId missing
+    const reqAccountId = accountId || req.body.bankId;
     let targetAccount = null;
-    if (accountId) {
-      targetAccount = await Account.findOne({ _id: accountId, userId: req.userId });
+    if (reqAccountId) {
+      targetAccount = await Account.findOne({ _id: reqAccountId, userId: req.userId });
+      if (!targetAccount) {
+        targetAccount = await Account.findById(reqAccountId).catch(() => null);
+      }
     }
     if (!targetAccount) {
       targetAccount = await Account.findOne({ userId: req.userId });

@@ -127,7 +127,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
               <ArrowUpRight size={16} className="inline mr-0.5" />
             )}
             <span>
-              {isIncome ? '+' : '-'}{formatCurrency(transaction.amount, settings.currency)}
+              {formatCurrency(transaction.amount, settings.currency)}
             </span>
           </div>
 

@@ -109,7 +109,7 @@ export const RecurringPage: React.FC = () => {
               Estimated Monthly Recurring Inflow
             </span>
             <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
-              +{formatCurrency(monthlyIncome, settings.currency)}
+              {formatCurrency(monthlyIncome, settings.currency)}
             </div>
             <p className="text-[11px] text-emerald-700/70 dark:text-emerald-400/60 mt-0.5">
               Salary, business retainers, recurring investments
@@ -127,7 +127,7 @@ export const RecurringPage: React.FC = () => {
               Estimated Monthly Recurring Outflow
             </span>
             <div className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">
-              -{formatCurrency(monthlyExpenses, settings.currency)}
+              {formatCurrency(monthlyExpenses, settings.currency)}
             </div>
             <p className="text-[11px] text-rose-700/70 dark:text-rose-400/60 mt-0.5">
               Rent, EMIs, Broadband, Netflix subscriptions

@@ -139,12 +139,12 @@ export const TransactionList: React.FC<TransactionListProps> = ({
               <div className="flex items-center gap-2 text-xs">
                 {group.totalExpense > 0 && (
                   <span className="text-rose-600 dark:text-rose-400 font-semibold">
-                    -{formatCurrency(group.totalExpense, settings.currency)}
+                    {formatCurrency(group.totalExpense, settings.currency)}
                   </span>
                 )}
                 {group.totalIncome > 0 && (
                   <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                    +{formatCurrency(group.totalIncome, settings.currency)}
+                    {formatCurrency(group.totalIncome, settings.currency)}
                   </span>
                 )}
               </div>

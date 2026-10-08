@@ -61,6 +61,8 @@ export function exportToPDF(
 ): void {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
+  const currencyCode = currency?.code || 'INR';
+
   // Calculate totals
   const totalIncome = transactions
     .filter((t) => t.type === 'INCOME')
@@ -73,13 +75,13 @@ export function exportToPDF(
   const netBalance = totalIncome - totalExpense;
 
   // Header Banner
-  doc.setFillColor(15, 23, 42); // Slate-900
-  doc.rect(0, 0, 210, 36, 'F');
+  doc.setFillColor(15, 23, 42); // slate-900
+  doc.rect(0, 0, 210, 38, 'F');
 
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
-  doc.text('RUPEEWISE FINANCIAL STATEMENT', 14, 16);
+  doc.text('GALAXY FINANCE FINANCIAL STATEMENT', 14, 16);
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
@@ -92,18 +94,18 @@ export function exportToPDF(
   const cardW = 58;
   const cardH = 22;
 
-  // Total Income Box
+  // Total Income Box (Clean format, no leading + symbol)
   doc.setFillColor(240, 253, 244);
   doc.setDrawColor(34, 197, 94);
   doc.roundedRect(14, cardY, cardW, cardH, 2, 2, 'FD');
   doc.setFontSize(8);
   doc.setTextColor(22, 101, 52);
   doc.text('TOTAL INCOME', 18, cardY + 7);
-  doc.setFontSize(13);
+  doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text(`+${currency.symbol}${totalIncome.toLocaleString()}`, 18, cardY + 16);
+  doc.text(`${currencyCode} ${totalIncome.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 18, cardY + 16);
 
-  // Total Expense Box
+  // Total Expense Box (Clean format, no leading - symbol)
   doc.setFillColor(254, 242, 242);
   doc.setDrawColor(239, 68, 68);
   doc.roundedRect(76, cardY, cardW, cardH, 2, 2, 'FD');
@@ -111,11 +113,11 @@ export function exportToPDF(
   doc.setTextColor(153, 27, 27);
   doc.setFont('helvetica', 'normal');
   doc.text('TOTAL EXPENSE', 80, cardY + 7);
-  doc.setFontSize(13);
+  doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text(`-${currency.symbol}${totalExpense.toLocaleString()}`, 80, cardY + 16);
+  doc.text(`${currencyCode} ${totalExpense.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 80, cardY + 16);
 
-  // Net Balance Box
+  // Net Balance Box (Clean net calculation, no jarring prefix characters)
   const isNetPos = netBalance >= 0;
   doc.setFillColor(isNetPos ? 240 : 254, isNetPos ? 249 : 242, isNetPos ? 255 : 242);
   doc.setDrawColor(isNetPos ? 14 : 239, isNetPos ? 165 : 68, isNetPos ? 233 : 68);
@@ -123,16 +125,16 @@ export function exportToPDF(
   doc.setFontSize(8);
   doc.setTextColor(isNetPos ? 12 : 153, isNetPos ? 74 : 27, isNetPos ? 110 : 27);
   doc.setFont('helvetica', 'normal');
-  doc.text('NET BALANCE', 142, cardY + 7);
-  doc.setFontSize(13);
+  doc.text(isNetPos ? 'NET CAPITAL SURPLUS' : 'NET DEFICIT', 142, cardY + 7);
+  doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text(`${isNetPos ? '+' : ''}${currency.symbol}${netBalance.toLocaleString()}`, 142, cardY + 16);
+  doc.text(`${currencyCode} ${Math.abs(netBalance).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 142, cardY + 16);
 
-  // Transactions Table
+  // Transactions Table (Stripped +/- symbols, clean comma separators)
   const tableData = transactions.map((t) => [
     formatDate(t.date),
     `${t.type} (${t.source === 'AUTOMATIC' ? 'AUTO' : 'MANUAL'})`,
-    `${t.type === 'INCOME' ? '+' : '-'}${currency.symbol}${t.amount.toLocaleString()}`,
+    t.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     t.category,
     t.paymentMethod.replace('_', ' '),
     t.merchant || '-',
@@ -141,7 +143,7 @@ export function exportToPDF(
 
   autoTable(doc, {
     startY: cardY + cardH + 8,
-    head: [['Date', 'Type & Source', 'Amount', 'Category', 'Payment', 'Merchant', 'Details']],
+    head: [['Date', 'Type & Source', `Amount (${currencyCode})`, 'Category', 'Payment', 'Merchant', 'Details']],
     body: tableData,
     theme: 'grid',
     headStyles: {
@@ -159,7 +161,7 @@ export function exportToPDF(
     columnStyles: {
       0: { cellWidth: 24 },
       1: { cellWidth: 26 },
-      2: { cellWidth: 26, fontStyle: 'bold' },
+      2: { cellWidth: 26, fontStyle: 'bold', halign: 'right' },
       3: { cellWidth: 30 },
       4: { cellWidth: 24 },
       5: { cellWidth: 30 },
@@ -176,8 +178,8 @@ export function exportToPDF(
         }
       }
       if (data.section === 'body' && data.column.index === 2) {
-        const text = String(data.cell.raw || '');
-        if (text.startsWith('+')) {
+        const tx = transactions[data.row.index];
+        if (tx && tx.type === 'INCOME') {
           data.cell.styles.textColor = [22, 163, 74];
         } else {
           data.cell.styles.textColor = [220, 38, 38];
@@ -188,11 +190,11 @@ export function exportToPDF(
       [
         'Total', 
         '', 
-        `${netBalance >= 0 ? '+' : ''}${currency.symbol}${netBalance.toLocaleString()}`, 
+        Math.abs(netBalance).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 
         '', 
         '', 
         '', 
-        `Income: ${currency.symbol}${totalIncome.toLocaleString()} | Expense: ${currency.symbol}${totalExpense.toLocaleString()}`
+        `Income: INR ${totalIncome.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} | Expense: INR ${totalExpense.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
       ]
     ],
     footStyles: {
@@ -210,7 +212,7 @@ export function exportToPDF(
     doc.setFontSize(7.5);
     doc.setTextColor(148, 163, 184);
     doc.text(
-      `RupeeWise Daily Transaction Tracker — Page ${i} of ${pageCount}`,
+      `Galaxy Finance — Financial Statement • Page ${i} of ${pageCount}`,
       105,
       290,
       { align: 'center' }

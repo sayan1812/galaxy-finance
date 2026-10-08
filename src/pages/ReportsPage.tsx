@@ -285,10 +285,10 @@ export const ReportsPage: React.FC = () => {
                       {row.txCount} item{row.txCount === 1 ? '' : 's'}
                     </td>
                     <td className="py-3 text-right font-bold text-emerald-600 dark:text-emerald-400">
-                      {row.income > 0 ? `+${formatCurrency(row.income, settings.currency)}` : '-'}
+                      {row.income > 0 ? formatCurrency(row.income, settings.currency) : '-'}
                     </td>
                     <td className="py-3 text-right font-bold text-rose-600 dark:text-rose-400">
-                      {row.expense > 0 ? `-${formatCurrency(row.expense, settings.currency)}` : '-'}
+                      {row.expense > 0 ? formatCurrency(row.expense, settings.currency) : '-'}
                     </td>
                     <td className="py-3 text-right pr-2">
                       <span
@@ -296,7 +296,7 @@ export const ReportsPage: React.FC = () => {
                           row.net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                         }`}
                       >
-                        {row.net >= 0 ? '+' : ''}{formatCurrency(row.net, settings.currency)}
+                        {formatCurrency(row.net, settings.currency)}
                       </span>
                     </td>
                   </tr>
@@ -342,10 +342,10 @@ export const ReportsPage: React.FC = () => {
                       {row.count} records
                     </td>
                     <td className="py-3 text-right font-bold text-emerald-600 dark:text-emerald-400">
-                      {row.income > 0 ? `+${formatCurrency(row.income, settings.currency)}` : '-'}
+                      {row.income > 0 ? formatCurrency(row.income, settings.currency) : '-'}
                     </td>
                     <td className="py-3 text-right font-bold text-rose-600 dark:text-rose-400">
-                      {row.expense > 0 ? `-${formatCurrency(row.expense, settings.currency)}` : '-'}
+                      {row.expense > 0 ? formatCurrency(row.expense, settings.currency) : '-'}
                     </td>
                     <td className="py-3 text-right pr-2">
                       <span
@@ -353,7 +353,7 @@ export const ReportsPage: React.FC = () => {
                           row.net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                         }`}
                       >
-                        {row.net >= 0 ? '+' : ''}{formatCurrency(row.net, settings.currency)}
+                        {formatCurrency(row.net, settings.currency)}
                       </span>
                     </td>
                   </tr>
@@ -438,7 +438,7 @@ export const ReportsPage: React.FC = () => {
                             isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                           }`}
                         >
-                          {isIncome ? '+' : '-'}{formatCurrency(t.amount, settings.currency)}
+                          {formatCurrency(t.amount, settings.currency)}
                         </span>
                       </td>
                     </tr>

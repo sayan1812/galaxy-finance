@@ -74,15 +74,15 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ currentTab, setC
               onClick={() => setIsAddCashModalOpen(true)}
               className="btn-slate-subtle flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl font-bold text-xs tracking-wide shadow-xs transition-all cursor-pointer"
             >
-              <Banknote size={14} />
-              <span>+ Cash</span>
+              <Banknote size={14} className="text-emerald-500" />
+              <span>Cash Inflow</span>
             </button>
             <button
               onClick={() => setIsCashExpenseModalOpen(true)}
               className="btn-slate-subtle flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-2xl font-bold text-xs tracking-wide shadow-xs transition-all cursor-pointer text-[var(--accent-outflow)]"
             >
               <Minus size={14} />
-              <span>− Outflow</span>
+              <span>Outflow</span>
             </button>
           </div>
 
@@ -91,7 +91,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ currentTab, setC
             className="w-full btn-hover flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl font-bold text-xs tracking-wide shadow-md transition-all cursor-pointer"
           >
             <Plus size={16} className="stroke-[2.5]" />
-            <span>+ Record Transaction</span>
+            <span>Record Transaction</span>
           </button>
         </div>
 

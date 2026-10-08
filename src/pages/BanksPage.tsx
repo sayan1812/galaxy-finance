@@ -138,13 +138,13 @@ export const BanksPage: React.FC = () => {
               onClick={() => setIsAddCashModalOpen(true)}
               className="flex-1 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-bold transition cursor-pointer text-center"
             >
-              + Add Cash
+              Add Cash
             </button>
             <button
               onClick={() => setIsCashExpenseOpen(true)}
               className="flex-1 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-bold transition cursor-pointer text-center"
             >
-              − Cash Expense
+              Cash Outflow
             </button>
           </div>
         </div>
@@ -267,10 +267,10 @@ export const BanksPage: React.FC = () => {
                     {formatCurrency(row.currentBalance, settings.currency)}
                   </td>
                   <td className="py-3 text-right font-bold text-emerald-400">
-                    +{formatCurrency(row.totalIncome, settings.currency)}
+                    {formatCurrency(row.totalIncome, settings.currency)}
                   </td>
                   <td className="py-3 text-right font-bold text-rose-400">
-                    -{formatCurrency(row.totalExpense, settings.currency)}
+                    {formatCurrency(row.totalExpense, settings.currency)}
                   </td>
                   <td className="py-3 text-right pr-2">
                     <button

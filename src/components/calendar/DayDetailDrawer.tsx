@@ -105,7 +105,7 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
               <span>Income</span>
             </div>
             <div className="text-sm font-extrabold text-emerald-700 dark:text-emerald-300 mt-1 truncate">
-              +{formatCurrency(totalIncome, settings.currency)}
+              {formatCurrency(totalIncome, settings.currency)}
             </div>
           </div>
 
@@ -116,7 +116,7 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
               <span>Expense</span>
             </div>
             <div className="text-sm font-extrabold text-rose-700 dark:text-rose-300 mt-1 truncate">
-              -{formatCurrency(totalExpense, settings.currency)}
+              {formatCurrency(totalExpense, settings.currency)}
             </div>
           </div>
 
@@ -130,7 +130,7 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
               Net Balance
             </div>
             <div className="text-sm font-extrabold mt-1 truncate">
-              {netBalance >= 0 ? '+' : ''}{formatCurrency(netBalance, settings.currency)}
+              {formatCurrency(netBalance, settings.currency)}
             </div>
           </div>
         </div>
@@ -171,14 +171,14 @@ export const DayDetailDrawer: React.FC<DayDetailDrawerProps> = ({
                   className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-bold hover:bg-amber-100 transition cursor-pointer"
                 >
                   <Banknote size={14} />
-                  <span>+ Add Cash</span>
+                  <span>Add Cash</span>
                 </button>
                 <button
                   onClick={handleAddGeneral}
                   className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-500 transition cursor-pointer"
                 >
                   <Plus size={14} />
-                  <span>+ Add Transaction</span>
+                  <span>Record Transaction</span>
                 </button>
               </div>
             </div>

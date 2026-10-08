@@ -125,7 +125,7 @@ export const CashExpenseModal: React.FC<CashExpenseModalProps> = ({
                   onClick={() => setAmount(q.toString())}
                   className="px-2.5 py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-[11px] font-bold text-slate-300 hover:text-white transition cursor-pointer whitespace-nowrap"
                 >
-                  +₹{q}
+                  ₹{q}
                 </button>
               ))}
             </div>

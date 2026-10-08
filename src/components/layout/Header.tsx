@@ -34,7 +34,6 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, onOpenDrawer }) => {
   const { 
-    settings, 
     setIsAddModalOpen, 
     setIsAddCashModalOpen,
     dueRecurringCount 
@@ -64,7 +63,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, onOpe
             {/* Hamburger Menu Trigger Button */}
             <button
               onClick={onOpenDrawer}
-              className="p-2 -ml-1 rounded-xl text-[var(--text-primary)] hover:bg-[var(--row-hover-bg)] active:scale-95 transition cursor-pointer"
+              className="p-2 -ml-1 rounded-xl text-[var(--text-primary)] hover:bg-[var(--row-hover-bg)] active:scale-95 transition cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
               aria-label="Open mobile navigation menu"
               title="Open Navigation Menu"
             >
@@ -75,16 +74,9 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, onOpe
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[var(--accent-primary)] border border-[var(--card-border)] flex items-center justify-center text-[var(--btn-primary-text)] shadow-md shadow-[var(--accent-glow)] btn-hover">
                 <WalletCards size={18} className="stroke-[2.2]" />
               </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-lg sm:text-xl font-black tracking-tight text-[var(--text-headings)]">
-                    Galaxy Finance
-                  </span>
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[var(--row-hover-bg)] text-[var(--accent-primary)] border border-[var(--card-border)]">
-                    {settings.currency.symbol}
-                  </span>
-                </div>
-              </div>
+              <span className="text-base sm:text-lg font-black tracking-tight text-[var(--text-headings)] whitespace-nowrap">
+                Galaxy Finance
+              </span>
             </div>
           </div>
 
@@ -117,11 +109,11 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, onOpe
 
           {/* Action buttons on the right */}
           <div className="flex items-center gap-2 sm:gap-2.5">
-            {/* Due Recurring Pill */}
+            {/* Due Recurring Pill (Desktop/Tablet) */}
             {dueRecurringCount > 0 && (
               <button
                 onClick={() => setCurrentTab('recurring')}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--row-hover-bg)] text-[var(--accent-outflow)] border border-[var(--accent-outflow)]/40 text-xs font-mono font-medium cursor-pointer hover:bg-[var(--row-hover-bg)] transition animate-pulse"
+                className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--row-hover-bg)] text-[var(--accent-outflow)] border border-[var(--accent-outflow)]/40 text-xs font-mono font-medium cursor-pointer hover:bg-[var(--row-hover-bg)] transition animate-pulse"
                 title={`${dueRecurringCount} recurring item(s) due today`}
               >
                 <Clock size={13} />
@@ -130,15 +122,15 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, onOpe
               </button>
             )}
 
-            {/* Quick Sync Button */}
-            <div className="hidden sm:block">
+            {/* Quick Sync Button (Desktop) */}
+            <div className="hidden md:block">
               <SyncStatusBar compact />
             </div>
 
-            {/* Theme Mode Toggle (Light / Dark / Galaxy) */}
+            {/* Theme Mode Toggle (Desktop) */}
             <button
               onClick={cycleTheme}
-              className="p-2 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-primary)] hover:text-[var(--accent-primary)] flex items-center justify-center shadow-xs cursor-pointer transition-all"
+              className="hidden md:flex p-2 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-primary)] hover:text-[var(--accent-primary)] items-center justify-center shadow-xs cursor-pointer transition-all"
               title={`Active Theme: ${theme.toUpperCase()} (Click to toggle Light / Dark / Galaxy)`}
               aria-label="Cycle theme"
             >
@@ -147,28 +139,28 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, onOpe
               {theme === 'galaxy' && <Orbit size={16} className="text-[#89D7B7]" />}
             </button>
 
-            {/* + Add Cash Button */}
+            {/* Cash Button (Desktop) */}
             <button
               onClick={() => setIsAddCashModalOpen(true)}
-              className="btn-slate-subtle flex items-center gap-1 px-3 py-2 rounded-xl font-semibold text-xs tracking-wide shadow-xs transition cursor-pointer"
+              className="hidden md:flex btn-slate-subtle items-center gap-1 px-3 py-2 rounded-xl font-semibold text-xs tracking-wide shadow-xs transition cursor-pointer"
               title="Quick manual cash wallet entry"
             >
               <Banknote size={15} />
-              <span>+ Cash</span>
+              <span>Cash</span>
             </button>
 
-            {/* + Add Transaction Primary Action Button */}
+            {/* + Record Primary Action Button (Optimized for Mobile Pill & Desktop) */}
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="btn-hover flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm tracking-wide shadow-md transition-all cursor-pointer"
+              className="btn-hover flex items-center justify-center gap-1.5 px-[14px] py-[6px] min-h-[44px] rounded-full md:rounded-xl font-bold text-xs sm:text-sm tracking-wide shadow-md transition-all cursor-pointer whitespace-nowrap active:scale-95"
             >
-              <Plus size={16} className="stroke-[2.5]" />
-              <span className="hidden sm:inline">Record Transaction</span>
-              <span className="sm:hidden">Record</span>
+              <Plus size={16} className="stroke-[2.5] shrink-0" />
+              <span className="hidden md:inline">Record Transaction</span>
+              <span className="md:hidden font-bold">+ Record</span>
             </button>
 
-            {/* User Profile / Auth Button */}
-            <div className="relative">
+            {/* User Profile / Auth Button (Desktop/Tablet) */}
+            <div className="relative hidden md:block">
               {isAuthenticated && user ? (
                 <button
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}

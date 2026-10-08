@@ -85,7 +85,7 @@ export const ReportSummary: React.FC<ReportSummaryProps> = ({
             </div>
           </div>
           <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-            +{formatCurrency(totalIncome, currency)}
+            {formatCurrency(totalIncome, currency)}
           </div>
           <p className="text-[11px] text-emerald-700/70 dark:text-emerald-400/60 mt-1 font-medium">
             {incomeList.length} income entries
@@ -103,7 +103,7 @@ export const ReportSummary: React.FC<ReportSummaryProps> = ({
             </div>
           </div>
           <div className="text-2xl font-black text-rose-600 dark:text-rose-400">
-            -{formatCurrency(totalExpense, currency)}
+            {formatCurrency(totalExpense, currency)}
           </div>
           <p className="text-[11px] text-rose-700/70 dark:text-rose-400/60 mt-1 font-medium">
             {expenseList.length} expense entries
@@ -127,7 +127,7 @@ export const ReportSummary: React.FC<ReportSummaryProps> = ({
           <div className={`text-2xl font-black ${
             netBalance >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-amber-600 dark:text-amber-400'
           }`}>
-            {netBalance >= 0 ? '+' : ''}{formatCurrency(netBalance, currency)}
+            {formatCurrency(netBalance, currency)}
           </div>
           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
             {totalIncome > 0 ? `Savings Rate: ${formatPercentage(savingsRate)}` : 'No income recorded'}
