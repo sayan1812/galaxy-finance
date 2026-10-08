@@ -160,6 +160,31 @@ export async function signInWithGoogle(): Promise<{ user: FirebaseUser; token: s
     const token = await result.user.getIdToken();
     return { user: result.user, token };
   } catch (err: any) {
+    // Defensively handle popup inspection and COOP issues:
+    // If auth state succeeded or currentUser is populated despite window.closed / COOP lifecycle exception
+    if (auth.currentUser) {
+      try {
+        const token = await auth.currentUser.getIdToken();
+        return { user: auth.currentUser, token };
+      } catch {
+        // Fall back to standard error formatting
+      }
+    }
+
+    const errMessage = String(err?.message || '');
+    if (
+      errMessage.includes('Cross-Origin-Opener-Policy') ||
+      errMessage.includes('window.closed')
+    ) {
+      if (auth.currentUser) {
+        try {
+          const token = await auth.currentUser.getIdToken();
+          return { user: auth.currentUser, token };
+        } catch {
+          // Fall back to standard error formatting
+        }
+      }
+    }
     throw formatFirebaseAuthError(err);
   }
 }

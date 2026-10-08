@@ -13,6 +13,7 @@ import {
   Info
 } from 'lucide-react';
 import { useTransactions } from '../../context/TransactionContext';
+import { useTheme } from '../../context/ThemeContext';
 import { formatCurrency, maskCurrency } from '../../utils/formatters';
 import type { BankComputedStats } from '../../types';
 
@@ -27,6 +28,9 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const { theme } = useTheme();
+  const isLight = theme === 'light';
 
   const { 
     bankStatsList, 
@@ -62,6 +66,10 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
   const planetsGroupRef = useRef<THREE.Group | null>(null);
   const sunMeshRef = useRef<THREE.Mesh | null>(null);
   const coronaMeshRef = useRef<THREE.Mesh | null>(null);
+  const ambientLightRef = useRef<THREE.AmbientLight | null>(null);
+  const backlightRef = useRef<THREE.DirectionalLight | null>(null);
+  const coreLightRef = useRef<THREE.PointLight | null>(null);
+  const starsMeshRef = useRef<THREE.Points | null>(null);
   const interactiveObjectsRef = useRef<THREE.Mesh[]>([]);
   const animFrameIdRef = useRef<number | null>(null);
 
@@ -114,8 +122,10 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
     const width = containerRef.current.clientWidth;
     const height = containerRef.current.clientHeight;
 
-    // 1. Scene
+    // 1. Scene with theme-adaptive background
     const scene = new THREE.Scene();
+    const initBgColor = isLight ? 0xF4F8F6 : 0x10221E;
+    scene.background = new THREE.Color(initBgColor);
     sceneRef.current = scene;
 
     // 2. Camera
@@ -129,32 +139,68 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
     camera.position.z = radius * Math.sin(phi) * Math.cos(theta);
     camera.lookAt(0, 0, 0);
 
-    // 3. Renderer
+    // 3. Renderer with clear color
     const renderer = new THREE.WebGLRenderer({
       canvas: canvasRef.current,
-      alpha: true,
+      alpha: false,
       antialias: true,
       powerPreference: 'high-performance',
     });
+    renderer.setClearColor(new THREE.Color(initBgColor), 1);
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.toneMappingExposure = isLight ? 1.1 : 1.2;
     rendererRef.current = renderer;
 
-    // 4. Ambient & Directional Lights — Jade & Emerald Edition
-    const ambientLight = new THREE.AmbientLight(0x89D7B7, 0.45);
+    // 4. Ambient & Directional Lights — Adaptive Brightness
+    const ambientLight = new THREE.AmbientLight(
+      isLight ? 0xF0FDF4 : 0x89D7B7,
+      isLight ? 0.9 : 0.45
+    );
     scene.add(ambientLight);
+    ambientLightRef.current = ambientLight;
 
-    const emeraldBacklight = new THREE.DirectionalLight(0x428475, 1.2);
+    const emeraldBacklight = new THREE.DirectionalLight(
+      isLight ? 0x287A74 : 0x428475,
+      isLight ? 1.4 : 1.2
+    );
     emeraldBacklight.position.set(40, 30, -20);
     scene.add(emeraldBacklight);
+    backlightRef.current = emeraldBacklight;
 
-    const coreLight = new THREE.PointLight(0xFFF4E1, 2.8, 100, 0.8);
+    const coreLight = new THREE.PointLight(
+      isLight ? 0x287A74 : 0xFFF4E1,
+      isLight ? 1.8 : 2.8,
+      100,
+      0.8
+    );
     coreLight.position.set(0, 0, 0);
     scene.add(coreLight);
+    coreLightRef.current = coreLight;
 
-    // 5. Orbital system group
+    // 5. Subtle Star Dust / Emerald Starfield Particles
+    const starCount = 350;
+    const starGeo = new THREE.BufferGeometry();
+    const starPositions = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount * 3; i += 3) {
+      starPositions[i] = (Math.random() - 0.5) * 160;
+      starPositions[i + 1] = (Math.random() - 0.5) * 160;
+      starPositions[i + 2] = (Math.random() - 0.5) * 160;
+    }
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    const starMat = new THREE.PointsMaterial({
+      color: new THREE.Color(isLight ? 0x287A74 : 0x89D7B7),
+      size: isLight ? 0.75 : 0.9,
+      transparent: true,
+      opacity: isLight ? 0.4 : 0.65,
+      sizeAttenuation: true,
+    });
+    const starPoints = new THREE.Points(starGeo, starMat);
+    scene.add(starPoints);
+    starsMeshRef.current = starPoints;
+
+    // 6. Orbital system group
     const planetsGroup = new THREE.Group();
     planetsGroupRef.current = planetsGroup;
     scene.add(planetsGroup);
@@ -176,11 +222,61 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
       resizeObserver.disconnect();
       if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current);
       renderer.dispose();
+      starGeo.dispose();
+      starMat.dispose();
       scene.clear();
     };
   }, [settings.galaxyIntensity]);
 
-  // Build Celestial Bodies whenever Mode or Data Changes
+  // Dynamic Theme Adaptations for Background, Lights & Star Dust
+  useEffect(() => {
+    const isLightMode = theme === 'light';
+    const targetBg = isLightMode ? 0xF4F8F6 : 0x10221E;
+
+    if (sceneRef.current) {
+      sceneRef.current.background = new THREE.Color(targetBg);
+    }
+    if (rendererRef.current) {
+      rendererRef.current.setClearColor(new THREE.Color(targetBg), 1);
+    }
+    if (ambientLightRef.current) {
+      ambientLightRef.current.color.set(isLightMode ? 0xF0FDF4 : 0x89D7B7);
+      ambientLightRef.current.intensity = isLightMode ? 0.9 : 0.45;
+    }
+    if (backlightRef.current) {
+      backlightRef.current.color.set(isLightMode ? 0x287A74 : 0x428475);
+      backlightRef.current.intensity = isLightMode ? 1.4 : 1.2;
+    }
+    if (coreLightRef.current) {
+      coreLightRef.current.color.set(isLightMode ? 0x287A74 : 0xFFF4E1);
+      coreLightRef.current.intensity = isLightMode ? 1.8 : 2.8;
+    }
+    if (starsMeshRef.current) {
+      const mat = starsMeshRef.current.material as THREE.PointsMaterial;
+      mat.color.set(isLightMode ? 0x287A74 : 0x89D7B7);
+      mat.opacity = isLightMode ? 0.4 : 0.65;
+    }
+  }, [theme]);
+
+  // Native non-passive Wheel listener to suppress passive event listener violations
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const onNativeWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const cam = cameraRotationRef.current;
+      cam.radius = Math.max(20, Math.min(75, cam.radius + e.deltaY * 0.04));
+      updateCameraPosition();
+    };
+
+    canvas.addEventListener('wheel', onNativeWheel, { passive: false });
+    return () => {
+      canvas.removeEventListener('wheel', onNativeWheel);
+    };
+  }, []);
+
+  // Build Celestial Bodies whenever Mode, Data, or Theme Changes
   useEffect(() => {
     if (!sceneRef.current || !planetsGroupRef.current) return;
 
@@ -192,18 +288,24 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
     }
     interactiveObjectsRef.current = [];
 
-    // Helper: Create Glowing Sun Core — Jade & Emerald Edition
+    const isLightMode = theme === 'light';
+
+    // Helper: Create Glowing Sun Core — Theme Adaptive
     const sunRadius = galaxyMode === 'accounts' ? 3.4 : 3.0;
-    const sunColor = galaxyMode === 'accounts' ? 0x89D7B7 : 0x428475;
-    const sunEmissive = galaxyMode === 'accounts' ? 0x428475 : 0x1A312C;
+    const sunColor = galaxyMode === 'accounts' 
+      ? (isLightMode ? 0x133834 : 0x89D7B7) 
+      : (isLightMode ? 0x991B1B : 0x428475);
+    const sunEmissive = galaxyMode === 'accounts' 
+      ? (isLightMode ? 0x287A74 : 0x428475) 
+      : (isLightMode ? 0xDC2626 : 0x1A312C);
 
     const sunGeo = new THREE.SphereGeometry(sunRadius, 32, 32);
     const sunMat = new THREE.MeshStandardMaterial({
       color: sunColor,
       emissive: sunEmissive,
-      emissiveIntensity: 1.4,
-      roughness: 0.25,
-      metalness: 0.75,
+      emissiveIntensity: isLightMode ? 0.65 : 1.4,
+      roughness: isLightMode ? 0.35 : 0.25,
+      metalness: isLightMode ? 0.45 : 0.75,
     });
     const sunMesh = new THREE.Mesh(sunGeo, sunMat);
     sunMesh.userData = {
@@ -212,7 +314,9 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
       name: galaxyMode === 'accounts' ? 'NET AVAILABLE' : 'TOTAL EXPENSES',
       type: galaxyMode === 'accounts' ? 'Core Available Capital' : 'Monthly Outflow',
       balance: galaxyMode === 'accounts' ? netAvailableMoney : monthExpense,
-      color: galaxyMode === 'accounts' ? '#89D7B7' : '#428475',
+      color: galaxyMode === 'accounts' 
+        ? (isLightMode ? '#133834' : '#89D7B7') 
+        : (isLightMode ? '#991B1B' : '#428475'),
     };
     group.add(sunMesh);
     sunMeshRef.current = sunMesh;
@@ -221,9 +325,9 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
     // Glowing Corona Atmosphere Mesh
     const coronaGeo = new THREE.SphereGeometry(sunRadius * 1.25, 24, 24);
     const coronaMat = new THREE.MeshBasicMaterial({
-      color: sunColor,
+      color: isLightMode ? 0x287A74 : sunColor,
       transparent: true,
-      opacity: 0.25,
+      opacity: isLightMode ? 0.18 : 0.25,
       wireframe: true,
     });
     const coronaMesh = new THREE.Mesh(coronaGeo, coronaMat);
@@ -264,9 +368,9 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
         // Orbit Path Ring
         const ringGeo = new THREE.RingGeometry(item.orbitRadius - 0.06, item.orbitRadius + 0.06, 64);
         const ringMat = new THREE.MeshBasicMaterial({
-          color: new THREE.Color(item.color),
+          color: isLightMode ? new THREE.Color(0x287A74) : new THREE.Color(item.color),
           transparent: true,
-          opacity: 0.22,
+          opacity: isLightMode ? 0.25 : 0.22,
           side: THREE.DoubleSide,
         });
         const ringMesh = new THREE.Mesh(ringGeo, ringMat);
@@ -282,9 +386,9 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
         const pMat = new THREE.MeshStandardMaterial({
           color: new THREE.Color(item.color),
           emissive: new THREE.Color(item.color),
-          emissiveIntensity: 0.45,
-          roughness: 0.3,
-          metalness: 0.6,
+          emissiveIntensity: isLightMode ? 0.22 : 0.45,
+          roughness: isLightMode ? 0.35 : 0.3,
+          metalness: isLightMode ? 0.35 : 0.6,
         });
         const planetMesh = new THREE.Mesh(pGeo, pMat);
         planetMesh.position.set(item.orbitRadius, 0, 0);
@@ -303,9 +407,9 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
         if (item.hasRings) {
           const pRingGeo = new THREE.RingGeometry(item.size * 1.35, item.size * 1.85, 32);
           const pRingMat = new THREE.MeshBasicMaterial({
-            color: new THREE.Color(item.color),
+            color: isLightMode ? new THREE.Color(0x287A74) : new THREE.Color(item.color),
             transparent: true,
-            opacity: 0.4,
+            opacity: isLightMode ? 0.35 : 0.4,
             side: THREE.DoubleSide,
           });
           const pRing = new THREE.Mesh(pRingGeo, pRingMat);
@@ -330,9 +434,9 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
         // Orbit Ring
         const ringGeo = new THREE.RingGeometry(orbitRadius - 0.05, orbitRadius + 0.05, 64);
         const ringMat = new THREE.MeshBasicMaterial({
-          color: new THREE.Color(cat.color),
+          color: isLightMode ? new THREE.Color(0x287A74) : new THREE.Color(cat.color),
           transparent: true,
-          opacity: 0.22,
+          opacity: isLightMode ? 0.25 : 0.22,
           side: THREE.DoubleSide,
         });
         const ringMesh = new THREE.Mesh(ringGeo, ringMat);
@@ -347,9 +451,9 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
         const pMat = new THREE.MeshStandardMaterial({
           color: new THREE.Color(cat.color),
           emissive: new THREE.Color(cat.color),
-          emissiveIntensity: 0.4,
-          roughness: 0.4,
-          metalness: 0.5,
+          emissiveIntensity: isLightMode ? 0.22 : 0.4,
+          roughness: isLightMode ? 0.4 : 0.4,
+          metalness: isLightMode ? 0.35 : 0.5,
         });
         const planetMesh = new THREE.Mesh(pGeo, pMat);
         planetMesh.position.set(orbitRadius, 0, 0);
@@ -370,7 +474,7 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
         interactiveObjectsRef.current.push(planetMesh);
       });
     }
-  }, [galaxyMode, bankStatsList, cashBalance, netAvailableMoney, monthExpense, categoryStats]);
+  }, [galaxyMode, bankStatsList, cashBalance, netAvailableMoney, monthExpense, categoryStats, theme]);
 
   // Animation Loop (GPU Friendly)
   useEffect(() => {
@@ -388,6 +492,11 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
       if (coronaMeshRef.current) {
         coronaMeshRef.current.rotation.y -= 0.004;
         coronaMeshRef.current.rotation.x += 0.002;
+      }
+
+      // Slowly rotate star particles
+      if (starsMeshRef.current && isRotating && !settings.reduceMotion) {
+        starsMeshRef.current.rotation.y += 0.0003;
       }
 
       // Rotate Orbit Pivots if motion is active
@@ -494,13 +603,6 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
     }
   };
 
-  const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    const cam = cameraRotationRef.current;
-    cam.radius = Math.max(20, Math.min(75, cam.radius + e.deltaY * 0.04));
-    updateCameraPosition();
-  };
-
   const updateCameraPosition = () => {
     if (!cameraRef.current) return;
     const { theta, phi, radius } = cameraRotationRef.current;
@@ -531,7 +633,11 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
   return (
     <div 
       ref={containerRef}
-      className="relative w-full h-[400px] sm:h-[480px] lg:h-[540px] rounded-3xl overflow-hidden bg-[var(--card-bg)] border border-[var(--card-border)] shadow-md backdrop-blur-xl group select-none"
+      className={`relative w-full h-[400px] sm:h-[480px] lg:h-[540px] rounded-3xl overflow-hidden border shadow-md backdrop-blur-xl group select-none transition-colors duration-300 ${
+        isLight
+          ? 'bg-[#F4F8F6] border-[#287A74]/20'
+          : 'bg-[#10221E] border-[var(--card-border)]'
+      }`}
     >
       {/* 3D WebGL Canvas */}
       <canvas
@@ -541,21 +647,27 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
         onClick={handleClick}
-        onWheel={handleWheel}
         className="w-full h-full block touch-none"
+        style={{ touchAction: 'none' }}
       />
 
       {/* Top Header: Decoupled View Switcher & Simulation Controls */}
       <div className="absolute top-3 sm:top-4 left-3 sm:left-4 right-3 sm:right-4 z-10 pointer-events-none flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
         {/* View Switcher Tabs with no-scrollbar and shrink-0 */}
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto pointer-events-auto">
-          <div className="flex items-center p-1 rounded-2xl bg-[var(--card-bg)]/90 border border-[var(--card-border)] backdrop-blur-md shadow-sm shrink-0">
+          <div className={`flex items-center p-1 rounded-2xl backdrop-blur-md shadow-sm shrink-0 transition-colors ${
+            isLight
+              ? 'bg-white/90 border border-[#287A74]/20'
+              : 'bg-[#1A312C]/90 border border-[#89D7B7]/20'
+          }`}>
             <button
               onClick={() => setGalaxyMode('accounts')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap shrink-0 ${
                 galaxyMode === 'accounts'
                   ? 'bg-[var(--accent-primary)] text-[var(--accent-contrast)] shadow-xs'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  : isLight
+                    ? 'text-[#133834] hover:text-[#287A74]'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
               <Orbit size={14} className="shrink-0" />
@@ -566,7 +678,9 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer whitespace-nowrap shrink-0 ${
                 galaxyMode === 'expenses'
                   ? 'bg-[var(--accent-surface)] text-[var(--text-primary)] border border-[var(--accent-primary)]/40 shadow-xs'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  : isLight
+                    ? 'text-[#133834] hover:text-[#287A74]'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
               <TrendingDown size={14} className="shrink-0" />
@@ -575,39 +689,55 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
           </div>
 
           {/* Live Orbit Status Pill */}
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--card-bg)]/80 border border-[var(--card-border)] text-[11px] font-mono font-semibold text-[var(--text-secondary)] backdrop-blur-md shrink-0">
+          <div className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-mono font-semibold backdrop-blur-md shrink-0 transition-colors ${
+            isLight
+              ? 'bg-white/90 border border-[#287A74]/20 text-[#133834]'
+              : 'bg-[#1A312C]/90 border border-[#89D7B7]/20 text-[var(--text-secondary)]'
+          }`}>
             <span className={`w-2 h-2 rounded-full ${isRotating && !settings?.reduceMotion ? 'bg-[var(--accent-primary)] animate-ping' : 'bg-[var(--divider)]'}`} />
             <span>{isRotating && !settings?.reduceMotion ? 'Orbital Motion' : 'Stationary'}</span>
           </div>
         </div>
 
         {/* Floating Glassmorphic Camera Controls Pill */}
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[var(--card-bg)]/90 border border-[var(--card-border)] backdrop-blur-md shadow-sm text-[var(--text-secondary)] pointer-events-auto self-end sm:self-auto shrink-0">
+        <div className={`flex items-center gap-1.5 p-1 rounded-2xl backdrop-blur-md shadow-sm pointer-events-auto self-end sm:self-auto shrink-0 transition-colors ${
+          isLight
+            ? 'bg-white/90 text-[#133834] border border-[#287A74]/20'
+            : 'bg-[#1A312C]/90 text-[#FFF4E1] border border-[#89D7B7]/20'
+        }`}>
           <button
             onClick={() => setIsRotating(!isRotating)}
             title={isRotating ? 'Pause Orbit' : 'Resume Orbit'}
-            className="p-2 rounded-xl hover:bg-[var(--row-hover-bg)] hover:text-[var(--text-primary)] transition cursor-pointer"
+            className={`p-2 rounded-xl transition cursor-pointer ${
+              isLight ? 'hover:bg-[#287A74]/10 hover:text-[#133834]' : 'hover:bg-white/10 hover:text-[#FFF4E1]'
+            }`}
           >
             {isRotating ? <Pause size={14} /> : <Play size={14} />}
           </button>
           <button
             onClick={() => handleZoom('in')}
             title="Zoom In"
-            className="p-2 rounded-xl hover:bg-[var(--row-hover-bg)] hover:text-[var(--text-primary)] transition cursor-pointer"
+            className={`p-2 rounded-xl transition cursor-pointer ${
+              isLight ? 'hover:bg-[#287A74]/10 hover:text-[#133834]' : 'hover:bg-white/10 hover:text-[#FFF4E1]'
+            }`}
           >
             <ZoomIn size={14} />
           </button>
           <button
             onClick={() => handleZoom('out')}
             title="Zoom Out"
-            className="p-2 rounded-xl hover:bg-[var(--row-hover-bg)] hover:text-[var(--text-primary)] transition cursor-pointer"
+            className={`p-2 rounded-xl transition cursor-pointer ${
+              isLight ? 'hover:bg-[#287A74]/10 hover:text-[#133834]' : 'hover:bg-white/10 hover:text-[#FFF4E1]'
+            }`}
           >
             <ZoomOut size={14} />
           </button>
           <button
             onClick={handleResetCamera}
             title="Reset View Angle"
-            className="p-2 rounded-xl hover:bg-[var(--row-hover-bg)] hover:text-[var(--text-primary)] transition cursor-pointer"
+            className={`p-2 rounded-xl transition cursor-pointer ${
+              isLight ? 'hover:bg-[#287A74]/10 hover:text-[#133834]' : 'hover:bg-white/10 hover:text-[#FFF4E1]'
+            }`}
           >
             <RotateCcw size={14} />
           </button>
@@ -616,7 +746,11 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
 
       {/* Center Top: Cosmic Command Headline */}
       <div className="absolute top-16 left-1/2 -translate-x-1/2 pointer-events-none text-center hidden md:block">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--card-bg)] border border-[var(--card-border)] text-[10px] font-mono font-bold uppercase tracking-widest text-[var(--text-secondary)] shadow-xs">
+        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest shadow-xs ${
+          isLight
+            ? 'bg-white/90 border border-[#287A74]/20 text-[#133834]'
+            : 'bg-[#1A312C]/90 border border-[#89D7B7]/20 text-[var(--text-secondary)]'
+        }`}>
           <Sparkles size={11} className="text-[var(--accent-primary)]" />
           <span>Fintech Galaxy Orbital Matrix</span>
         </div>
@@ -625,7 +759,11 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
       {/* Dynamic Hover HUD Card */}
       {hoveredItem && (
         <div 
-          className="absolute z-20 pointer-events-none transition-all duration-75 p-3.5 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] shadow-xl backdrop-blur-xl text-left min-w-[190px] animate-in fade-in zoom-in-95"
+          className={`absolute z-20 pointer-events-none transition-all duration-75 p-3.5 rounded-2xl shadow-xl backdrop-blur-xl text-left min-w-[190px] animate-in fade-in zoom-in-95 ${
+            isLight
+              ? 'bg-white/95 border border-[#287A74]/25 text-[#133834] shadow-[#287A74]/15'
+              : 'bg-[#10221E]/95 border border-[#89D7B7]/20 text-[#FFF4E1] shadow-black/40'
+          }`}
           style={{
             left: Math.min(window.innerWidth - 220, Math.max(16, mousePos.x + 14)),
             top: Math.min(420, Math.max(16, mousePos.y - 45)),
@@ -636,22 +774,24 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
               className="w-3 h-3 rounded-full flex-shrink-0 shadow-xs" 
               style={{ backgroundColor: hoveredItem.color }} 
             />
-            <span className="text-xs font-black text-[var(--text-headings)] truncate">{hoveredItem.name}</span>
+            <span className={`text-xs font-black truncate ${isLight ? 'text-[#133834]' : 'text-[var(--text-headings)]'}`}>
+              {hoveredItem.name}
+            </span>
           </div>
 
-          <p className="text-[10px] uppercase font-mono font-bold tracking-wider text-[var(--text-muted)] mb-2">
+          <p className={`text-[10px] uppercase font-mono font-bold tracking-wider mb-2 ${isLight ? 'text-[#287A74]' : 'text-[var(--text-muted)]'}`}>
             {hoveredItem.type}
           </p>
 
           {hoveredItem.balance !== undefined && (
-            <div className="text-base font-black font-mono text-[var(--text-primary)]">
+            <div className={`text-base font-black font-mono ${isLight ? 'text-[#133834]' : 'text-[var(--text-primary)]'}`}>
               {isMasked ? maskCurrency(settings?.currency) : formatCurrency(hoveredItem.balance, settings?.currency)}
             </div>
           )}
 
           {hoveredItem.amount !== undefined && (
             <div className="space-y-1">
-              <div className="text-sm font-black font-mono text-red-400">
+              <div className="text-sm font-black font-mono text-red-500">
                 {isMasked ? maskCurrency(settings?.currency) : formatCurrency(hoveredItem.amount, settings?.currency)}
               </div>
               <div className="flex items-center justify-between text-[10px] text-[var(--text-secondary)] pt-1 border-t border-[var(--divider)] font-mono">
@@ -669,7 +809,11 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
       )}
 
       {/* Bottom Center: Quick Nav Hint */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--card-bg)]/90 border border-[var(--card-border)] backdrop-blur-md text-[11px] text-[var(--text-secondary)]">
+      <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-md text-[11px] ${
+        isLight
+          ? 'bg-white/90 border border-[#287A74]/20 text-[#133834]'
+          : 'bg-[#1A312C]/90 border border-[#89D7B7]/20 text-[var(--text-secondary)]'
+      }`}>
         <Info size={12} className="text-[var(--accent-primary)]" />
         <span className="hidden sm:inline">Drag to rotate • Scroll to zoom • Click planet for telemetry</span>
         <span className="sm:hidden">Drag to orbit • Tap planet for telemetry</span>

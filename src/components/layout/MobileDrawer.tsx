@@ -18,6 +18,7 @@ import {
   User, 
   ShieldCheck,
   ChevronRight,
+  ChevronDown,
   WalletCards
 } from 'lucide-react';
 import { useTransactions } from '../../context/TransactionContext';
@@ -117,10 +118,11 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
         role="dialog"
         aria-label="Mobile Navigation Menu"
         aria-modal="true"
-        className={`fixed inset-y-0 left-0 z-50 w-[300px] max-w-[85vw] bg-[var(--header-bg)] text-[var(--text-primary)] border-r border-[var(--divider)] shadow-2xl flex flex-col justify-between transition-transform duration-250 ease-out lg:hidden select-none ${
+        className={`fixed inset-y-0 left-0 z-50 w-[300px] max-w-[85vw] bg-[var(--header-bg)] text-[var(--text-primary)] border-r border-[var(--divider)] shadow-2xl flex flex-col justify-between transition-transform duration-250 ease-out lg:hidden select-none overflow-x-hidden box-border min-w-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         style={{
+          boxSizing: 'border-box',
           paddingTop: 'max(1rem, env(safe-area-inset-top, 16px))',
           paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 16px))',
           paddingLeft: 'max(1rem, env(safe-area-inset-left, 16px))',
@@ -128,16 +130,16 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
         }}
       >
         {/* Top Header & Close button */}
-        <div className="flex items-center justify-between pb-4 border-b border-[var(--divider)]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[var(--accent-primary)] flex items-center justify-center text-[var(--btn-primary-text)] shadow-md shadow-[var(--accent-glow)]">
+        <div className="w-full min-w-0 flex items-center justify-between pb-4 border-b border-[var(--divider)]">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-[var(--accent-primary)] flex items-center justify-center text-[var(--btn-primary-text)] shadow-md shadow-[var(--accent-glow)] shrink-0">
               <WalletCards size={18} className="stroke-[2.2]" />
             </div>
-            <div>
-              <span className="text-base font-black tracking-tight text-[var(--text-headings)] block leading-tight">
+            <div className="min-w-0">
+              <span className="text-base font-black tracking-tight text-[var(--text-headings)] block leading-tight truncate">
                 Galaxy Finance
               </span>
-              <span className="text-[10px] font-mono text-[var(--accent-primary)] font-bold">
+              <span className="text-[10px] font-mono text-[var(--accent-primary)] font-bold truncate block">
                 {settings?.currency?.symbol || '₹'} Cosmic Vaults
               </span>
             </div>
@@ -145,7 +147,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--row-hover-bg)] transition cursor-pointer"
+            className="p-2 rounded-xl text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--row-hover-bg)] transition cursor-pointer shrink-0"
             aria-label="Close navigation drawer"
           >
             <X size={20} />
@@ -153,7 +155,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
         </div>
 
         {/* Scrollable middle content: Profile card, quick action, navigation links */}
-        <div className="flex-1 overflow-y-auto py-4 space-y-4 pr-1 text-left">
+        <div className="w-full min-w-0 flex-1 overflow-y-auto overflow-x-hidden py-4 space-y-4 pr-1 text-left">
           {/* User Profile Card */}
           {isAuthenticated && user ? (
             <div className="p-3.5 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] shadow-xs">
@@ -268,25 +270,33 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
         </div>
 
         {/* System Options anchored at the bottom: Currency, Theme/Orbit Toggle & Logout */}
-        <div className="pt-3 border-t border-[var(--divider)] space-y-2">
+        <div className="w-full min-w-0 pt-3 border-t border-[var(--divider)] space-y-2">
           {/* Currency Switcher */}
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-xs font-semibold text-[var(--text-primary)]">
-            <span className="text-[var(--text-secondary)] font-medium">Currency</span>
-            <select
-              value={settings.currency.code}
-              onChange={(e) => {
-                const found = AVAILABLE_CURRENCIES.find((c) => c.code === e.target.value);
-                if (found) updateSettings({ currency: found });
-              }}
-              className="bg-[var(--row-hover-bg)] text-[var(--accent-primary)] font-mono font-bold text-xs px-2.5 py-1 rounded-lg border border-[var(--card-border)] cursor-pointer focus:outline-none"
-              aria-label="Select Currency"
-            >
-              {AVAILABLE_CURRENCIES.map((c) => (
-                <option key={c.code} value={c.code} className="bg-[var(--card-bg)] text-[var(--text-primary)]">
-                  {c.symbol} {c.code} - {c.name}
-                </option>
-              ))}
-            </select>
+          <div className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] box-border min-w-0">
+            <span className="text-xs font-medium text-[var(--text-secondary)] shrink-0">
+              Currency
+            </span>
+            <div className="relative min-w-0 flex-1">
+              <select
+                value={settings.currency.code}
+                onChange={(e) => {
+                  const found = AVAILABLE_CURRENCIES.find((c) => c.code === e.target.value);
+                  if (found) updateSettings({ currency: found });
+                }}
+                className="w-full min-w-0 appearance-none bg-transparent text-xs font-semibold text-[var(--accent-primary)] pr-6 pl-2 py-1 text-right focus:outline-none truncate cursor-pointer font-mono"
+                aria-label="Select Currency"
+              >
+                {AVAILABLE_CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code} className="bg-[var(--card-bg)] text-[var(--text-primary)]">
+                    {c.symbol} {c.code} - {c.name}
+                  </option>
+                ))}
+              </select>
+              {/* Chevron Down Icon */}
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1 text-[var(--accent-primary)]">
+                <ChevronDown size={14} />
+              </div>
+            </div>
           </div>
 
           {/* Theme & Orbit Mode Switcher */}

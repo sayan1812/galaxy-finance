@@ -17,6 +17,11 @@
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cross-Origin-Opener-Policy = "same-origin-allow-popups"
+
 [[redirects]]
   from = "/api/*"
   to = "https://galaxy-finance-js0l.onrender.com/api/:splat"

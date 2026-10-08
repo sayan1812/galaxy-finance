@@ -57,6 +57,12 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 
+// Set Security & COOP headers
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  next();
+});
+
 // Request logging (sanitized, never logs passwords or OTPs)
 app.use((req, res, next) => {
   const start = Date.now();
