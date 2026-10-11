@@ -74,8 +74,21 @@ export const AccountsPage: React.FC = () => {
       </div>
 
       {/* Accounts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {connectedAccounts.map((account) => {
+      {connectedAccounts.length === 0 ? (
+        <div className="flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800/80">
+          <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mb-3">
+            <Building2 size={28} />
+          </div>
+          <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 mb-1">
+            No connected accounts
+          </h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm">
+            Connected financial feeds and bank integrations will appear here. Add bank accounts to start tracking your balances.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {connectedAccounts.map((account) => {
           const isCash = account.type === 'WALLET';
           const displayBalance = isCash ? cashBalance : account.balance;
 
@@ -125,6 +138,7 @@ export const AccountsPage: React.FC = () => {
           );
         })}
       </div>
+      )}
 
       {/* Test / Simulation Tools Card */}
       <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">

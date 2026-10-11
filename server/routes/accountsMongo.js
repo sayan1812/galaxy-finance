@@ -10,34 +10,6 @@ router.get('/', authenticateOrDemo, async (req, res) => {
   try {
     const accounts = await Account.find({ userId: req.userId }).sort({ updatedAt: -1 });
 
-    // Seed default bank & cash accounts if user has none
-    if (accounts.length === 0) {
-      const defaultAccounts = await Account.create([
-        {
-          userId: req.userId,
-          accountName: 'HDFC Corporate Vault',
-          accountType: 'bank',
-          balance: 245000,
-          accountNumberMask: 'XXXX XXXX 4192',
-        },
-        {
-          userId: req.userId,
-          accountName: 'State Bank Reserve',
-          accountType: 'bank',
-          balance: 118500,
-          accountNumberMask: 'XXXX XXXX 8831',
-        },
-        {
-          userId: req.userId,
-          accountName: 'Cash Reserve Wallet',
-          accountType: 'cash',
-          balance: 15400,
-          accountNumberMask: 'PHYSICAL CASH',
-        },
-      ]);
-      return res.json({ success: true, accounts: defaultAccounts });
-    }
-
     res.json({ success: true, accounts });
   } catch (error) {
     console.error('[Accounts GET Error]:', error);

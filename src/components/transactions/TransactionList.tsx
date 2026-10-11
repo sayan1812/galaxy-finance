@@ -80,10 +80,10 @@ export const TransactionList: React.FC<TransactionListProps> = ({
           <Inbox size={32} />
         </div>
         <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 mb-1">
-          No Transactions Found
+          No transactions recorded yet
         </h3>
         <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mb-6">
-          No financial records match your current filters or search query. Record your first transaction now!
+          No transactions recorded yet. Tap + to add your first entry
         </p>
         <button
           onClick={() => setIsAddModalOpen(true)}

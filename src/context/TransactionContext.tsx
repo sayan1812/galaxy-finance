@@ -8,6 +8,8 @@ import type {
   ConnectedAccount,
   SyncStatus,
   TransactionType,
+  PaymentMethod,
+  TransactionSource,
   BankAccount,
   CashWalletConfig,
   GalaxyIntensity,
@@ -216,38 +218,43 @@ const DEFAULT_SETTINGS: AppSettings = {
   budgetAlertThreshold: 80,
   soundFeedback: true,
   autoSyncIntervalMinutes: 15,
-  demoModeEnabled: true,
+  demoModeEnabled: false,
   enableDuplicateAutoPrompt: true,
 };
 
 const TransactionContext = createContext<TransactionContextType | null>(null);
 
 export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // 1. Transactions State
+  // 1. Transactions State - Initialized empty without mock relics
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(t => !t.description?.includes('Demo') && !t.merchant?.includes('Demo'));
+        }
       }
     } catch (e) {
       console.error('Failed to parse stored transactions:', e);
     }
-    const sample = getInitialSampleData();
-    return sample.transactions;
+    return [];
   });
 
-  // 2. Bank Accounts State
+  // 2. Bank Accounts State - Initialized empty without mock banks
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.BANKS);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(b => !['bank-sbi-1', 'bank-hdfc-1', 'bank-icici-1'].includes(b.id));
+        }
       }
     } catch (e) {
       console.error('Failed to parse stored banks:', e);
     }
-    return DEFAULT_BANK_ACCOUNTS;
+    return [];
   });
 
   // 3. Cash Wallet Config State
@@ -263,7 +270,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return DEFAULT_CASH_WALLET;
   });
 
-  // 4. Budgets State
+  // 4. Budgets State - Initialized empty
   const [budgets, setBudgets] = useState<Budget[]>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.BUDGETS);
@@ -273,10 +280,10 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } catch (e) {
       console.error('Failed to parse stored budgets:', e);
     }
-    return getInitialSampleData().budgets;
+    return [];
   });
 
-  // 5. Recurring Transactions State
+  // 5. Recurring Transactions State - Initialized empty
   const [recurring, setRecurring] = useState<RecurringTransaction[]>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.RECURRING);
@@ -286,7 +293,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } catch (e) {
       console.error('Failed to parse stored recurring items:', e);
     }
-    return getInitialSampleData().recurring;
+    return [];
   });
 
   // 6. Categories State
@@ -468,11 +475,13 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     document.documentElement.setAttribute('data-theme', 'light');
   }, [settings]);
 
-  // Sync live accounts from MongoDB Atlas on initial load
+  // Sync live accounts, transactions & custom categories from MongoDB Atlas on initial load
   useEffect(() => {
     let isMounted = true;
+
+    // 1. Fetch live accounts
     api.getAccounts().then((res: any) => {
-      if (isMounted && res && Array.isArray(res.accounts) && res.accounts.length > 0) {
+      if (isMounted && res && Array.isArray(res.accounts)) {
         const liveBanks: BankAccount[] = res.accounts
           .filter((a: any) => a.accountType !== 'cash')
           .map((a: any) => ({
@@ -480,17 +489,117 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
             bankName: a.accountName,
             accountType: 'Savings' as const,
             nickname: a.accountName,
-            openingBalance: a.balance,
+            openingBalance: Number(a.balance || 0),
+            balance: Number(a.balance || 0),
             accountNumberMasked: a.accountNumberMask || 'XXXX XXXX 0000',
             createdAt: a.createdAt || new Date().toISOString(),
             updatedAt: a.updatedAt || new Date().toISOString(),
           }));
+        setBankAccounts(liveBanks);
 
-        if (liveBanks.length > 0) {
-          setBankAccounts(liveBanks);
+        const cashAcc = res.accounts.find((a: any) => a.accountType === 'cash');
+        if (cashAcc) {
+          setCashWalletConfig((prev) => ({
+            ...prev,
+            openingCash: Number(cashAcc.balance || 0),
+          }));
         }
       }
     }).catch(() => {});
+
+    // 2. Fetch live transactions
+    api.getTransactions().then((res: any) => {
+      if (isMounted && res && Array.isArray(res.transactions)) {
+        const mappedTxns: Transaction[] = res.transactions.map((t: any) => {
+          const accId = t.accountId?._id || (typeof t.accountId === 'string' ? t.accountId : undefined);
+          const toAccId = t.toAccountId?._id || (typeof t.toAccountId === 'string' ? t.toAccountId : undefined);
+          const accName = t.accountId?.accountName || 'Primary Account';
+          const toAccName = t.toAccountId?.accountName || undefined;
+          const dStr = typeof t.date === 'string' ? t.date.slice(0, 10) : new Date(t.date).toISOString().slice(0, 10);
+          return {
+            id: t._id || t.id,
+            type: (t.type?.toUpperCase() || 'EXPENSE') as TransactionType,
+            amount: Number(t.amount || 0),
+            currency: 'INR',
+            category: t.category || 'General',
+            paymentMethod: (t.paymentMethod || (t.type === 'transfer' ? 'BANK_TRANSFER' : 'UPI')) as PaymentMethod,
+            source: (t.source || 'MANUAL') as TransactionSource,
+            merchant: t.merchant || '',
+            description: t.notes || t.description || '',
+            date: dStr,
+            time: t.time || '12:00',
+            account: accName,
+            bankAccountId: accId,
+            toBankAccountId: toAccId,
+            toAccount: toAccName,
+            createdAt: t.createdAt || new Date().toISOString(),
+            updatedAt: t.updatedAt || new Date().toISOString(),
+          };
+        });
+        setTransactions(mappedTxns);
+      }
+    }).catch(() => {});
+
+    // 3. Fetch custom categories from user profile with defensive check & local fallback
+    const fetchCustomCategories = async () => {
+      try {
+        let rawCustom: any[] = [];
+        if (typeof (api as any)?.getCustomCategories === 'function') {
+          const res = await (api as any).getCustomCategories();
+          if (Array.isArray(res)) {
+            rawCustom = res;
+          } else if (res && Array.isArray(res.categories)) {
+            rawCustom = res.categories;
+          }
+        } else {
+          // Graceful fallback to localStorage galaxy_custom_categories
+          const local = localStorage.getItem('galaxy_custom_categories');
+          rawCustom = local ? JSON.parse(local) : [];
+        }
+
+        if (isMounted && Array.isArray(rawCustom) && rawCustom.length > 0) {
+          setCategories((prev) => {
+            const customMapped: Category[] = rawCustom.map((c: any) => ({
+              id: c.id || c._id || `cat-${c.name}`,
+              name: c.name,
+              color: c.color || '#6366f1',
+              icon: c.icon || 'Tag',
+              type: (c.type?.toUpperCase() || 'BOTH') as any,
+              isCustom: true,
+            }));
+            const existingNames = new Set(prev.map((c) => c.name.toLowerCase()));
+            const dedupedCustom = customMapped.filter((c) => !existingNames.has(c.name.toLowerCase()));
+            return [...prev, ...dedupedCustom];
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to load custom categories, falling back to local storage:', err);
+        try {
+          const local = localStorage.getItem('galaxy_custom_categories');
+          const fallbackList = local ? JSON.parse(local) : [];
+          if (isMounted && Array.isArray(fallbackList) && fallbackList.length > 0) {
+            setCategories((prev) => {
+              const customMapped: Category[] = fallbackList.map((c: any) => ({
+                id: c.id || c._id || `cat-${c.name}`,
+                name: c.name,
+                color: c.color || '#6366f1',
+                icon: c.icon || 'Tag',
+                type: (c.type?.toUpperCase() || 'BOTH') as any,
+                isCustom: true,
+              }));
+              const existingNames = new Set(prev.map((c) => c.name.toLowerCase()));
+              const dedupedCustom = customMapped.filter((c) => !existingNames.has(c.name.toLowerCase()));
+              return [...prev, ...dedupedCustom];
+            });
+          }
+        } catch {
+          // Keep default categories
+        }
+      }
+    };
+
+    fetchCustomCategories();
+
     return () => {
       isMounted = false;
     };
@@ -502,6 +611,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const tempId = `bank-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const newBank: BankAccount = {
       ...data,
+      balance: data.balance !== undefined ? data.balance : data.openingBalance,
       id: tempId,
       createdAt: now,
       updatedAt: now,
@@ -584,7 +694,24 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       data.type === 'INCOME' ? '💰' : '💸'
     );
 
-    // Sync to backend asynchronously
+    if (data.bankAccountId) {
+      setBankAccounts((prev) =>
+        prev.map((b) => {
+          if (b.id === data.bankAccountId) {
+            const cur = b.balance !== undefined ? b.balance : b.openingBalance;
+            const delta = data.type === 'INCOME' ? data.amount : -data.amount;
+            return { ...b, balance: cur + delta };
+          }
+          if (data.type === 'TRANSFER' && b.id === data.toBankAccountId) {
+            const cur = b.balance !== undefined ? b.balance : b.openingBalance;
+            return { ...b, balance: cur + data.amount };
+          }
+          return b;
+        })
+      );
+    }
+
+    // Sync to backend asynchronously & re-sync live accounts
     api.createTransaction({
       amount: data.amount,
       type: data.type.toLowerCase(),
@@ -594,10 +721,31 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       source: data.source,
       merchant: data.merchant,
       description: data.description,
+      notes: data.description,
       date: data.date,
       time: data.time || defaultTime,
       bankId: data.bankAccountId,
-      accountId: data.bankAccountId
+      accountId: data.bankAccountId,
+      toAccountId: data.toBankAccountId,
+    }).then(() => {
+      api.getAccounts().then((res: any) => {
+        if (res && Array.isArray(res.accounts)) {
+          const liveBanks: BankAccount[] = res.accounts
+            .filter((a: any) => a.accountType !== 'cash')
+            .map((a: any) => ({
+              id: a._id || a.id,
+              bankName: a.accountName,
+              accountType: 'Savings' as const,
+              nickname: a.accountName,
+              openingBalance: Number(a.balance || 0),
+              balance: Number(a.balance || 0),
+              accountNumberMasked: a.accountNumberMask || 'XXXX XXXX 0000',
+              createdAt: a.createdAt || new Date().toISOString(),
+              updatedAt: a.updatedAt || new Date().toISOString(),
+            }));
+          setBankAccounts(liveBanks);
+        }
+      }).catch(() => {});
     }).catch(() => {});
 
     return newTx;
@@ -665,13 +813,78 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       })
     );
 
-    api.updateTransaction(id, data).catch(() => {});
+    api.updateTransaction(id, {
+      ...data,
+      accountId: data.bankAccountId,
+      toAccountId: data.toBankAccountId,
+      type: data.type ? data.type.toLowerCase() : undefined,
+      notes: data.description,
+    }).then(() => {
+      api.getAccounts().then((res: any) => {
+        if (res && Array.isArray(res.accounts)) {
+          const liveBanks: BankAccount[] = res.accounts
+            .filter((a: any) => a.accountType !== 'cash')
+            .map((a: any) => ({
+              id: a._id || a.id,
+              bankName: a.accountName,
+              accountType: 'Savings' as const,
+              nickname: a.accountName,
+              openingBalance: Number(a.balance || 0),
+              balance: Number(a.balance || 0),
+              accountNumberMasked: a.accountNumberMask || 'XXXX XXXX 0000',
+              createdAt: a.createdAt || new Date().toISOString(),
+              updatedAt: a.updatedAt || new Date().toISOString(),
+            }));
+          setBankAccounts(liveBanks);
+        }
+      }).catch(() => {});
+    }).catch(() => {});
   }, []);
 
   const deleteTransaction = useCallback((id: string) => {
-    setTransactions((prev) => prev.filter((item) => item.id !== id));
+    setTransactions((prev) => {
+      const tx = prev.find((item) => item.id === id);
+      if (tx && tx.bankAccountId) {
+        setBankAccounts((bPrev) =>
+          bPrev.map((b) => {
+            if (b.id === tx.bankAccountId) {
+              const cur = b.balance !== undefined ? b.balance : b.openingBalance;
+              const delta = tx.type === 'INCOME' ? -tx.amount : tx.amount;
+              return { ...b, balance: cur + delta };
+            }
+            if (tx.type === 'TRANSFER' && b.id === tx.toBankAccountId) {
+              const cur = b.balance !== undefined ? b.balance : b.openingBalance;
+              return { ...b, balance: cur - tx.amount };
+            }
+            return b;
+          })
+        );
+      }
+      return prev.filter((item) => item.id !== id);
+    });
+
     triggerMicroInteraction('TRANSACTION_DELETED', 'Transaction Deleted', 'Balances and reports recalculated', undefined, '🗑️');
-    api.deleteTransaction(id).catch(() => {});
+
+    api.deleteTransaction(id).then(() => {
+      api.getAccounts().then((res: any) => {
+        if (res && Array.isArray(res.accounts)) {
+          const liveBanks: BankAccount[] = res.accounts
+            .filter((a: any) => a.accountType !== 'cash')
+            .map((a: any) => ({
+              id: a._id || a.id,
+              bankName: a.accountName,
+              accountType: 'Savings' as const,
+              nickname: a.accountName,
+              openingBalance: Number(a.balance || 0),
+              balance: Number(a.balance || 0),
+              accountNumberMasked: a.accountNumberMask || 'XXXX XXXX 0000',
+              createdAt: a.createdAt || new Date().toISOString(),
+              updatedAt: a.updatedAt || new Date().toISOString(),
+            }));
+          setBankAccounts(liveBanks);
+        }
+      }).catch(() => {});
+    }).catch(() => {});
   }, [triggerMicroInteraction]);
 
   const requestDeleteTransaction = useCallback((id: string) => {
@@ -961,11 +1174,51 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       id: `custom-${Date.now()}`,
       isCustom: true,
     };
-    setCategories((prev) => [...prev, newCat]);
+    setCategories((prev) => {
+      if (prev.some((c) => c.name.toLowerCase() === newCat.name.toLowerCase())) {
+        return prev;
+      }
+      return [...prev, newCat];
+    });
+
+    // Sync to local storage fallback
+    try {
+      const local = localStorage.getItem('galaxy_custom_categories');
+      const list = local ? JSON.parse(local) : [];
+      list.push(newCat);
+      localStorage.setItem('galaxy_custom_categories', JSON.stringify(list));
+    } catch (e) {
+      console.warn('Failed to save to local galaxy_custom_categories:', e);
+    }
+
+    if (typeof (api as any)?.addCustomCategory === 'function') {
+      (api as any).addCustomCategory({
+        name: category.name,
+        color: category.color,
+        icon: category.icon,
+        type: category.type?.toLowerCase() || 'expense',
+      }).catch((e: any) => console.warn('Failed to sync category to MongoDB:', e));
+    }
   }, []);
 
   const deleteCategory = useCallback((id: string) => {
     setCategories((prev) => prev.filter((c) => c.id !== id));
+
+    // Remove from local storage fallback
+    try {
+      const local = localStorage.getItem('galaxy_custom_categories');
+      if (local) {
+        const list = JSON.parse(local);
+        const filtered = list.filter((c: any) => c.id !== id && c._id !== id);
+        localStorage.setItem('galaxy_custom_categories', JSON.stringify(filtered));
+      }
+    } catch (e) {
+      console.warn('Failed to remove from local galaxy_custom_categories:', e);
+    }
+
+    if (typeof (api as any)?.deleteCustomCategory === 'function') {
+      (api as any).deleteCustomCategory(id).catch(() => {});
+    }
   }, []);
 
   // --- Settings & Storage Operations ---
@@ -1077,33 +1330,47 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // --- Dynamic Bank Balances & Stats Calculation ---
   const bankStatsList = useMemo((): BankComputedStats[] => {
     return bankAccounts.map((bank) => {
-      const bankTxns = transactions.filter((t) => {
-        if (t.bankAccountId === bank.id) return true;
-        if (t.account) {
-          const accLower = t.account.toLowerCase();
+      const isBankMatch = (tBankId?: string, tAccount?: string) => {
+        if (tBankId === bank.id) return true;
+        if (tAccount) {
+          const accLower = tAccount.toLowerCase();
           if (accLower.includes(bank.bankName.toLowerCase())) return true;
           if (bank.nickname && accLower.includes(bank.nickname.toLowerCase())) return true;
         }
         return false;
-      });
+      };
 
-      const totalIncome = bankTxns
-        .filter((t) => t.type === 'INCOME')
+      const bankIncome = transactions
+        .filter((t) => t.type === 'INCOME' && isBankMatch(t.bankAccountId, t.account))
         .reduce((sum, t) => sum + t.amount, 0);
 
-      const totalExpense = bankTxns
-        .filter((t) => t.type === 'EXPENSE')
+      const bankExpense = transactions
+        .filter((t) => t.type === 'EXPENSE' && isBankMatch(t.bankAccountId, t.account))
         .reduce((sum, t) => sum + t.amount, 0);
 
-      // Current Balance = Opening Balance + Income - Expense
-      const currentBalance = bank.openingBalance + totalIncome - totalExpense;
+      const bankTransferIn = transactions
+        .filter((t) => t.type === 'TRANSFER' && isBankMatch(t.toBankAccountId, t.toAccount))
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      const bankTransferOut = transactions
+        .filter((t) => t.type === 'TRANSFER' && isBankMatch(t.bankAccountId, t.account))
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      // Current Balance = bank.balance if defined from live accounts, else Opening Balance + net cashflow
+      const currentBalance = bank.balance !== undefined 
+        ? bank.balance 
+        : bank.openingBalance + bankIncome - bankExpense + bankTransferIn - bankTransferOut;
+
+      const bankTxnCount = transactions.filter((t) => 
+        isBankMatch(t.bankAccountId, t.account) || isBankMatch(t.toBankAccountId, t.toAccount)
+      ).length;
 
       return {
         bank,
         currentBalance,
-        totalIncome,
-        totalExpense,
-        transactionCount: bankTxns.length,
+        totalIncome: bankIncome,
+        totalExpense: bankExpense,
+        transactionCount: bankTxnCount,
       };
     });
   }, [bankAccounts, transactions]);
@@ -1113,21 +1380,23 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setBankAccounts((prev) =>
       prev.map((bank) => {
         if (bank.id === id) {
-          const bankTxns = transactions.filter((t) => {
-            if (t.bankAccountId === bank.id) return true;
-            if (t.account) {
-              const accLower = t.account.toLowerCase();
+          const isBankMatch = (tBankId?: string, tAccount?: string) => {
+            if (tBankId === bank.id) return true;
+            if (tAccount) {
+              const accLower = tAccount.toLowerCase();
               if (accLower.includes(bank.bankName.toLowerCase())) return true;
               if (bank.nickname && accLower.includes(bank.nickname.toLowerCase())) return true;
             }
             return false;
-          });
+          };
 
-          const inc = bankTxns.filter((t) => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0);
-          const exp = bankTxns.filter((t) => t.type === 'EXPENSE').reduce((s, t) => s + t.amount, 0);
+          const inc = transactions.filter((t) => t.type === 'INCOME' && isBankMatch(t.bankAccountId, t.account)).reduce((s, t) => s + t.amount, 0);
+          const exp = transactions.filter((t) => t.type === 'EXPENSE' && isBankMatch(t.bankAccountId, t.account)).reduce((s, t) => s + t.amount, 0);
+          const trIn = transactions.filter((t) => t.type === 'TRANSFER' && isBankMatch(t.toBankAccountId, t.toAccount)).reduce((s, t) => s + t.amount, 0);
+          const trOut = transactions.filter((t) => t.type === 'TRANSFER' && isBankMatch(t.bankAccountId, t.account)).reduce((s, t) => s + t.amount, 0);
 
-          // newBalance = newOpening + inc - exp => newOpening = newBalance - inc + exp
-          const calculatedOpening = newBalance - inc + exp;
+          // newBalance = newOpening + inc - exp + trIn - trOut => newOpening = newBalance - inc + exp - trIn + trOut
+          const calculatedOpening = newBalance - inc + exp - trIn + trOut;
 
           triggerMicroInteraction(
             'BANK_UPDATED',
@@ -1154,17 +1423,32 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return bankStatsList.reduce((sum, b) => sum + b.currentBalance, 0);
   }, [bankStatsList]);
 
-  // Cash Balance: Opening Cash + Cash Income - Cash Expense
+  // Cash Balance: Opening Cash + Cash Income - Cash Expense + Transfers In - Transfers Out
   const cashBalance = useMemo(() => {
+    const isCashMatch = (tBankId?: string, tMethod?: string, tAccount?: string) => {
+      if (tMethod === 'CASH') return true;
+      if (tBankId === 'cash-wallet' || tBankId === 'cash') return true;
+      if (tAccount && tAccount.toLowerCase().includes('cash')) return true;
+      return false;
+    };
+
     const cashIncome = transactions
-      .filter((t) => t.paymentMethod === 'CASH' && t.type === 'INCOME')
+      .filter((t) => t.type === 'INCOME' && isCashMatch(t.bankAccountId, t.paymentMethod, t.account))
       .reduce((sum, t) => sum + t.amount, 0);
 
     const cashExpense = transactions
-      .filter((t) => t.paymentMethod === 'CASH' && t.type === 'EXPENSE')
+      .filter((t) => t.type === 'EXPENSE' && isCashMatch(t.bankAccountId, t.paymentMethod, t.account))
       .reduce((sum, t) => sum + t.amount, 0);
 
-    return (cashWalletConfig.openingCash || 0) + cashIncome - cashExpense;
+    const cashTransferIn = transactions
+      .filter((t) => t.type === 'TRANSFER' && isCashMatch(t.toBankAccountId, undefined, t.toAccount))
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const cashTransferOut = transactions
+      .filter((t) => t.type === 'TRANSFER' && isCashMatch(t.bankAccountId, undefined, t.account))
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    return (cashWalletConfig.openingCash || 0) + cashIncome - cashExpense + cashTransferIn - cashTransferOut;
   }, [transactions, cashWalletConfig.openingCash]);
 
   // NET AVAILABLE MONEY = Total Available Bank Balance + Cash Balance

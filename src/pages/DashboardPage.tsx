@@ -53,8 +53,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     bankStatsList,
     totalBankBalance,
     netAvailableMoney,
-    totalIncomeAllTime,
-    totalExpenseAllTime,
     isMasked,
     toggleMask
   } = useTransactions();
@@ -179,7 +177,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 {isMasked ? (
                   <span className="text-[var(--text-primary)] font-bold">{maskCurrency(settings?.currency)}</span>
                 ) : (
-                  <AnimatedCounter value={totalIncomeAllTime} prefix={settings?.currency?.symbol || '₹'} className="text-[var(--text-primary)] font-bold" />
+                  <AnimatedCounter value={monthIncome} prefix={settings?.currency?.symbol || '₹'} className="text-[var(--text-primary)] font-bold" />
                 )}
               </span>
 
@@ -191,7 +189,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 {isMasked ? (
                   <span className="text-rose-500 font-bold">{maskCurrency(settings?.currency)}</span>
                 ) : (
-                  <AnimatedCounter value={totalExpenseAllTime} prefix={settings?.currency?.symbol || '₹'} className="text-rose-500 font-bold" />
+                  <AnimatedCounter value={monthExpense} prefix={settings?.currency?.symbol || '₹'} className="text-rose-500 font-bold" />
                 )}
               </span>
 
@@ -530,7 +528,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         <div className="space-y-2">
           {recentTransactions.length === 0 ? (
             <div className="py-8 text-center text-xs text-[var(--text-secondary)]">
-              No transactions recorded yet. Click "Record Transaction" to begin.
+              No transactions recorded yet. Tap + to add your first entry
             </div>
           ) : (
             recentTransactions.map((tx) => (

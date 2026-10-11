@@ -2,60 +2,7 @@ import type { ConnectedAccount, Transaction, PaymentMethod } from '../types';
 
 const ACCOUNTS_STORAGE_KEY = 'rupeewise_connected_accounts_v1';
 
-export const DEFAULT_CONNECTED_ACCOUNTS: ConnectedAccount[] = [
-  {
-    id: 'acc-hdfc',
-    name: 'HDFC Salary A/c',
-    institution: 'HDFC Bank',
-    type: 'BANK_ACCOUNT',
-    accountMask: '•••• 4821',
-    balance: 74500,
-    currency: 'INR',
-    lastSyncedAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-    status: 'CONNECTED',
-    provider: 'MOCK_FEED',
-    isAutoSyncEnabled: true,
-  },
-  {
-    id: 'acc-sbi-upi',
-    name: 'SBI UPI Handles',
-    institution: 'State Bank of India',
-    type: 'UPI',
-    accountMask: 'user@okhdfcbank',
-    balance: 12450,
-    currency: 'INR',
-    lastSyncedAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-    status: 'CONNECTED',
-    provider: 'MOCK_FEED',
-    isAutoSyncEnabled: true,
-  },
-  {
-    id: 'acc-icici-cc',
-    name: 'ICICI Coral Card',
-    institution: 'ICICI Bank',
-    type: 'CREDIT_CARD',
-    accountMask: '•••• 9021',
-    balance: -18320,
-    currency: 'INR',
-    lastSyncedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    status: 'CONNECTED',
-    provider: 'MOCK_FEED',
-    isAutoSyncEnabled: true,
-  },
-  {
-    id: 'acc-cash',
-    name: 'Physical Cash Wallet',
-    institution: 'RupeeWise Cash Reserve',
-    type: 'WALLET',
-    accountMask: 'Cash Drawer',
-    balance: 4200,
-    currency: 'INR',
-    lastSyncedAt: new Date().toISOString(),
-    status: 'CONNECTED',
-    provider: 'MOCK_FEED',
-    isAutoSyncEnabled: false,
-  },
-];
+export const DEFAULT_CONNECTED_ACCOUNTS: ConnectedAccount[] = [];
 
 // Pool of realistic transaction templates to simulate incoming online feeds
 interface FeedTemplate {
@@ -198,13 +145,21 @@ class FinancialIntegrationService {
     try {
       const stored = localStorage.getItem(ACCOUNTS_STORAGE_KEY);
       if (stored) {
-        this.accounts = JSON.parse(stored);
-        return;
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          const filtered = parsed.filter(
+            (acc: ConnectedAccount) =>
+              acc.id && !acc.id.startsWith('conn-acc-') && !acc.institution?.toLowerCase().includes('mock')
+          );
+          this.accounts = filtered;
+          this.persistAccounts();
+          return;
+        }
       }
     } catch (e) {
       console.warn('Failed to load connected accounts from storage:', e);
     }
-    this.accounts = [...DEFAULT_CONNECTED_ACCOUNTS];
+    this.accounts = [];
     this.persistAccounts();
   }
 

@@ -285,7 +285,7 @@ export const AuthModal: React.FC = () => {
                   required
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="demo@rupeewise.com or phone"
+                  placeholder="name@example.com or phone"
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-cyan-500 transition"
                 />
               </div>

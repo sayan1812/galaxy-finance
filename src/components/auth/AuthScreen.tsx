@@ -9,7 +9,6 @@ import {
   ArrowRight, 
   Loader2, 
   AlertCircle, 
-  Sparkles,
   KeyRound,
   CheckCircle2
 } from 'lucide-react';
@@ -27,8 +26,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccessfulAuth }) => {
   const [isExiting, setIsExiting] = useState(false);
 
   // Sign In State
-  const [loginIdentifier, setLoginIdentifier] = useState('demo@rupeewise.com');
-  const [loginPassword, setLoginPassword] = useState('Password123!');
+  const [loginIdentifier, setLoginIdentifier] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
 
@@ -168,11 +167,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccessfulAuth }) => {
     }
   };
 
-  const handleFillDemo = () => {
-    setLoginIdentifier('demo@rupeewise.com');
-    setLoginPassword('Password123!');
-    setErrorMessage(null);
-  };
 
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center p-4 sm:p-6 overflow-hidden bg-[var(--canvas-bg)]">
@@ -346,16 +340,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccessfulAuth }) => {
                   />
                   <span className="text-xs text-[var(--text-secondary)]">Remember Session</span>
                 </label>
-
-                <button
-                  type="button"
-                  onClick={handleFillDemo}
-                  className="text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1 cursor-pointer transition-colors"
-                  title="Quick-fill verified demo credentials"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                  Fill Demo
-                </button>
               </div>
 
               {/* Primary Submit Button */}

@@ -126,7 +126,6 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = ({
 
           const income = stats ? stats.income : 0;
           const expense = stats ? stats.expense : 0;
-          const net = income - expense;
 
           return (
             <div
@@ -173,32 +172,21 @@ export const MonthCalendar: React.FC<MonthCalendarProps> = ({
 
               {/* Day Totals Summary */}
               {hasTransactions ? (
-                <div className="mt-1 space-y-0.5 text-right overflow-hidden">
+                <div className="mt-1 space-y-0.5 text-right overflow-hidden flex flex-col justify-end flex-1">
                   {income > 0 && (
                     <div className="text-[10px] sm:text-xs font-extrabold text-emerald-600 dark:text-emerald-400 truncate">
-                      {formatCompactCurrency(income, settings.currency)}
+                      +{formatCompactCurrency(income, settings.currency)}
                     </div>
                   )}
                   {expense > 0 && (
                     <div className="text-[10px] sm:text-xs font-extrabold text-rose-600 dark:text-rose-400 truncate">
-                      {formatCompactCurrency(expense, settings.currency)}
+                      -{formatCompactCurrency(expense, settings.currency)}
                     </div>
                   )}
-
-                  {/* Net badge indicator */}
-                  <div
-                    className={`text-[9px] font-semibold px-1 py-0.2 rounded-md inline-block ${
-                      net >= 0
-                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
-                        : 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300'
-                    }`}
-                  >
-                    Net: {formatCompactCurrency(net, settings.currency)}
-                  </div>
                 </div>
               ) : (
                 <div className="hidden group-hover:block text-[10px] text-slate-300 dark:text-slate-600 text-center py-2">
-                  Add
+                  +
                 </div>
               )}
             </div>

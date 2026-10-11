@@ -13,6 +13,7 @@ import { useTransactions } from '../context/TransactionContext';
 import { MonthCalendar } from '../components/calendar/MonthCalendar';
 import { YearCalendar } from '../components/calendar/YearCalendar';
 import { DayDetailDrawer } from '../components/calendar/DayDetailDrawer';
+import { TransactionItem } from '../components/transactions/TransactionItem';
 import { formatCurrency } from '../utils/formatters';
 import { isSameMonth } from '../utils/dateUtils';
 
@@ -92,6 +93,13 @@ export const CalendarPage: React.FC = () => {
   const monthOnlineSpent = currentMonthTxns
     .filter((t) => t.type === 'EXPENSE' && t.paymentMethod !== 'CASH')
     .reduce((sum, t) => sum + t.amount, 0);
+
+  const dateFilteredTxns = React.useMemo(() => {
+    if (selectedDate) {
+      return filteredCalendarTxns.filter((t) => t.date && t.date.slice(0, 10) === selectedDate);
+    }
+    return currentMonthTxns;
+  }, [selectedDate, filteredCalendarTxns, currentMonthTxns]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -302,7 +310,61 @@ export const CalendarPage: React.FC = () => {
         />
       )}
 
-      {/* Day Detail Drawer (Opens on date click) */}
+      {/* Interactive Transaction Ledger Filtered Strictly to Selected Date */}
+      <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4 text-left">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+          <div>
+            <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+              <CalendarIcon size={18} className="text-emerald-500" />
+              <span>
+                {selectedDate 
+                  ? `Transactions for ${selectedDate}` 
+                  : `Monthly Ledger (${MONTH_NAMES[currentMonth]} ${currentYear})`}
+              </span>
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {selectedDate 
+                ? `${dateFilteredTxns.length} entry/entries on this date` 
+                : 'Tap any calendar date cell above to filter the transaction ledger strictly to that date'}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {selectedDate && (
+              <button
+                onClick={() => setSelectedDate(null)}
+                className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              >
+                Clear Date Filter
+              </button>
+            )}
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition cursor-pointer"
+            >
+              <Plus size={14} />
+              <span>Record Transaction</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Ledger Entries */}
+        <div className="space-y-2">
+          {dateFilteredTxns.length === 0 ? (
+            <div className="py-10 text-center text-xs text-slate-400">
+              {selectedDate 
+                ? `No transactions recorded for ${selectedDate}. Tap + to add your first entry`
+                : 'No transactions recorded yet. Tap + to add your first entry'}
+            </div>
+          ) : (
+            dateFilteredTxns.map((tx) => (
+              <TransactionItem key={tx.id} transaction={tx} showDate={!selectedDate} />
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Day Detail Drawer (Optional secondary inspection) */}
       <DayDetailDrawer
         dateStr={selectedDate}
         onClose={() => setSelectedDate(null)}

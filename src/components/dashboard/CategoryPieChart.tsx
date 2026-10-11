@@ -8,7 +8,7 @@ import {
 } from 'recharts';
 import { useTransactions } from '../../context/TransactionContext';
 import { useTheme } from '../../context/ThemeContext';
-import { formatCurrency, formatPercentage } from '../../utils/formatters';
+import { formatCurrency } from '../../utils/formatters';
 import { isSameMonth } from '../../utils/dateUtils';
 
 const DARK_JADE_PIE_PALETTE = [
@@ -85,20 +85,20 @@ export const CategoryPieChart: React.FC = () => {
       <div className="flex items-center justify-between mb-2">
         <div>
           <h3 className="font-bold text-sm sm:text-base text-[var(--text-headings)]">
-            Monthly Category Allocation
+            Expense Breakdown & Category Distribution
           </h3>
           <p className="text-xs text-[var(--text-secondary)]">
-            Total: <strong className="text-[var(--text-primary)] font-mono">{formatCurrency(totalExpense, settings.currency)}</strong>
+            Total Monthly Expenses: <strong className="text-[var(--text-primary)] font-mono">{formatCurrency(totalExpense, settings.currency)}</strong>
           </p>
         </div>
       </div>
 
       {categoryData.length === 0 ? (
-        <div className="h-64 flex items-center justify-center text-xs text-[var(--text-secondary)]">
-          Zero expense entries recorded for this month.
+        <div className="h-64 flex flex-col items-center justify-center text-xs text-[var(--text-secondary)] gap-2">
+          <span>No transactions recorded yet. Tap + to add your first entry</span>
         </div>
       ) : (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-5 pt-2">
           {/* Donut Chart */}
           <div className="h-56 w-56 flex-shrink-0 relative">
             <ResponsiveContainer width="100%" height="100%">
@@ -151,9 +151,9 @@ export const CategoryPieChart: React.FC = () => {
                             </span>
                           </div>
                           <div className="flex items-center justify-between gap-4 mt-0.5">
-                            <span className="text-[11px]" style={{ color: tooltipMuted }}>Share</span>
-                            <span className="text-[11px] font-mono tabular-nums" style={{ color: tooltipText }}>
-                              {formatPercentage(data.percent)}
+                            <span className="text-[11px]" style={{ color: tooltipMuted }}>Percentage</span>
+                            <span className="text-[11px] font-mono tabular-nums font-bold" style={{ color: tooltipText }}>
+                              {Math.round(data.percent)}%
                             </span>
                           </div>
                         </div>
@@ -167,30 +167,32 @@ export const CategoryPieChart: React.FC = () => {
 
             {/* Center Label */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-[10px] text-[var(--text-secondary)] font-mono uppercase tracking-wider">Month</span>
+              <span className="text-[10px] text-[var(--text-secondary)] font-mono uppercase tracking-wider">Total Spent</span>
               <span className="text-xs font-black font-mono text-[var(--text-primary)] max-w-[80px] truncate text-center">
                 {formatCurrency(totalExpense, settings.currency)}
               </span>
             </div>
           </div>
 
-          {/* Interactive Legends */}
-          <div className="flex-1 w-full space-y-1.5 max-h-56 overflow-y-auto pr-1">
-            {categoryData.slice(0, 6).map((item) => (
+          {/* Categorized List below / beside chart */}
+          <div className="flex-1 w-full space-y-2 max-h-56 overflow-y-auto pr-1">
+            {categoryData.map((item) => (
               <div 
                 key={item.name}
-                className="flex items-center justify-between text-xs p-1.5 rounded-xl hover:bg-[var(--row-hover-bg)] transition"
+                className="flex items-center justify-between text-xs p-2 rounded-2xl bg-[var(--bg-subsurface)]/50 hover:bg-[var(--row-hover-bg)] border border-[var(--card-border)] transition"
               >
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2.5 min-w-0">
                   <span 
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    className="w-3 h-3 rounded-md flex-shrink-0 shadow-xs"
                     style={{ backgroundColor: item.color }}
                   />
-                  <span className="font-medium truncate text-[var(--text-primary)]">{item.name}</span>
+                  <span className="font-semibold truncate text-[var(--text-primary)]">{item.name}</span>
                 </div>
-                <div className="flex items-center gap-2 font-mono">
+                <div className="flex items-center gap-2.5 font-mono">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                    {Math.round(item.percent)}%
+                  </span>
                   <span className="font-bold text-[var(--text-primary)]">{formatCurrency(item.value, settings.currency)}</span>
-                  <span className="text-[var(--text-secondary)] w-9 text-right text-[11px]">{formatPercentage(item.percent)}</span>
                 </div>
               </div>
             ))}

@@ -50,24 +50,6 @@ router.post('/register', async (req, res) => {
       password,
     });
 
-    // Create default bank and cash accounts for initial solvency
-    await Account.create([
-      {
-        userId: user._id,
-        accountName: 'HDFC Corporate Vault',
-        accountType: 'bank',
-        balance: 245000,
-        accountNumberMask: 'XXXX XXXX 4192',
-      },
-      {
-        userId: user._id,
-        accountName: 'Cash Reserve Wallet',
-        accountType: 'cash',
-        balance: 15400,
-        accountNumberMask: 'PHYSICAL CASH',
-      },
-    ]);
-
     const token = signUserToken(user);
 
     res.cookie('rupeewise_session', token, {
@@ -160,24 +142,6 @@ router.post('/google-sync', async (req, res) => {
         email: cleanEmail,
         password: randomPassword,
       });
-
-      // Seed initial accounts
-      await Account.create([
-        {
-          userId: user._id,
-          accountName: 'Primary Bank Vault',
-          accountType: 'bank',
-          balance: 100000,
-          accountNumberMask: 'XXXX XXXX 1001',
-        },
-        {
-          userId: user._id,
-          accountName: 'Physical Cash Wallet',
-          accountType: 'cash',
-          balance: 10000,
-          accountNumberMask: 'PHYSICAL CASH',
-        },
-      ]);
     }
 
     const token = signUserToken(user);
@@ -197,6 +161,7 @@ router.post('/google-sync', async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        customCategories: user.customCategories || [],
         avatarUrl: photoURL || undefined,
         googleUid: uid,
       },
@@ -221,6 +186,7 @@ router.get('/me', authenticateOrDemo, async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        customCategories: user.customCategories || [],
         createdAt: user.createdAt,
       },
     });

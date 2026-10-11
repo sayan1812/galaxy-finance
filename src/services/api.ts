@@ -147,14 +147,86 @@ export const api = {
     return res.data;
   },
 
-  async createTransaction(txData: { accountId?: string; amount: number; type: 'income' | 'expense' | 'transfer'; category?: string; notes?: string; date?: string | Date }) {
+  async createTransaction(txData: { accountId?: string; toAccountId?: string; amount: number; type: 'income' | 'expense' | 'transfer'; category?: string; notes?: string; merchant?: string; date?: string | Date }) {
     const res = await apiClient.post('/transactions', txData);
+    return res.data;
+  },
+
+  async updateTransaction(id: string, txData: any) {
+    const res = await apiClient.patch(`/transactions/${id}`, txData);
     return res.data;
   },
 
   async deleteTransaction(id: string) {
     const res = await apiClient.delete(`/transactions/${id}`);
     return res.data;
+  },
+
+  // --- Custom Categories (Defensive with Local Fallback) ---
+  getCustomCategories: async () => {
+    try {
+      const response = await apiClient.get('/categories/custom').catch(() => apiClient.get('/users/categories'));
+      const data = response.data;
+      const list = Array.isArray(data) ? data : (data && Array.isArray(data.categories) ? data.categories : []);
+      // Polymorphic properties for backwards and forwards compatibility
+      (list as any).categories = list;
+      (list as any).success = true;
+      return list;
+    } catch (error) {
+      console.warn('API getCustomCategories failed, reading from local fallback:', error);
+      try {
+        const local = localStorage.getItem('galaxy_custom_categories');
+        const list = local ? JSON.parse(local) : [];
+        const validList = Array.isArray(list) ? list : [];
+        (validList as any).categories = validList;
+        (validList as any).success = true;
+        return validList;
+      } catch {
+        const empty: any[] = [];
+        (empty as any).categories = empty;
+        (empty as any).success = true;
+        return empty;
+      }
+    }
+  },
+
+  addCustomCategory: async (categoryData: { name: string; type?: string; color?: string; icon?: string }) => {
+    try {
+      const response = await apiClient.post('/categories/custom', categoryData).catch(() => apiClient.post('/users/categories', categoryData));
+      return response.data?.category || response.data;
+    } catch (error) {
+      console.warn('API addCustomCategory failed, saving to local fallback:', error);
+      try {
+        const local = localStorage.getItem('galaxy_custom_categories');
+        const list = local ? JSON.parse(local) : [];
+        const newCategory = { id: `cat-${Date.now()}`, ...categoryData };
+        list.push(newCategory);
+        localStorage.setItem('galaxy_custom_categories', JSON.stringify(list));
+        return newCategory;
+      } catch {
+        return { id: `cat-${Date.now()}`, ...categoryData };
+      }
+    }
+  },
+
+  deleteCustomCategory: async (id: string) => {
+    try {
+      const response = await apiClient.delete(`/categories/custom/${id}`).catch(() => apiClient.delete(`/users/categories/${id}`));
+      return response.data;
+    } catch (error) {
+      console.warn('API deleteCustomCategory failed, removing from local fallback:', error);
+      try {
+        const local = localStorage.getItem('galaxy_custom_categories');
+        if (local) {
+          const list = JSON.parse(local);
+          const filtered = list.filter((c: any) => c.id !== id && c._id !== id);
+          localStorage.setItem('galaxy_custom_categories', JSON.stringify(filtered));
+        }
+      } catch {
+        // ignore
+      }
+      return { success: true };
+    }
   },
 
   // --- Dashboard Aggregations ---

@@ -13,10 +13,20 @@ const transactionSchema = new mongoose.Schema({
     required: true,
     index: true,
   },
+  toAccountId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Account',
+    default: null,
+  },
   amount: {
     type: Number,
     required: [true, 'Please provide transaction amount'],
     min: [0, 'Amount must be positive'],
+  },
+  merchant: {
+    type: String,
+    default: '',
+    trim: true,
   },
   type: {
     type: String,

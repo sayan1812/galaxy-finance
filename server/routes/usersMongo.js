@@ -20,9 +20,62 @@ router.get('/me', authenticateOrDemo, async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        customCategories: user.customCategories || [],
         createdAt: user.createdAt,
       },
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/v1/users/categories
+router.get('/categories', authenticateOrDemo, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ success: true, categories: user.customCategories || [] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/v1/users/categories
+router.post('/categories', authenticateOrDemo, async (req, res) => {
+  try {
+    const { name, color = '#06b6d4', icon = 'Tag', type = 'EXPENSE' } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Category name is required' });
+    }
+
+    const newCategory = {
+      name: name.trim(),
+      color: color.trim() || '#06b6d4',
+      icon: icon.trim() || 'Tag',
+      type: type.toUpperCase(),
+      createdAt: new Date(),
+    };
+
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { $push: { customCategories: newCategory } },
+      { new: true }
+    );
+
+    const created = user.customCategories[user.customCategories.length - 1];
+    res.status(201).json({ success: true, category: created });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/v1/users/categories/:id
+router.delete('/categories/:id', authenticateOrDemo, async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(req.userId, {
+      $pull: { customCategories: { _id: req.params.id } },
+    });
+    res.json({ success: true, message: 'Custom category removed' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

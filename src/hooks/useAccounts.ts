@@ -28,11 +28,10 @@ export function useAccounts() {
     setError(null);
     try {
       const res = await api.getAccounts();
-      if (res && Array.isArray(res.accounts) && res.accounts.length > 0) {
+      if (res && Array.isArray(res.accounts)) {
         setAccounts(res.accounts);
       } else {
-        // Fallback to active bank accounts in state
-        const localMapped: LiveAccount[] = bankStatsList.map((bs) => ({
+        const localMapped: LiveAccount[] = (bankStatsList || []).map((bs) => ({
           _id: bs.bank.id,
           id: bs.bank.id,
           accountName: bs.bank.bankName,
@@ -44,8 +43,8 @@ export function useAccounts() {
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to fetch accounts';
-      console.warn('[useAccounts] Backend unreachable, using local vaults:', message);
-      const localMapped: LiveAccount[] = bankStatsList.map((bs) => ({
+      console.warn('[useAccounts] Backend unreachable:', message);
+      const localMapped: LiveAccount[] = (bankStatsList || []).map((bs) => ({
         _id: bs.bank.id,
         id: bs.bank.id,
         accountName: bs.bank.bankName,

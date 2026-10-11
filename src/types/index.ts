@@ -1,4 +1,4 @@
-export type TransactionType = 'INCOME' | 'EXPENSE';
+export type TransactionType = 'INCOME' | 'EXPENSE' | 'TRANSFER';
 
 export type PaymentMethod = 
   | 'CASH' 
@@ -13,7 +13,7 @@ export type TransactionSource = 'MANUAL' | 'AUTOMATIC';
 export interface Category {
   id: string;
   name: string;
-  type: 'INCOME' | 'EXPENSE' | 'BOTH';
+  type: 'INCOME' | 'EXPENSE' | 'BOTH' | 'TRANSFER';
   icon: string;
   color: string;
   isCustom?: boolean;
@@ -27,6 +27,7 @@ export interface BankAccount {
   accountType: BankAccountType;
   nickname: string; // e.g. "My Salary Account"
   openingBalance: number;
+  balance?: number;
   accountNumberMasked: string; // e.g. "XXXX XXXX 4521"
   color?: string; // hex color for badges
   planetColor?: string; // color for 3D sphere
@@ -63,7 +64,9 @@ export interface Transaction {
   date: string; // YYYY-MM-DD
   time: string; // HH:mm or HH:mm:ss
   account?: string; // e.g. "HDFC Bank (•••• 4821)", "ICICI UPI", "Cash Wallet"
-  bankAccountId?: string; // links directly to BankAccount
+  bankAccountId?: string; // links directly to BankAccount (From Account)
+  toBankAccountId?: string; // links to destination BankAccount in TRANSFER
+  toAccount?: string; // e.g. "SBI Savings (•••• 8912)"
   transactionReference?: string;
   isRecurring?: boolean;
   recurringScheduleId?: string;
@@ -169,6 +172,7 @@ export interface User {
   avatarUrl?: string;
   emailVerified: boolean;
   phoneVerified: boolean;
+  customCategories?: Category[];
   createdAt?: string;
   lastLoginAt?: string | null;
 }

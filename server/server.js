@@ -36,6 +36,7 @@ import transactionsMongoRoutes from './routes/transactionsMongo.js';
 import dashboardMongoRoutes from './routes/dashboardMongo.js';
 import authMongoRoutes from './routes/authMongo.js';
 import usersMongoRoutes from './routes/usersMongo.js';
+import categoriesMongoRoutes from './routes/categoriesMongo.js';
 import downloadRoutes from './routes/download.js';
 
 const app = express();
@@ -97,6 +98,9 @@ app.use('/api/auth', authMongoRoutes);
 
 app.use('/api/v1/users', usersMongoRoutes);
 app.use('/api/users', usersMongoRoutes);
+
+app.use('/api/v1/categories', categoriesMongoRoutes);
+app.use('/api/categories', categoriesMongoRoutes);
 
 app.use('/api/v1/accounts', accountsMongoRoutes);
 app.use('/api/accounts', accountsMongoRoutes);

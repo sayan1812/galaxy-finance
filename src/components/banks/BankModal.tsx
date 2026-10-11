@@ -184,7 +184,7 @@ export const BankModal: React.FC<BankModalProps> = ({
                 type="text"
                 value={customBankName}
                 onChange={(e) => setCustomBankName(e.target.value)}
-                placeholder="e.g. Federal Bank, DBS, Canara Bank"
+                placeholder="e.g. HDFC Salary, SBI Savings, Cash in Hand"
                 className="w-full px-4 py-2.5 rounded-2xl bg-slate-950 border border-slate-700 text-white text-sm focus:border-cyan-500 focus:outline-hidden"
                 required
               />
@@ -212,13 +212,13 @@ export const BankModal: React.FC<BankModalProps> = ({
 
             <div>
               <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                Account Nickname
+                Account Name / Nickname
               </label>
               <input
                 type="text"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
-                placeholder="e.g. My Salary Account"
+                placeholder="e.g. HDFC Salary, SBI Savings, Cash in Hand"
                 className="w-full px-4 py-2.5 rounded-2xl bg-slate-950 border border-slate-700 text-white text-sm focus:border-cyan-500 focus:outline-hidden"
               />
             </div>
@@ -227,7 +227,7 @@ export const BankModal: React.FC<BankModalProps> = ({
           {/* Opening / Current Balance */}
           <div>
             <label className="block text-xs font-bold text-slate-300 mb-1.5">
-              Opening / Current Balance (₹)
+              Starting Balance (₹)
             </label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">
@@ -239,31 +239,31 @@ export const BankModal: React.FC<BankModalProps> = ({
                 step="any"
                 value={balance}
                 onChange={(e) => setBalance(e.target.value)}
-                placeholder="e.g. 35000"
+                placeholder="0.00"
                 className="w-full pl-9 pr-4 py-2.5 rounded-2xl bg-slate-950 border border-slate-700 text-white text-sm font-semibold focus:border-cyan-500 focus:outline-hidden"
                 required
               />
             </div>
             <p className="text-[11px] text-slate-500 mt-1">
-              Transactions linked to this bank will automatically update this balance.
+              Transactions linked to this account will automatically update this balance.
             </p>
           </div>
 
           {/* Masked Account Number */}
           <div>
             <label className="block text-xs font-bold text-slate-300 mb-1.5">
-              Last 4 Digits of Account Number (Optional)
+              Account Number Mask (Last 4 Digits)
             </label>
             <input
               type="text"
               maxLength={4}
               value={accountNumber}
               onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ''))}
-              placeholder="e.g. 4521"
+              placeholder="e.g. 4821"
               className="w-full px-4 py-2.5 rounded-2xl bg-slate-950 border border-slate-700 text-white text-sm font-mono focus:border-cyan-500 focus:outline-hidden"
             />
             <p className="text-[11px] text-slate-500 mt-1">
-              Will be displayed as <span className="font-mono text-slate-300">XXXX XXXX {accountNumber || '4521'}</span>
+              Will be displayed as <span className="font-mono text-slate-300">XXXX XXXX {accountNumber || '4821'}</span>
             </p>
           </div>
 

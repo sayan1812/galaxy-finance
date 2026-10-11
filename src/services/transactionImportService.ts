@@ -40,7 +40,7 @@ class TransactionImportService {
       const resolvedCategory =
         incoming.category && incoming.category !== 'Other'
           ? incoming.category
-          : categorizationService.categorize(merchant, description, type);
+          : categorizationService.categorize(merchant, description, type === 'TRANSFER' ? 'EXPENSE' : type);
 
       const candidate: Transaction = {
         id: incoming.id || `tx-auto-${Date.now()}-${Math.floor(Math.random() * 1000)}`,

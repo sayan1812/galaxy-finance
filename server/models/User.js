@@ -20,6 +20,15 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Please provide password'],
     minlength: 6,
   },
+  customCategories: [
+    {
+      name: { type: String, required: true, trim: true },
+      color: { type: String, default: '#06b6d4' },
+      icon: { type: String, default: 'Tag' },
+      type: { type: String, enum: ['INCOME', 'EXPENSE', 'BOTH', 'TRANSFER', 'income', 'expense', 'transfer', 'both'], default: 'EXPENSE' },
+      createdAt: { type: Date, default: Date.now },
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,

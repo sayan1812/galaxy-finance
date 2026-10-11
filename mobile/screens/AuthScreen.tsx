@@ -35,8 +35,8 @@ export const AuthScreen: React.FC = () => {
   const { colors } = useTheme();
 
   const [activeTab, setActiveTab] = useState<AuthTab>('login');
-  const [identifier, setIdentifier] = useState('demo@rupeewise.com');
-  const [password, setPassword] = useState('Password123!');
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   // Register Fields
@@ -228,7 +228,7 @@ export const AuthScreen: React.FC = () => {
               <Text style={[styles.fieldLabel, { color: colors.textMuted }]}>EMAIL / PHONE</Text>
               <TextInput
                 style={[styles.input, { backgroundColor: colors.inputBg, color: colors.textPrimary, borderColor: colors.borderSubtle }]}
-                placeholder="demo@rupeewise.com"
+                placeholder="name@example.com"
                 placeholderTextColor={colors.textMuted}
                 autoCapitalize="none"
                 keyboardType="email-address"

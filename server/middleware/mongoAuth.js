@@ -1,10 +1,10 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'galaxy_finance_secure_secret_key_change_in_production';
+const JWT_SECRET = process.env.JWT_SECRET || 'galaxy-finance-secure-jwt-secret-2026';
 
 /**
- * Authentication middleware that extracts user from JWT or supplies the default demo user
+ * Authentication middleware that extracts user from JWT Bearer header or cookie
  */
 export async function authenticateOrDemo(req, res, next) {
   try {
@@ -12,8 +12,8 @@ export async function authenticateOrDemo(req, res, next) {
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.split(' ')[1];
-    } else if (req.cookies && req.cookies.token) {
-      token = req.cookies.token;
+    } else if (req.cookies && (req.cookies.token || req.cookies.rupeewise_session)) {
+      token = req.cookies.token || req.cookies.rupeewise_session;
     }
 
     if (token) {
@@ -26,23 +26,11 @@ export async function authenticateOrDemo(req, res, next) {
           return next();
         }
       } catch {
-        // Fall back to demo user if token is expired or invalid
+        // Token invalid or expired
       }
     }
 
-    // Default to / find or seed demo user
-    let demoUser = await User.findOne({ email: 'demo@rupeewise.com' });
-    if (!demoUser) {
-      demoUser = await User.create({
-        name: 'Executive Demo',
-        email: 'demo@rupeewise.com',
-        password: 'Password123!',
-      });
-    }
-
-    req.user = demoUser;
-    req.userId = demoUser._id;
-    next();
+    return res.status(401).json({ error: 'Authentication required. Please sign in.' });
   } catch (error) {
     console.error('[Auth Error]:', error);
     next(error);

@@ -42,7 +42,7 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
         progressBar: 'bg-rose-500',
         badge: 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 dark:border-rose-800',
         text: 'text-rose-600 dark:text-rose-400',
-        label: 'Over Budget',
+        label: `Over by ${formatCurrency(Math.abs(remaining), settings.currency)}`,
         icon: AlertCircle,
       };
     }
@@ -68,7 +68,7 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
   const StatusIcon = status.icon;
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-xs space-y-4 hover:shadow-md transition-shadow">
+    <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200/80 dark:border-slate-800/80 shadow-xs space-y-4 hover:shadow-md transition-shadow text-left">
       {/* Top Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -114,7 +114,7 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
               <span>{formatCurrency(remaining, settings.currency)} left</span>
             ) : (
               <span className="text-rose-600 dark:text-rose-400 font-bold">
-                Exceeded by {formatCurrency(Math.abs(remaining), settings.currency)}
+                Over by {formatCurrency(Math.abs(remaining), settings.currency)}
               </span>
             )}
           </span>
@@ -128,18 +128,24 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
         </div>
       </div>
 
-      {/* Financial Details Footer */}
-      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs">
+      {/* Financial Details Footer: Target Budget, Spent Amount, Remaining Balance */}
+      <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs">
         <div>
-          <span className="text-slate-400 dark:text-slate-500 text-[11px] block">Spent this month</span>
-          <span className="font-extrabold text-sm text-slate-900 dark:text-white">
+          <span className="text-slate-400 dark:text-slate-500 text-[10px] uppercase font-bold block">Target Budget</span>
+          <span className="font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-200">
+            {formatCurrency(budget.monthlyLimit, settings.currency)}
+          </span>
+        </div>
+        <div className="text-center">
+          <span className="text-slate-400 dark:text-slate-500 text-[10px] uppercase font-bold block">Spent Amount</span>
+          <span className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white">
             {formatCurrency(spent, settings.currency)}
           </span>
         </div>
         <div className="text-right">
-          <span className="text-slate-400 dark:text-slate-500 text-[11px] block">Monthly Limit</span>
-          <span className="font-bold text-sm text-slate-600 dark:text-slate-300">
-            {formatCurrency(budget.monthlyLimit, settings.currency)}
+          <span className="text-slate-400 dark:text-slate-500 text-[10px] uppercase font-bold block">Remaining Balance</span>
+          <span className={`font-bold text-xs sm:text-sm ${remaining < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+            {remaining >= 0 ? formatCurrency(remaining, settings.currency) : `- ${formatCurrency(Math.abs(remaining), settings.currency)}`}
           </span>
         </div>
       </div>

@@ -288,6 +288,85 @@ class ApiClient {
     });
   }
 
+  // --- Custom Categories (MongoDB User Profile with Defensive Local Fallback) ---
+  async getCustomCategories() {
+    try {
+      const res = await this.request<any>('/categories/custom').catch(() => this.request<any>('/users/categories'));
+      const list = Array.isArray(res) ? res : (res && Array.isArray(res.categories) ? res.categories : []);
+      // Polymorphic properties for backwards and forwards compatibility
+      (list as any).categories = list;
+      (list as any).success = true;
+      return list;
+    } catch (error) {
+      console.warn('API getCustomCategories failed, reading from local fallback:', error);
+      try {
+        const local = localStorage.getItem('galaxy_custom_categories');
+        const parsed = local ? JSON.parse(local) : [];
+        const list = Array.isArray(parsed) ? parsed : [];
+        (list as any).categories = list;
+        (list as any).success = true;
+        return list;
+      } catch {
+        const empty: any[] = [];
+        (empty as any).categories = empty;
+        (empty as any).success = true;
+        return empty;
+      }
+    }
+  }
+
+  async addCustomCategory(catData: { name: string; color?: string; icon?: string; type?: string }) {
+    try {
+      const res = await this.request<any>('/categories/custom', {
+        method: 'POST',
+        body: JSON.stringify(catData),
+      }).catch(() =>
+        this.request<any>('/users/categories', {
+          method: 'POST',
+          body: JSON.stringify(catData),
+        })
+      );
+      return res?.category || res;
+    } catch (error) {
+      console.warn('API addCustomCategory failed, saving to local fallback:', error);
+      try {
+        const local = localStorage.getItem('galaxy_custom_categories');
+        const list = local ? JSON.parse(local) : [];
+        const newCategory = { id: `cat-${Date.now()}`, ...catData };
+        list.push(newCategory);
+        localStorage.setItem('galaxy_custom_categories', JSON.stringify(list));
+        return newCategory;
+      } catch {
+        return { id: `cat-${Date.now()}`, ...catData };
+      }
+    }
+  }
+
+  async deleteCustomCategory(id: string) {
+    try {
+      return await this.request<{ success: boolean; message: string }>(`/categories/custom/${id}`, {
+        method: 'DELETE',
+      }).catch(() =>
+        this.request<{ success: boolean; message: string }>(`/users/categories/${id}`, {
+          method: 'DELETE',
+        })
+      );
+    } catch (error) {
+      console.warn('API deleteCustomCategory failed, removing from local fallback:', error);
+      try {
+        const local = localStorage.getItem('galaxy_custom_categories');
+        if (local) {
+          const list = JSON.parse(local);
+          const filtered = list.filter((c: any) => c.id !== id && c._id !== id);
+          localStorage.setItem('galaxy_custom_categories', JSON.stringify(filtered));
+        }
+      } catch {
+        // ignore
+      }
+      return { success: true, message: 'Removed from local fallback' };
+    }
+  }
+
   // --- AI Agent ---
   async chatWithAi(message: string) {
     return this.request<{ reply: string; requiresConfirmation?: boolean; pendingAction?: any }>('/ai/chat', {

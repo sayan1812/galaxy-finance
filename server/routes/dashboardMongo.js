@@ -82,7 +82,7 @@ router.get('/summary', authenticateOrDemo, async (req, res) => {
         {
           $match: {
             userId: userObjectId,
-            type: 'expense',
+            type: { $in: ['expense', 'EXPENSE'] },
             date: { $gte: startOfMonth, $lt: startOfNextMonth },
           },
         },
@@ -107,15 +107,17 @@ router.get('/summary', authenticateOrDemo, async (req, res) => {
     let totalIncomeAllTime = 0;
     let totalExpenseAllTime = 0;
     allTimeStats.forEach((s) => {
-      if (s._id === 'income') totalIncomeAllTime = s.total || 0;
-      if (s._id === 'expense') totalExpenseAllTime = s.total || 0;
+      const typeLower = (s._id || '').toLowerCase();
+      if (typeLower === 'income') totalIncomeAllTime += s.total || 0;
+      if (typeLower === 'expense') totalExpenseAllTime += s.total || 0;
     });
 
     let monthIncome = 0;
     let monthExpense = 0;
     monthStats.forEach((s) => {
-      if (s._id === 'income') monthIncome = s.total || 0;
-      if (s._id === 'expense') monthExpense = s.total || 0;
+      const typeLower = (s._id || '').toLowerCase();
+      if (typeLower === 'income') monthIncome += s.total || 0;
+      if (typeLower === 'expense') monthExpense += s.total || 0;
     });
 
     res.json({
