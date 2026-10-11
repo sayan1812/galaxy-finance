@@ -5,21 +5,38 @@ class ApiClient {
   private token: string | null = null;
 
   constructor() {
-    this.token = typeof window !== 'undefined' ? localStorage.getItem('rupeewise_token') : null;
+    this.token = this.resolveStoredToken();
+  }
+
+  private resolveStoredToken(): string | null {
+    if (typeof window === 'undefined') return null;
+    return (
+      localStorage.getItem('token') ||
+      localStorage.getItem('galaxy_token') ||
+      localStorage.getItem('rupeewise_token') ||
+      null
+    );
   }
 
   setToken(token: string | null) {
     this.token = token;
     if (typeof window !== 'undefined') {
       if (token) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('galaxy_token', token);
         localStorage.setItem('rupeewise_token', token);
       } else {
+        localStorage.removeItem('token');
+        localStorage.removeItem('galaxy_token');
         localStorage.removeItem('rupeewise_token');
       }
     }
   }
 
   getToken(): string | null {
+    if (!this.token) {
+      this.token = this.resolveStoredToken();
+    }
     return this.token;
   }
 
@@ -27,22 +44,42 @@ class ApiClient {
     const headers = new Headers(options.headers || {});
     headers.set('Content-Type', 'application/json');
 
-    if (this.token) {
-      headers.set('Authorization', `Bearer ${this.token}`);
+    const token = this.getToken();
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
     }
 
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
     const url = `${API_BASE}${cleanEndpoint}`;
 
-    const response = await fetch(url, {
-      ...options,
-      headers,
-      credentials: 'include'
-    });
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        ...options,
+        headers,
+        credentials: 'include'
+      });
+    } catch (networkError: any) {
+      throw new Error(networkError?.message || 'Network connection failed');
+    }
 
     if (response.status === 401) {
+      const hadToken = Boolean(this.token || this.resolveStoredToken());
       // Invalidate local token on unauthorized
       this.setToken(null);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('rupeewise_user');
+        if (hadToken) {
+          window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+        }
+      }
+
+      const data = await response.json().catch(() => ({}));
+      const message = data?.message || data?.error || 'Authentication required. Please sign in.';
+      const authError = new Error(message);
+      (authError as any).status = 401;
+      (authError as any).isAuthError = true;
+      throw authError;
     }
 
     const data = await response.json().catch(() => ({}));
@@ -142,10 +179,14 @@ class ApiClient {
 
   // --- User Profile ---
   async getAuthMe() {
+    const token = this.getToken();
+    if (!token) return null;
     return this.request<{ user: any; message?: string }>('/v1/auth/me');
   }
 
   async getMe() {
+    const token = this.getToken();
+    if (!token) return null;
     return this.request<{ user: any; settings: any }>('/users/me');
   }
 
@@ -187,11 +228,28 @@ class ApiClient {
 
   // --- MongoDB Accounts / Vaults ---
   async getAccounts() {
-    const res = await this.request<any>('/accounts');
-    const list = Array.isArray(res) ? res : (res && Array.isArray(res.accounts) ? res.accounts : []);
-    (list as any).accounts = list;
-    (list as any).success = true;
-    return list;
+    const token = this.getToken();
+    if (!token) {
+      const list: any[] = [];
+      (list as any).accounts = list;
+      (list as any).success = true;
+      return list;
+    }
+    try {
+      const res = await this.request<any>('/accounts');
+      const list = Array.isArray(res) ? res : (res && Array.isArray(res.accounts) ? res.accounts : []);
+      (list as any).accounts = list;
+      (list as any).success = true;
+      return list;
+    } catch (err: any) {
+      if (err?.status === 401 || err?.isAuthError) {
+        const list: any[] = [];
+        (list as any).accounts = list;
+        (list as any).success = true;
+        return list;
+      }
+      throw err;
+    }
   }
 
   async createAccount(accountData: any) {
@@ -216,14 +274,25 @@ class ApiClient {
 
   // --- Transactions ---
   async getTransactions(params: Record<string, any> = {}) {
-    const query = new URLSearchParams();
-    for (const key of Object.keys(params)) {
-      if (params[key] !== undefined && params[key] !== null) {
-        query.set(key, String(params[key]));
-      }
+    const token = this.getToken();
+    if (!token) {
+      return { transactions: [], pagination: {}, overview: {} };
     }
-    const qStr = query.toString();
-    return this.request<{ transactions: any[]; pagination: any; overview: any }>(`/transactions${qStr ? `?${qStr}` : ''}`);
+    try {
+      const query = new URLSearchParams();
+      for (const key of Object.keys(params)) {
+        if (params[key] !== undefined && params[key] !== null) {
+          query.set(key, String(params[key]));
+        }
+      }
+      const qStr = query.toString();
+      return await this.request<{ transactions: any[]; pagination: any; overview: any }>(`/transactions${qStr ? `?${qStr}` : ''}`);
+    } catch (err: any) {
+      if (err?.status === 401 || err?.isAuthError) {
+        return { transactions: [], pagination: {}, overview: {} };
+      }
+      throw err;
+    }
   }
 
   async createTransaction(txData: any) {
@@ -294,6 +363,16 @@ class ApiClient {
 
   // --- Custom Categories (MongoDB User Profile with Defensive Local Fallback) ---
   async getCustomCategories() {
+    const token = this.getToken();
+    if (!token) {
+      const local = typeof window !== 'undefined' ? localStorage.getItem('galaxy_custom_categories') : null;
+      const parsed = local ? JSON.parse(local) : [];
+      const list = Array.isArray(parsed) ? parsed : [];
+      (list as any).categories = list;
+      (list as any).success = true;
+      return list;
+    }
+
     try {
       const res = await this.request<any>('/categories/custom').catch(() => this.request<any>('/users/categories'));
       const list = Array.isArray(res) ? res : (res && Array.isArray(res.categories) ? res.categories : []);
@@ -301,8 +380,10 @@ class ApiClient {
       (list as any).categories = list;
       (list as any).success = true;
       return list;
-    } catch (error) {
-      console.warn('API getCustomCategories failed, reading from local fallback:', error);
+    } catch (error: any) {
+      if (error?.status !== 401 && !error?.isAuthError) {
+        console.warn('API getCustomCategories failed, reading from local fallback:', error);
+      }
       try {
         const local = localStorage.getItem('galaxy_custom_categories');
         const parsed = local ? JSON.parse(local) : [];

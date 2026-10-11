@@ -227,7 +227,10 @@ const TransactionContext = createContext<TransactionContextType | null>(null);
 
 export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const auth = useOptionalAuth();
-  const activeUserId = auth?.user?.id;
+  const user = auth?.user;
+  const isAuthenticated = Boolean(auth?.isAuthenticated);
+  const authLoading = Boolean(auth?.isLoading ?? auth?.loading ?? false);
+  const activeUserId = user?.id;
 
   // 1. Transactions State - Initialized empty
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -447,7 +450,15 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   useEffect(() => {
     let isMounted = true;
 
-    if (!activeUserId) {
+    // Only fetch data if authentication check has finished and a user is actively signed in
+    if (authLoading) return;
+
+    const token = typeof window !== 'undefined'
+      ? (localStorage.getItem('token') || localStorage.getItem('galaxy_token') || localStorage.getItem('rupeewise_token'))
+      : null;
+
+    if (!isAuthenticated || !user || !token) {
+      // Clear or reset local state for logged-out/guest view
       setBankAccounts([]);
       setTransactions([]);
       setCashWalletConfig(DEFAULT_CASH_WALLET);
@@ -456,6 +467,11 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
 
     const loadUserData = async () => {
+      const activeToken = typeof window !== 'undefined'
+        ? (localStorage.getItem('token') || localStorage.getItem('galaxy_token') || localStorage.getItem('rupeewise_token'))
+        : null;
+      if (!activeToken) return;
+
       // 1. Fetch live bank accounts & cash wallet from MongoDB Atlas
       try {
         const res = await api.getAccounts();
@@ -489,8 +505,10 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
             }));
           }
         }
-      } catch (e) {
-        console.warn('Failed to load accounts for user:', e);
+      } catch (e: any) {
+        if (e?.status !== 401 && !e?.isAuthError) {
+          console.warn('Failed to load accounts for user:', e);
+        }
       }
 
       // 2. Fetch live transactions for user
@@ -525,8 +543,10 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
           });
           setTransactions(mappedTxns);
         }
-      } catch (e) {
-        console.warn('Failed to load transactions for user:', e);
+      } catch (e: any) {
+        if (e?.status !== 401 && !e?.isAuthError) {
+          console.warn('Failed to load transactions for user:', e);
+        }
       }
 
       // 3. Fetch custom categories from user profile
@@ -559,8 +579,10 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
             return [...prev, ...dedupedCustom];
           });
         }
-      } catch (err) {
-        console.warn('Failed to load custom categories for user:', err);
+      } catch (err: any) {
+        if (err?.status !== 401 && !err?.isAuthError) {
+          console.warn('Failed to load custom categories for user:', err);
+        }
       }
     };
 
@@ -578,7 +600,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       isMounted = false;
       window.removeEventListener('auth:user-changed', handleUserChanged);
     };
-  }, [activeUserId]);
+  }, [isAuthenticated, user, authLoading, activeUserId]);
 
   // --- Bank Operations ---
   const addBankAccount = useCallback((data: Omit<BankAccount, 'id' | 'createdAt' | 'updatedAt'>): BankAccount => {

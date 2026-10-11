@@ -16,6 +16,7 @@ interface AuthContextType {
   authState: AuthState;
   isAuthenticated: boolean;
   isLoading: boolean;
+  loading: boolean;
   isFirebaseAvailable: boolean;
   isAuthModalOpen: boolean;
   setIsAuthModalOpen: (open: boolean) => void;
@@ -79,6 +80,14 @@ export function clearPreviousSessionCache() {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
     if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token') || localStorage.getItem('galaxy_token') || localStorage.getItem('rupeewise_token');
+      if (!token || isJwtExpired(token)) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('galaxy_token');
+        localStorage.removeItem('rupeewise_token');
+        localStorage.removeItem('rupeewise_user');
+        return null;
+      }
       const saved = localStorage.getItem('rupeewise_user');
       if (saved) {
         try { return JSON.parse(saved); } catch { return null; }
@@ -317,6 +326,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         authState,
         isAuthenticated,
         isLoading,
+        loading: isLoading,
         isFirebaseAvailable,
         isAuthModalOpen,
         setIsAuthModalOpen,

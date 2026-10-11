@@ -36,6 +36,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
+  // Explicitly bypass all Vite development assets and HMR tooling
+  if (url.pathname.includes('@vite') || url.pathname.includes('__vite') || url.port === '5173') {
+    return; // Do not handle or cache Vite internal dev tooling
+  }
+
   // 1. Ignore non-HTTP/HTTPS schemes
   if (!url.protocol.startsWith('http')) {
     return;

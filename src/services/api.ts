@@ -22,7 +22,7 @@ export const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('rupeewise_token');
+      const token = localStorage.getItem('token') || localStorage.getItem('galaxy_token') || localStorage.getItem('rupeewise_token');
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -38,7 +38,9 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       if (typeof window !== 'undefined') {
-        const hadToken = !!localStorage.getItem('rupeewise_token');
+        const hadToken = !!(localStorage.getItem('token') || localStorage.getItem('galaxy_token') || localStorage.getItem('rupeewise_token'));
+        localStorage.removeItem('token');
+        localStorage.removeItem('galaxy_token');
         localStorage.removeItem('rupeewise_token');
         localStorage.removeItem('rupeewise_user');
 
@@ -55,8 +57,12 @@ apiClient.interceptors.response.use(
 export const setAuthToken = (token: string | null) => {
   if (typeof window !== 'undefined') {
     if (token) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('galaxy_token', token);
       localStorage.setItem('rupeewise_token', token);
     } else {
+      localStorage.removeItem('token');
+      localStorage.removeItem('galaxy_token');
       localStorage.removeItem('rupeewise_token');
     }
   }
@@ -64,7 +70,7 @@ export const setAuthToken = (token: string | null) => {
 
 export const getAuthToken = (): string | null => {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('rupeewise_token');
+    return localStorage.getItem('token') || localStorage.getItem('galaxy_token') || localStorage.getItem('rupeewise_token');
   }
   return null;
 };
@@ -106,8 +112,15 @@ export const api = {
   },
 
   async getMe() {
-    const res = await apiClient.get('/auth/me');
-    return res.data;
+    const token = getAuthToken();
+    if (!token) return null;
+    try {
+      const res = await apiClient.get('/auth/me');
+      return res.data;
+    } catch (err: any) {
+      if (err?.response?.status === 401) return null;
+      throw err;
+    }
   },
 
   async deleteMyAccount(password?: string) {
@@ -122,12 +135,29 @@ export const api = {
 
   // --- Accounts (MongoDB Vaults) ---
   async getAccounts() {
-    const res = await apiClient.get('/accounts');
-    const data = res.data;
-    const list = Array.isArray(data) ? data : (data && Array.isArray(data.accounts) ? data.accounts : []);
-    (list as any).accounts = list;
-    (list as any).success = true;
-    return list;
+    const token = getAuthToken();
+    if (!token) {
+      const list: any[] = [];
+      (list as any).accounts = list;
+      (list as any).success = true;
+      return list;
+    }
+    try {
+      const res = await apiClient.get('/accounts');
+      const data = res.data;
+      const list = Array.isArray(data) ? data : (data && Array.isArray(data.accounts) ? data.accounts : []);
+      (list as any).accounts = list;
+      (list as any).success = true;
+      return list;
+    } catch (err: any) {
+      if (err?.response?.status === 401) {
+        const list: any[] = [];
+        (list as any).accounts = list;
+        (list as any).success = true;
+        return list;
+      }
+      throw err;
+    }
   },
 
   async createAccount(accountData: { accountName: string; accountType?: string; balance?: number; accountNumberMask?: string }) {
@@ -147,8 +177,19 @@ export const api = {
 
   // --- Transactions ---
   async getTransactions(params: Record<string, any> = {}) {
-    const res = await apiClient.get('/transactions', { params });
-    return res.data;
+    const token = getAuthToken();
+    if (!token) {
+      return { transactions: [], pagination: {}, overview: {} };
+    }
+    try {
+      const res = await apiClient.get('/transactions', { params });
+      return res.data;
+    } catch (err: any) {
+      if (err?.response?.status === 401) {
+        return { transactions: [], pagination: {}, overview: {} };
+      }
+      throw err;
+    }
   },
 
   async createTransaction(txData: { accountId?: string; toAccountId?: string; amount: number; type: 'income' | 'expense' | 'transfer'; category?: string; notes?: string; merchant?: string; date?: string | Date }) {
@@ -168,6 +209,15 @@ export const api = {
 
   // --- Custom Categories (Defensive with Local Fallback) ---
   getCustomCategories: async () => {
+    const token = getAuthToken();
+    if (!token) {
+      const local = typeof window !== 'undefined' ? localStorage.getItem('galaxy_custom_categories') : null;
+      const parsed = local ? JSON.parse(local) : [];
+      const list = Array.isArray(parsed) ? parsed : [];
+      (list as any).categories = list;
+      (list as any).success = true;
+      return list;
+    }
     try {
       const response = await apiClient.get('/categories/custom').catch(() => apiClient.get('/users/categories'));
       const data = response.data;
@@ -176,8 +226,10 @@ export const api = {
       (list as any).categories = list;
       (list as any).success = true;
       return list;
-    } catch (error) {
-      console.warn('API getCustomCategories failed, reading from local fallback:', error);
+    } catch (error: any) {
+      if (error?.response?.status !== 401) {
+        console.warn('API getCustomCategories failed, reading from local fallback:', error);
+      }
       try {
         const local = localStorage.getItem('galaxy_custom_categories');
         const list = local ? JSON.parse(local) : [];

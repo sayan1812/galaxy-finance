@@ -24,6 +24,16 @@ export function useAccounts() {
   const { bankStatsList } = useTransactions();
 
   const fetchAccounts = useCallback(async () => {
+    const token = typeof window !== 'undefined'
+      ? (localStorage.getItem('token') || localStorage.getItem('galaxy_token') || localStorage.getItem('rupeewise_token'))
+      : null;
+
+    if (!token) {
+      setAccounts([]);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
@@ -42,9 +52,13 @@ export function useAccounts() {
         }));
         setAccounts(localMapped);
       }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch accounts';
-      console.warn('[useAccounts] Backend unreachable:', message);
+    } catch (err: any) {
+      const isAuth = err?.status === 401 || err?.isAuthError;
+      if (!isAuth) {
+        const message = err instanceof Error ? err.message : 'Failed to fetch accounts';
+        console.warn('[useAccounts] Backend unreachable:', message);
+        setError(message);
+      }
       const localMapped: LiveAccount[] = (bankStatsList || []).map((bs) => ({
         _id: bs.bank.id,
         id: bs.bank.id,
@@ -54,7 +68,6 @@ export function useAccounts() {
         accountNumberMask: bs.bank.accountNumberMasked,
       }));
       setAccounts(localMapped);
-      setError(message);
     } finally {
       setIsLoading(false);
     }
