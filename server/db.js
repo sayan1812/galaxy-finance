@@ -118,7 +118,7 @@ export function initDatabase() {
       notifications INTEGER DEFAULT 1,
       reduce_motion INTEGER DEFAULT 0,
       galaxy_intensity TEXT DEFAULT 'medium',
-      opening_cash REAL DEFAULT 7000,
+      opening_cash REAL DEFAULT 0,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );

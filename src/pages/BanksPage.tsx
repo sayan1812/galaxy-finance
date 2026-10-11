@@ -211,8 +211,14 @@ export const BanksPage: React.FC = () => {
         {filteredBanks.length === 0 ? (
           <div className="py-16 text-center rounded-3xl bg-slate-900/40 border border-dashed border-slate-800">
             <Building2 size={36} className="mx-auto text-slate-600 mb-2" />
-            <h3 className="text-sm font-bold text-slate-300">No bank accounts match your search</h3>
-            <p className="text-xs text-slate-500 mt-1">Add a new bank account to expand your galaxy</p>
+            <h3 className="text-sm font-bold text-slate-300">
+              {bankAccounts.length === 0 ? "No bank vaults connected yet" : "No bank accounts match your search"}
+            </h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+              {bankAccounts.length === 0 
+                ? "No bank vaults connected yet. Tap '+ Add Bank Account' to link your first account." 
+                : "Add a new bank account or adjust your search filters"}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

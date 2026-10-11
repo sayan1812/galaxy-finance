@@ -22,6 +22,7 @@ export async function authenticateOrDemo(req, res, next) {
         const user = await User.findById(decoded.id || decoded.userId || decoded.sub);
         if (user) {
           req.user = user;
+          req.user.id = user._id.toString();
           req.userId = user._id;
           return next();
         }

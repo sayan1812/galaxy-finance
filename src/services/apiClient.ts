@@ -187,7 +187,11 @@ class ApiClient {
 
   // --- MongoDB Accounts / Vaults ---
   async getAccounts() {
-    return this.request<{ accounts: any[]; count: number }>('/accounts');
+    const res = await this.request<any>('/accounts');
+    const list = Array.isArray(res) ? res : (res && Array.isArray(res.accounts) ? res.accounts : []);
+    (list as any).accounts = list;
+    (list as any).success = true;
+    return list;
   }
 
   async createAccount(accountData: any) {

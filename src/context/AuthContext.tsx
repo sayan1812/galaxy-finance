@@ -54,6 +54,28 @@ function isJwtExpired(token: string | null): boolean {
   return false;
 }
 
+export function clearPreviousSessionCache() {
+  if (typeof window === 'undefined') return;
+  const keysToRemove = [
+    'cached_accounts',
+    'rupeewise_banks_v2',
+    'rupeewise_transactions_v2',
+    'rupeewise_cash_wallet_v2',
+    'rupeewise_budgets_v2',
+    'rupeewise_recurring_v2',
+    'galaxy_custom_categories',
+    'rupeewise_connected_accounts_v1',
+  ];
+  keysToRemove.forEach((key) => {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // ignore
+    }
+  });
+  window.dispatchEvent(new CustomEvent('auth:session-cleared'));
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
     if (typeof window !== 'undefined') {
@@ -129,9 +151,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             phoneVerified: false,
             avatarUrl: fbUser.photoURL || undefined
           };
+          clearPreviousSessionCache();
           setUser(appUser);
           localStorage.setItem('rupeewise_user', JSON.stringify(appUser));
           setAuthState('AUTHENTICATED');
+          window.dispatchEvent(new CustomEvent('auth:user-changed', { detail: { user: appUser } }));
         } catch {
           // fallback
         }
@@ -139,8 +163,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     const handleUnauthorized = () => {
+      clearPreviousSessionCache();
       setUser(null);
       setAuthState('UNAUTHENTICATED');
+      window.dispatchEvent(new CustomEvent('auth:user-changed', { detail: { user: null } }));
     };
     window.addEventListener('auth:unauthorized', handleUnauthorized);
 
@@ -153,11 +179,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (identifier: string, password: string, rememberMe = true) => {
     setAuthState('AUTHENTICATING');
     try {
+      clearPreviousSessionCache();
       const data = await api.login(identifier, password, rememberMe);
       setUser(data.user);
       localStorage.setItem('rupeewise_user', JSON.stringify(data.user));
       setAuthState('AUTHENTICATED');
       setIsAuthModalOpen(false);
+      window.dispatchEvent(new CustomEvent('auth:user-changed', { detail: { user: data.user } }));
     } catch (err) {
       setAuthState('UNAUTHENTICATED');
       throw err;
@@ -167,6 +195,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithGoogle = async () => {
     setAuthState('AUTHENTICATING');
     try {
+      clearPreviousSessionCache();
       const { user: fbUser, token: fbToken } = await signInWithGoogle();
       const syncRes = await api.googleSync({
         email: fbUser.email || '',
@@ -187,6 +216,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('rupeewise_user', JSON.stringify(appUser));
       setAuthState('AUTHENTICATED');
       setIsAuthModalOpen(false);
+      window.dispatchEvent(new CustomEvent('auth:user-changed', { detail: { user: appUser } }));
     } catch (err: any) {
       setAuthState('UNAUTHENTICATED');
       throw err;
@@ -196,11 +226,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (formData: { name: string; email: string; phone?: string; password: string; confirmPassword: string }) => {
     setAuthState('AUTHENTICATING');
     try {
+      clearPreviousSessionCache();
       const data = await api.register(formData);
       setUser(data.user);
       localStorage.setItem('rupeewise_user', JSON.stringify(data.user));
       setAuthState('AUTHENTICATED');
       setAuthModalMode('verify-email');
+      window.dispatchEvent(new CustomEvent('auth:user-changed', { detail: { user: data.user } }));
       return data;
     } catch (err) {
       setAuthState('UNAUTHENTICATED');
@@ -209,6 +241,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
+    clearPreviousSessionCache();
     try {
       await api.logout();
     } catch {
@@ -223,9 +256,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     localStorage.removeItem('rupeewise_user');
     setAuthState('UNAUTHENTICATED');
+    window.dispatchEvent(new CustomEvent('auth:user-changed', { detail: { user: null } }));
   };
 
   const deleteMyAccount = async (password?: string) => {
+    clearPreviousSessionCache();
     try {
       await api.deleteMyAccount(password);
     } catch {
@@ -241,6 +276,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('rupeewise_user');
     localStorage.removeItem('rupeewise_token');
     setAuthState('UNAUTHENTICATED');
+    window.dispatchEvent(new CustomEvent('auth:user-changed', { detail: { user: null } }));
   };
 
   const verifyEmail = async (token: string) => {
@@ -309,4 +345,8 @@ export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
+};
+
+export const useOptionalAuth = () => {
+  return useContext(AuthContext);
 };

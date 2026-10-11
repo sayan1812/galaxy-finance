@@ -28,8 +28,9 @@ export function useAccounts() {
     setError(null);
     try {
       const res = await api.getAccounts();
-      if (res && Array.isArray(res.accounts)) {
-        setAccounts(res.accounts);
+      const list = Array.isArray(res) ? res : (res && Array.isArray(res.accounts) ? res.accounts : null);
+      if (list !== null) {
+        setAccounts(list);
       } else {
         const localMapped: LiveAccount[] = (bankStatsList || []).map((bs) => ({
           _id: bs.bank.id,

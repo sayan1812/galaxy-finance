@@ -123,7 +123,11 @@ export const api = {
   // --- Accounts (MongoDB Vaults) ---
   async getAccounts() {
     const res = await apiClient.get('/accounts');
-    return res.data;
+    const data = res.data;
+    const list = Array.isArray(data) ? data : (data && Array.isArray(data.accounts) ? data.accounts : []);
+    (list as any).accounts = list;
+    (list as any).success = true;
+    return list;
   },
 
   async createAccount(accountData: { accountName: string; accountType?: string; balance?: number; accountNumberMask?: string }) {

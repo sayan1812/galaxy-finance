@@ -361,41 +361,50 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {bankStatsList.slice(0, 4).map((bs) => (
-              <div
-                key={bs.bank.id}
-                onClick={() => setSelectedBank(bs.bank)}
-                className="p-4 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] fin-card shadow-xs cursor-pointer text-left flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <span 
-                        className="w-3 h-3 rounded-full flex-shrink-0 shadow-xs" 
-                        style={{ backgroundColor: bs.bank.planetColor || bs.bank.color || 'var(--accent-primary)' }} 
-                      />
-                      <div>
-                        <h4 className="font-black text-sm text-[var(--text-primary)]">{bs.bank.bankName}</h4>
-                        <span className="text-[10px] text-[var(--text-secondary)]">{bs.bank.accountType} • {bs.bank.nickname}</span>
+          {bankStatsList.length === 0 ? (
+            <div className="py-10 text-center rounded-2xl bg-[var(--card-bg)] border border-dashed border-[var(--card-border)] p-6">
+              <Building2 size={32} className="mx-auto text-[var(--text-secondary)] mb-2 opacity-50" />
+              <p className="text-xs font-medium text-[var(--text-secondary)] max-w-sm mx-auto">
+                No bank vaults connected yet. Tap '+ Add Bank Account' to link your first account.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {bankStatsList.slice(0, 4).map((bs) => (
+                <div
+                  key={bs.bank.id}
+                  onClick={() => setSelectedBank(bs.bank)}
+                  className="p-4 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] fin-card shadow-xs cursor-pointer text-left flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <span 
+                          className="w-3 h-3 rounded-full flex-shrink-0 shadow-xs" 
+                          style={{ backgroundColor: bs.bank.planetColor || bs.bank.color || 'var(--accent-primary)' }} 
+                        />
+                        <div>
+                          <h4 className="font-black text-sm text-[var(--text-primary)]">{bs.bank.bankName}</h4>
+                          <span className="text-[10px] text-[var(--text-secondary)]">{bs.bank.accountType} • {bs.bank.nickname}</span>
+                        </div>
                       </div>
+                      <span className="text-[10px] font-mono text-[var(--text-secondary)]">{bs.bank.accountNumberMasked}</span>
                     </div>
-                    <span className="text-[10px] font-mono text-[var(--text-secondary)]">{bs.bank.accountNumberMasked}</span>
+
+                    <div className="mt-3 text-lg font-black font-mono text-[var(--text-headings)]">
+                      {isMasked ? maskCurrency(settings?.currency) : formatCurrency(bs.currentBalance, settings?.currency)}
+                    </div>
                   </div>
 
-                  <div className="mt-3 text-lg font-black font-mono text-[var(--text-headings)]">
-                    {isMasked ? maskCurrency(settings?.currency) : formatCurrency(bs.currentBalance, settings?.currency)}
+                  <div className="mt-3 pt-2 border-t border-[var(--divider)] flex items-center justify-between text-[11px] text-[var(--text-secondary)] font-mono">
+                    <span className="text-emerald-500 font-semibold">{isMasked ? maskCurrency(settings?.currency) : formatCurrency(bs.totalIncome, settings?.currency)}</span>
+                    <span className="text-rose-500 font-semibold">{isMasked ? maskCurrency(settings?.currency) : formatCurrency(bs.totalExpense, settings?.currency)}</span>
+                    <span className="text-[var(--text-secondary)]">{bs.transactionCount} txs</span>
                   </div>
                 </div>
-
-                <div className="mt-3 pt-2 border-t border-[var(--divider)] flex items-center justify-between text-[11px] text-[var(--text-secondary)] font-mono">
-                  <span className="text-emerald-500 font-semibold">{isMasked ? maskCurrency(settings?.currency) : formatCurrency(bs.totalIncome, settings?.currency)}</span>
-                  <span className="text-rose-500 font-semibold">{isMasked ? maskCurrency(settings?.currency) : formatCurrency(bs.totalExpense, settings?.currency)}</span>
-                  <span className="text-[var(--text-secondary)]">{bs.transactionCount} txs</span>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right 1 Col: Cash Wallet Box */}

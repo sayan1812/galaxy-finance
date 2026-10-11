@@ -6,16 +6,21 @@ import { authenticateOrDemo } from '../middleware/mongoAuth.js';
 const router = express.Router();
 
 // GET /api/v1/accounts
-router.get('/', authenticateOrDemo, async (req, res) => {
+export const getAccounts = async (req, res) => {
   try {
-    const accounts = await Account.find({ userId: req.userId }).sort({ updatedAt: -1 });
-
-    res.json({ success: true, accounts });
+    const userId = req.user?.id || req.userId; // Extracted strictly from verified JWT
+    const accounts = await Account.find({ userId }).sort({ updatedAt: -1 });
+    if (req.query.format === 'envelope') {
+      return res.status(200).json({ success: true, accounts });
+    }
+    res.status(200).json(accounts);
   } catch (error) {
     console.error('[Accounts GET Error]:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch accounts' });
+    res.status(500).json({ message: 'Failed to fetch accounts', error: error.message });
   }
-});
+};
+
+router.get('/', authenticateOrDemo, getAccounts);
 
 // POST /api/v1/accounts
 router.post('/', authenticateOrDemo, async (req, res) => {
@@ -73,8 +78,8 @@ router.delete('/:id', authenticateOrDemo, async (req, res) => {
     if (!account) {
       return res.status(404).json({ error: 'Account not found' });
     }
-    // Also cleanup associated transactions
-    await Transaction.deleteMany({ accountId: req.params.id });
+    // Also cleanup associated transactions scoped to this user
+    await Transaction.deleteMany({ accountId: req.params.id, userId: req.userId });
 
     res.json({ success: true, message: 'Account and associated records deleted' });
   } catch (error) {
