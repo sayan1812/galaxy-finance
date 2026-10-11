@@ -96,14 +96,6 @@ export const SyncStatusBar: React.FC<SyncStatusBarProps> = ({ compact = false })
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">
-        <button
-          onClick={() => triggerSync(true)}
-          disabled={syncStatus.state === 'SYNCING'}
-          className="text-[11px] font-mono text-[var(--text-secondary)] hover:text-[var(--text-primary)] px-2 py-1 rounded-lg hover:bg-[var(--surface-sunken)] transition cursor-pointer hidden sm:inline-block"
-          title="Simulate incoming duplicate online transaction to test conflict resolution"
-        >
-          Test Duplicate Alert
-        </button>
 
         <button
           onClick={() => triggerSync(false)}

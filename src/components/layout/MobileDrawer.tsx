@@ -160,11 +160,20 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
           {isAuthenticated && user ? (
             <div className="p-3.5 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] shadow-xs">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[var(--accent-primary)] text-[var(--btn-primary-text)] font-mono font-black text-sm flex items-center justify-center shadow-xs shrink-0">
-                  {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                </div>
+                {(user.photoURL || user.avatarUrl) ? (
+                  <img
+                    src={user.photoURL || user.avatarUrl}
+                    alt={user.displayName || user.name || "User Avatar"}
+                    className="w-10 h-10 rounded-xl object-cover border border-[var(--card-border)] shadow-xs shrink-0"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-xl bg-[var(--accent-primary)] text-[var(--btn-primary-text)] font-mono font-black text-sm flex items-center justify-center shadow-xs shrink-0">
+                    {(user.displayName || user.name || 'U').charAt(0).toUpperCase()}
+                  </div>
+                )}
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold text-[var(--text-headings)] truncate">{user.name}</p>
+                  <p className="text-xs font-bold text-[var(--text-headings)] truncate">{user.displayName || user.name}</p>
                   <p className="text-[11px] text-[var(--text-secondary)] truncate font-mono">{user.email}</p>
                   <div className="flex items-center gap-1 mt-0.5 text-[10px] text-emerald-500 font-semibold">
                     <ShieldCheck size={11} />

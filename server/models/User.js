@@ -20,6 +20,14 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Please provide password'],
     minlength: 6,
   },
+  avatarUrl: {
+    type: String,
+    default: '',
+  },
+  photoURL: {
+    type: String,
+    default: '',
+  },
   customCategories: [
     {
       name: { type: String, required: true, trim: true },

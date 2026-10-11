@@ -13,7 +13,6 @@ import {
   Minus
 } from 'lucide-react';
 import { useTransactions } from '../../context/TransactionContext';
-import { SyncStatusBar } from '../sync/SyncStatusBar';
 
 interface DesktopSidebarProps {
   currentTab: string;
@@ -125,12 +124,6 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ currentTab, setC
             );
           })}
         </nav>
-      </div>
-
-      {/* Bottom Footer Controls */}
-      <div className="pt-4 border-t border-[var(--divider)] space-y-3">
-        {/* Sync Status Mini Widget */}
-        <SyncStatusBar compact />
       </div>
     </aside>
   );

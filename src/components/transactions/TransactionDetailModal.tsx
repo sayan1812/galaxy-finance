@@ -192,6 +192,22 @@ export const TransactionDetailModal: React.FC = () => {
                 </span>
               </div>
             )}
+
+            {selectedTransaction.receiptUrl && (
+              <div className="pt-3 space-y-2">
+                <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <FileText size={14} />
+                  Receipt / Proof Attachment
+                </span>
+                <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-950/50 p-1 flex items-center justify-center">
+                  <img
+                    src={selectedTransaction.receiptUrl}
+                    alt="Transaction receipt proof"
+                    className="max-h-56 w-auto object-contain rounded-xl shadow-xs"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Action Footer */}

@@ -531,6 +531,8 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
               source: (t.source || 'MANUAL') as TransactionSource,
               merchant: t.merchant || '',
               description: t.notes || t.description || '',
+              transactionReference: t.reference || t.transactionReference || '',
+              receiptUrl: t.receiptUrl || '',
               date: dStr,
               time: t.time || '12:00',
               account: accName,
@@ -719,6 +721,9 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       merchant: data.merchant,
       description: data.description,
       notes: data.description,
+      receiptUrl: data.receiptUrl,
+      reference: data.transactionReference,
+      transactionReference: data.transactionReference,
       date: data.date,
       time: data.time || defaultTime,
       bankId: data.bankAccountId,
@@ -816,6 +821,8 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       toAccountId: data.toBankAccountId,
       type: data.type ? data.type.toLowerCase() : undefined,
       notes: data.description,
+      receiptUrl: data.receiptUrl,
+      reference: data.transactionReference,
     }).then(() => {
       api.getAccounts().then((res: any) => {
         if (res && Array.isArray(res.accounts)) {

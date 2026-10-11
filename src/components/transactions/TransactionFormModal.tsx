@@ -58,6 +58,8 @@ export const TransactionFormModal: React.FC = () => {
   const [merchant, setMerchant] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [transactionReference, setTransactionReference] = useState<string>('');
+  const [receiptUrl, setReceiptUrl] = useState<string>('');
+  const [isCompressingReceipt, setIsCompressingReceipt] = useState<boolean>(false);
   
   // Account selectors
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
@@ -89,6 +91,7 @@ export const TransactionFormModal: React.FC = () => {
       setMerchant(editingTransaction.merchant || '');
       setDescription(editingTransaction.description || '');
       setTransactionReference(editingTransaction.transactionReference || '');
+      setReceiptUrl(editingTransaction.receiptUrl || '');
       
       if (editingTransaction.bankAccountId) {
         setSelectedAccountId(editingTransaction.bankAccountId);
@@ -114,6 +117,7 @@ export const TransactionFormModal: React.FC = () => {
       setMerchant('');
       setDescription('');
       setTransactionReference('');
+      setReceiptUrl('');
       
       // Default to first user MongoDB account if available
       if (accounts.length > 0) {
@@ -171,6 +175,62 @@ export const TransactionFormModal: React.FC = () => {
   const handleAddAmount = (addVal: number) => {
     const current = parseFloat(amount) || 0;
     setAmount((current + addVal).toString());
+  };
+
+  const handleImageFile = (file: File) => {
+    if (!file) return;
+    setIsCompressingReceipt(true);
+    const reader = new FileReader();
+    reader.onload = (readerEvent) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+          setReceiptUrl(compressedDataUrl);
+        } else {
+          setReceiptUrl(readerEvent.target?.result as string);
+        }
+        setIsCompressingReceipt(false);
+      };
+      img.onerror = () => {
+        setIsCompressingReceipt(false);
+      };
+      img.src = readerEvent.target?.result as string;
+    };
+    reader.onerror = () => {
+      setIsCompressingReceipt(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files[0]) {
+      handleImageFile(files[0]);
+    }
+    e.target.value = '';
   };
 
   const handlePresetDate = (mode: 'now' | 'yesterday') => {
@@ -281,6 +341,7 @@ export const TransactionFormModal: React.FC = () => {
       merchant: merchant.trim() || undefined,
       description: description.trim() || undefined,
       transactionReference: transactionReference.trim() || undefined,
+      receiptUrl: receiptUrl.trim() || undefined,
     };
 
     if (editingTransaction) {
@@ -657,6 +718,104 @@ export const TransactionFormModal: React.FC = () => {
                 className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
               />
             </div>
+          </div>
+
+          {/* Dedicated Receipt & Attachments Field */}
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+              Receipt / Proof (Optional)
+            </label>
+
+            {receiptUrl ? (
+              <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                {/* 80x80 Responsive Preview Thumbnail */}
+                <div className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-emerald-500/50 bg-black shadow-md shrink-0 group">
+                  <img
+                    src={receiptUrl}
+                    alt="Receipt preview thumbnail"
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setReceiptUrl('')}
+                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/80 hover:bg-rose-600 text-white flex items-center justify-center text-xs font-bold transition shadow-xs cursor-pointer"
+                    title="Remove receipt"
+                    aria-label="Remove receipt"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="min-w-0 flex-1 flex flex-col justify-center gap-1">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                    <span>Receipt Attached</span>
+                  </span>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Compressed photo ready to save with record.
+                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <label
+                      htmlFor="galleryUpload"
+                      className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                    >
+                      Change photo
+                    </label>
+                    <span className="text-slate-300 dark:text-slate-700">•</span>
+                    <button
+                      type="button"
+                      onClick={() => setReceiptUrl('')}
+                      className="text-[11px] font-semibold text-rose-500 hover:text-rose-600 cursor-pointer"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('cameraUpload')?.click()}
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold text-xs shadow-xs transition cursor-pointer active:scale-95"
+                >
+                  <span className="text-sm">📷</span>
+                  <span>Capture Photo</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('galleryUpload')?.click()}
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold text-xs shadow-xs transition cursor-pointer active:scale-95"
+                >
+                  <span className="text-sm">🖼️</span>
+                  <span>Upload from Gallery</span>
+                </button>
+
+                {isCompressingReceipt && (
+                  <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium animate-pulse">
+                    Compressing receipt photo...
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Hidden native input specifications */}
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              id="cameraUpload"
+              className="hidden"
+              onChange={handleFileInputChange}
+            />
+            <input
+              type="file"
+              accept="image/*"
+              id="galleryUpload"
+              className="hidden"
+              onChange={handleFileInputChange}
+            />
           </div>
 
           {/* Bottom Actions: Clean, symbol-free bottom actions [ Save Transaction ], [ Delete ], [ Duplicate ] */}

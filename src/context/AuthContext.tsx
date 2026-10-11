@@ -3,6 +3,7 @@ import type { User } from '../types';
 import api from '../services/apiClient';
 
 import { 
+  auth,
   signInWithGoogle, 
   logOutFromFirebase,
   onFirebaseAuthStateChanged,
@@ -90,7 +91,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       const saved = localStorage.getItem('rupeewise_user');
       if (saved) {
-        try { return JSON.parse(saved); } catch { return null; }
+        try {
+          const parsed = JSON.parse(saved);
+          if (auth.currentUser?.photoURL && !parsed.photoURL) {
+            parsed.photoURL = auth.currentUser.photoURL;
+            parsed.avatarUrl = auth.currentUser.photoURL;
+          }
+          return parsed;
+        } catch { return null; }
       }
     }
     return null;
@@ -119,8 +127,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const data = await api.getMe();
       if (data?.user) {
-        setUser(data.user);
-        localStorage.setItem('rupeewise_user', JSON.stringify(data.user));
+        const fbPhoto = auth.currentUser?.photoURL;
+        const enrichedUser: User = {
+          ...data.user,
+          displayName: data.user.displayName || data.user.name || auth.currentUser?.displayName,
+          photoURL: fbPhoto || data.user.photoURL || data.user.avatarUrl,
+          avatarUrl: fbPhoto || data.user.avatarUrl || data.user.photoURL
+        };
+        setUser(enrichedUser);
+        localStorage.setItem('rupeewise_user', JSON.stringify(enrichedUser));
         setAuthState('AUTHENTICATED');
       } else {
         setUser(null);
@@ -155,10 +170,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const appUser: User = {
             id: syncRes.user?.id || fbUser.uid,
             name: syncRes.user?.name || fbUser.displayName || fbUser.email?.split('@')[0] || 'Executive User',
+            displayName: fbUser.displayName || syncRes.user?.name || fbUser.email?.split('@')[0] || 'Executive User',
             email: fbUser.email || '',
             emailVerified: fbUser.emailVerified,
             phoneVerified: false,
-            avatarUrl: fbUser.photoURL || undefined
+            avatarUrl: fbUser.photoURL || syncRes.user?.avatarUrl || undefined,
+            photoURL: fbUser.photoURL || syncRes.user?.avatarUrl || undefined
           };
           clearPreviousSessionCache();
           setUser(appUser);
@@ -190,11 +207,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       clearPreviousSessionCache();
       const data = await api.login(identifier, password, rememberMe);
-      setUser(data.user);
-      localStorage.setItem('rupeewise_user', JSON.stringify(data.user));
+      const enrichedUser: User = {
+        ...data.user,
+        displayName: data.user.displayName || data.user.name || auth.currentUser?.displayName,
+        photoURL: data.user.photoURL || data.user.avatarUrl || auth.currentUser?.photoURL,
+        avatarUrl: data.user.avatarUrl || data.user.photoURL || auth.currentUser?.photoURL
+      };
+      setUser(enrichedUser);
+      localStorage.setItem('rupeewise_user', JSON.stringify(enrichedUser));
       setAuthState('AUTHENTICATED');
       setIsAuthModalOpen(false);
-      window.dispatchEvent(new CustomEvent('auth:user-changed', { detail: { user: data.user } }));
+      window.dispatchEvent(new CustomEvent('auth:user-changed', { detail: { user: enrichedUser } }));
     } catch (err) {
       setAuthState('UNAUTHENTICATED');
       throw err;
@@ -216,10 +239,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const appUser: User = {
         id: syncRes.user?.id || fbUser.uid,
         name: syncRes.user?.name || fbUser.displayName || fbUser.email?.split('@')[0] || 'Executive User',
+        displayName: fbUser.displayName || syncRes.user?.name || fbUser.email?.split('@')[0] || 'Executive User',
         email: fbUser.email || '',
         emailVerified: fbUser.emailVerified,
         phoneVerified: false,
-        avatarUrl: fbUser.photoURL || undefined
+        avatarUrl: fbUser.photoURL || syncRes.user?.avatarUrl || undefined,
+        photoURL: fbUser.photoURL || syncRes.user?.avatarUrl || undefined
       };
       setUser(appUser);
       localStorage.setItem('rupeewise_user', JSON.stringify(appUser));

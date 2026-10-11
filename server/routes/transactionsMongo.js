@@ -52,6 +52,8 @@ router.post('/', authenticateOrDemo, async (req, res) => {
       category = 'General', 
       merchant = '', 
       notes = '', 
+      receiptUrl = '',
+      reference = '',
       date = new Date() 
     } = req.body;
 
@@ -105,6 +107,8 @@ router.post('/', authenticateOrDemo, async (req, res) => {
       category: category.trim() || (normalizedType === 'transfer' ? 'Transfer' : 'General'),
       merchant: merchant.trim(),
       notes: notes.trim(),
+      receiptUrl: (receiptUrl || req.body.receiptUrl || '').trim(),
+      reference: (reference || req.body.transactionReference || '').trim(),
       date: new Date(date),
     });
 
@@ -215,6 +219,10 @@ const updateHandler = async (req, res) => {
     if (req.body.category !== undefined) existingTx.category = req.body.category.trim();
     if (req.body.merchant !== undefined) existingTx.merchant = req.body.merchant.trim();
     if (req.body.notes !== undefined) existingTx.notes = req.body.notes.trim();
+    if (req.body.receiptUrl !== undefined) existingTx.receiptUrl = req.body.receiptUrl.trim();
+    if (req.body.reference !== undefined || req.body.transactionReference !== undefined) {
+      existingTx.reference = (req.body.reference || req.body.transactionReference || '').trim();
+    }
     if (req.body.date) existingTx.date = new Date(req.body.date);
 
     await existingTx.save();

@@ -23,7 +23,6 @@ import {
 import { useTransactions } from '../../context/TransactionContext';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { SyncStatusBar } from '../sync/SyncStatusBar';
 import { RealtimeDateBadge } from '../common/RealtimeDateBadge';
 
 interface HeaderProps {
@@ -122,11 +121,6 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, onOpe
               </button>
             )}
 
-            {/* Quick Sync Button (Desktop) */}
-            <div className="hidden md:block">
-              <SyncStatusBar compact />
-            </div>
-
             {/* Theme Mode Toggle (Desktop) */}
             <button
               onClick={cycleTheme}
@@ -164,17 +158,24 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, onOpe
               {isAuthenticated && user ? (
                 <button
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--card-border-hover)] transition cursor-pointer text-xs"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1A312C]/80 border border-[#89D7B7]/20 hover:border-[#89D7B7]/40 transition cursor-pointer text-xs"
                 >
-                  <div className="w-6 h-6 rounded-lg bg-[var(--row-hover-bg)] text-[var(--accent-primary)] border border-[var(--card-border)] flex items-center justify-center font-bold text-[11px] font-mono">
-                    {user.name.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="hidden md:inline font-medium text-[var(--text-primary)] truncate max-w-[90px]">
-                    {user.name.split(' ')[0]}
-                  </span>
-                  {user.emailVerified && (
-                    <ShieldCheck size={13} className="text-emerald-500" />
+                  {(user.photoURL || user.avatarUrl) ? (
+                    <img
+                      src={user.photoURL || user.avatarUrl}
+                      alt={user.displayName || user.name || "User Avatar"}
+                      className="w-6 h-6 rounded-full object-cover border border-[#89D7B7]/40"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-[#89D7B7]/20 text-[#89D7B7] flex items-center justify-center font-bold text-xs">
+                      {(user.displayName || user.name || 'U').charAt(0).toUpperCase()}
+                    </div>
                   )}
+                  <span className="text-xs font-medium text-[#FFF4E1] truncate max-w-[90px]">
+                    {(user.displayName || user.name || "Account").split(' ')[0]}
+                  </span>
+                  <ShieldCheck className="text-[#89D7B7]" size={14} />
                 </button>
               ) : (
                 <button
@@ -192,15 +193,31 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, onOpe
               {/* User Dropdown */}
               {userDropdownOpen && isAuthenticated && user && (
                 <div 
-                  className="absolute right-0 mt-2 w-56 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] shadow-2xl p-2 z-50 text-[var(--text-primary)] backdrop-blur-xl animate-micro-pop"
+                  className="absolute right-0 mt-2 w-60 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] shadow-2xl p-2 z-50 text-[var(--text-primary)] backdrop-blur-xl animate-micro-pop"
                   onMouseLeave={() => setUserDropdownOpen(false)}
                 >
-                  <div className="px-3 py-2 border-b border-[var(--divider)] mb-1">
-                    <p className="font-semibold text-xs text-[var(--text-headings)] truncate">{user.name}</p>
-                    <p className="text-[11px] text-[var(--text-secondary)] truncate font-mono">{user.email}</p>
-                    <div className="mt-1 flex items-center gap-1 text-[10px] text-emerald-500 font-semibold">
-                      <ShieldCheck size={11} />
-                      <span>{user.emailVerified ? 'Verified Account' : 'Verification Pending'}</span>
+                  <div className="px-3 py-2.5 border-b border-[var(--divider)] mb-1 flex items-center gap-3">
+                    {(user.photoURL || user.avatarUrl) ? (
+                      <img
+                        src={user.photoURL || user.avatarUrl}
+                        alt={user.displayName || user.name || "User Avatar"}
+                        className="w-10 h-10 rounded-full object-cover border border-[#89D7B7]/40 shrink-0"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-[#89D7B7]/20 text-[#89D7B7] border border-[#89D7B7]/30 flex items-center justify-center font-bold text-sm font-mono shrink-0">
+                        {(user.displayName || user.name || 'U').charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-xs text-[var(--text-headings)] truncate">
+                        {user.displayName || user.name}
+                      </p>
+                      <p className="text-[11px] text-[var(--text-secondary)] truncate font-mono">{user.email}</p>
+                      <div className="mt-0.5 flex items-center gap-1 text-[10px] text-emerald-500 font-semibold">
+                        <ShieldCheck size={11} />
+                        <span>{user.emailVerified ? 'Verified Account' : 'Verification Pending'}</span>
+                      </div>
                     </div>
                   </div>
                   <button

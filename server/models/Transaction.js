@@ -43,6 +43,14 @@ const transactionSchema = new mongoose.Schema({
     default: '',
     trim: true,
   },
+  receiptUrl: {
+    type: String,
+    default: '',
+  },
+  reference: {
+    type: String,
+    default: '',
+  },
   date: {
     type: Date,
     default: Date.now,

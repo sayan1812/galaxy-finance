@@ -4,7 +4,6 @@ import {
   Plus, 
   ShieldCheck, 
   Sparkles, 
-  RefreshCw, 
   Search
 } from 'lucide-react';
 import { useTransactions } from '../context/TransactionContext';
@@ -13,7 +12,6 @@ import { BankCard } from '../components/banks/BankCard';
 import { BankModal } from '../components/banks/BankModal';
 import { BankDetailModal } from '../components/banks/BankDetailModal';
 import { CashExpenseModal } from '../components/cash/CashExpenseModal';
-import { SyncStatusBar } from '../components/sync/SyncStatusBar';
 import { ConfirmModal } from '../components/layout/ConfirmModal';
 import type { BankAccount } from '../types';
 
@@ -26,8 +24,6 @@ export const BanksPage: React.FC = () => {
     netAvailableMoney,
     deleteBankAccount,
     settings,
-    triggerSync,
-    syncStatus,
     setIsAddCashModalOpen,
     isMasked
   } = useTransactions();
@@ -82,19 +78,8 @@ export const BanksPage: React.FC = () => {
             <span>Add Bank Account</span>
           </button>
 
-          <button
-            onClick={() => triggerSync(false)}
-            disabled={syncStatus.state === 'SYNCING'}
-            className="p-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition cursor-pointer"
-            title="Sync Online Bank Feeds"
-          >
-            <RefreshCw size={16} className={syncStatus.state === 'SYNCING' ? 'animate-spin text-cyan-400' : ''} />
-          </button>
         </div>
       </div>
-
-      {/* Sync Status Bar Banner */}
-      <SyncStatusBar />
 
       {/* Top Financial Overview Matrix (Section 4 & Section 5 Requirements) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

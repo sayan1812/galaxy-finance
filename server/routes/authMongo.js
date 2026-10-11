@@ -141,7 +141,14 @@ router.post('/google-sync', async (req, res) => {
         name: name?.trim() || cleanEmail.split('@')[0],
         email: cleanEmail,
         password: randomPassword,
+        avatarUrl: photoURL || '',
+        photoURL: photoURL || '',
       });
+    } else if (photoURL && (user.photoURL !== photoURL || user.avatarUrl !== photoURL)) {
+      user.avatarUrl = photoURL;
+      user.photoURL = photoURL;
+      if (name && !user.name) user.name = name.trim();
+      await user.save();
     }
 
     const token = signUserToken(user);
@@ -162,7 +169,8 @@ router.post('/google-sync', async (req, res) => {
         name: user.name,
         email: user.email,
         customCategories: user.customCategories || [],
-        avatarUrl: photoURL || undefined,
+        avatarUrl: user.avatarUrl || user.photoURL || photoURL || undefined,
+        photoURL: user.photoURL || user.avatarUrl || photoURL || undefined,
         googleUid: uid,
       },
     });
@@ -186,6 +194,8 @@ router.get('/me', authenticateOrDemo, async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        avatarUrl: user.avatarUrl || user.photoURL || undefined,
+        photoURL: user.photoURL || user.avatarUrl || undefined,
         customCategories: user.customCategories || [],
         createdAt: user.createdAt,
       },

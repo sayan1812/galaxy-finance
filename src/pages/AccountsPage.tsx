@@ -4,18 +4,14 @@ import {
   CreditCard, 
   Smartphone, 
   Wallet, 
-  RefreshCw, 
-  ShieldCheck, 
-  Sparkles,
-  ShieldAlert
+  ShieldCheck
 } from 'lucide-react';
 import { useTransactions } from '../context/TransactionContext';
 import { formatCurrency } from '../utils/formatters';
-import { SyncStatusBar } from '../components/sync/SyncStatusBar';
 import type { ConnectedAccount } from '../types';
 
 export const AccountsPage: React.FC = () => {
-  const { connectedAccounts, syncStatus, triggerSync, settings, cashBalance } = useTransactions();
+  const { connectedAccounts, settings, cashBalance } = useTransactions();
 
   const getAccountIcon = (type: ConnectedAccount['type']) => {
     switch (type) {
@@ -44,21 +40,7 @@ export const AccountsPage: React.FC = () => {
             Integration-ready open banking & financial feeds for automated online transaction imports
           </p>
         </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => triggerSync(false)}
-            disabled={syncStatus.state === 'SYNCING'}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition cursor-pointer"
-          >
-            <RefreshCw size={14} className={syncStatus.state === 'SYNCING' ? 'animate-spin' : ''} />
-            <span>Sync All Accounts</span>
-          </button>
-        </div>
       </div>
-
-      {/* Sync Status Bar Banner */}
-      <SyncStatusBar />
 
       {/* Security Architecture Notice (Per requirements: Do NOT pretend frontend directly accesses bank data) */}
       <div className="p-4 rounded-2xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 flex items-start gap-3 text-xs text-blue-900 dark:text-blue-300">
@@ -139,37 +121,6 @@ export const AccountsPage: React.FC = () => {
         })}
       </div>
       )}
-
-      {/* Test / Simulation Tools Card */}
-      <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
-        <div className="flex items-center gap-2">
-          <Sparkles size={20} className="text-emerald-500" />
-          <h3 className="font-bold text-base text-slate-900 dark:text-white">
-            Online Transaction Import & Conflict Testing
-          </h3>
-        </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-          Test incoming transaction payloads from online financial providers (UPI, Card POS, Net Banking) to verify the automatic categorization rules, merchant memory, and duplicate detection prompts.
-        </p>
-
-        <div className="flex items-center gap-3 flex-wrap">
-          <button
-            onClick={() => triggerSync(false)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition cursor-pointer"
-          >
-            <RefreshCw size={14} />
-            <span>Simulate Incoming Online Transaction (UPI/Card)</span>
-          </button>
-
-          <button
-            onClick={() => triggerSync(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/80 font-bold text-xs hover:bg-amber-100 transition cursor-pointer"
-          >
-            <ShieldAlert size={14} />
-            <span>Test Duplicate Conflict Detection Alert</span>
-          </button>
-        </div>
-      </div>
     </div>
   );
 };

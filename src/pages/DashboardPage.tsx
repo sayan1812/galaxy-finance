@@ -28,7 +28,6 @@ import { PaymentMethodChart } from '../components/dashboard/PaymentMethodChart';
 import { IncomeExpenseChart } from '../components/dashboard/IncomeExpenseChart';
 import { BudgetAlertBanner } from '../components/dashboard/BudgetAlertBanner';
 import { TransactionItem } from '../components/transactions/TransactionItem';
-import { SyncStatusBar } from '../components/sync/SyncStatusBar';
 import { BankDetailModal } from '../components/banks/BankDetailModal';
 import { BankModal } from '../components/banks/BankModal';
 import { CashExpenseModal } from '../components/cash/CashExpenseModal';
@@ -294,9 +293,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           </div>
         </div>
       </div>
-
-      {/* Sync Status Banner */}
-      <SyncStatusBar />
 
       {/* SECTION 2: FINANCIAL GALAXY */}
       <div className="reveal-on-scroll stagger-2">

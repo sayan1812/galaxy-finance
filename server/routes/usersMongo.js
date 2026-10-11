@@ -20,6 +20,8 @@ router.get('/me', authenticateOrDemo, async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        avatarUrl: user.avatarUrl || user.photoURL || undefined,
+        photoURL: user.photoURL || user.avatarUrl || undefined,
         customCategories: user.customCategories || [],
         createdAt: user.createdAt,
       },

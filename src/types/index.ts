@@ -72,6 +72,7 @@ export interface Transaction {
   recurringScheduleId?: string;
   isDuplicate?: boolean;
   duplicateResolved?: boolean;
+  receiptUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -167,9 +168,11 @@ export interface AppSettings {
 export interface User {
   id: string;
   name: string;
+  displayName?: string;
   email: string;
   phone?: string | null;
   avatarUrl?: string;
+  photoURL?: string;
   emailVerified: boolean;
   phoneVerified: boolean;
   customCategories?: Category[];
