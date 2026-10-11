@@ -20,7 +20,7 @@ export function getFinancialOverview(userId) {
   }
 
   // 2. Cash balance: opening_cash + cash_incomes - cash_expenses
-  const settings = db.prepare('SELECT opening_cash FROM user_settings WHERE user_id = ?').get(userId) || { opening_cash: 7000 };
+  const settings = db.prepare('SELECT opening_cash FROM user_settings WHERE user_id = ?').get(userId) || { opening_cash: 0 };
   const cashStats = db.prepare(`
     SELECT 
       COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as inc,

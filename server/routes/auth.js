@@ -94,7 +94,7 @@ router.post('/register', (req, res) => {
     // Create default settings for user
     db.prepare(`
       INSERT INTO user_settings (user_id, theme, currency, notifications, reduce_motion, galaxy_intensity, opening_cash, created_at, updated_at)
-      VALUES (?, 'light', '₹', 1, 0, 'medium', 5000, ?, ?)
+      VALUES (?, 'light', '₹', 1, 0, 'medium', 0, ?, ?)
     `).run(userId, now, now);
 
     // Create both session record and signed JWT token

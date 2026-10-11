@@ -7,7 +7,8 @@ import {
   Sparkles, 
   Wallet,
   ArrowRight,
-  Plus
+  Plus,
+  AlertCircle
 } from 'lucide-react';
 import { useTransactions } from '../../context/TransactionContext';
 import type { 
@@ -52,7 +53,7 @@ export const TransactionFormModal: React.FC = () => {
 
   const [type, setType] = useState<TransactionType>('EXPENSE');
   const [amount, setAmount] = useState<string>('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(() => (accounts.length === 0 ? 'CASH' : 'UPI'));
   const [category, setCategory] = useState<string>('Food & Restaurant');
   const [dateTime, setDateTime] = useState<string>(getLocalDateTimeInputValue());
   const [merchant, setMerchant] = useState<string>('');
@@ -111,7 +112,7 @@ export const TransactionFormModal: React.FC = () => {
     } else {
       setType('EXPENSE');
       setAmount('');
-      setPaymentMethod('UPI');
+      setPaymentMethod(accounts.length === 0 ? 'CASH' : 'UPI');
       setCategory('Food & Restaurant');
       setDateTime(getLocalDateTimeInputValue());
       setMerchant('');
@@ -284,12 +285,21 @@ export const TransactionFormModal: React.FC = () => {
       return;
     }
 
+    if (type !== 'TRANSFER' && accounts.length === 0 && paymentMethod !== 'CASH') {
+      setError("No bank connected. Connect a bank vault or select 'Cash' payment method.");
+      return;
+    }
+
     if (type !== 'TRANSFER' && !category.trim()) {
       setError('Please select a category');
       return;
     }
 
     if (type === 'TRANSFER') {
+      if (accounts.length < 2) {
+        setError('At least two bank accounts are required for an internal transfer');
+        return;
+      }
       if (!selectedAccountId) {
         setError('Please select a Source (From) Account');
         return;
@@ -310,10 +320,21 @@ export const TransactionFormModal: React.FC = () => {
     const timeStr = `${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}`;
 
     // Resolve From Account
-    let fromAccountName = 'Primary Account';
-    const matchedFrom = accounts.find((a) => (a._id || a.id) === selectedAccountId);
-    if (matchedFrom) {
-      fromAccountName = matchedFrom.accountName;
+    let fromAccountName = 'Physical Cash Wallet';
+    let resolvedBankId: string | undefined = undefined;
+
+    if (paymentMethod === 'CASH') {
+      fromAccountName = 'Physical Cash Wallet';
+      resolvedBankId = undefined;
+    } else {
+      const matchedFrom = accounts.find((a) => (a._id || a.id) === selectedAccountId);
+      if (matchedFrom) {
+        fromAccountName = matchedFrom.accountName;
+        resolvedBankId = selectedAccountId || undefined;
+      } else {
+        fromAccountName = 'Bank Vault';
+        resolvedBankId = selectedAccountId || undefined;
+      }
     }
 
     // Resolve To Account if transfer
@@ -335,7 +356,7 @@ export const TransactionFormModal: React.FC = () => {
       date: dateStr,
       time: timeStr,
       account: fromAccountName,
-      bankAccountId: selectedAccountId || undefined,
+      bankAccountId: resolvedBankId,
       toBankAccountId: type === 'TRANSFER' ? toAccountId : undefined,
       toAccount: toAccountName,
       merchant: merchant.trim() || undefined,
@@ -614,6 +635,13 @@ export const TransactionFormModal: React.FC = () => {
                   );
                 })}
               </div>
+
+              {accounts.length === 0 && paymentMethod !== 'CASH' && (
+                <div className="mt-2.5 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs font-semibold flex items-center gap-2">
+                  <AlertCircle size={16} className="text-amber-500 shrink-0" />
+                  <span>No bank connected. Connect a bank vault or select 'Cash' payment method.</span>
+                </div>
+              )}
             </div>
           )}
 

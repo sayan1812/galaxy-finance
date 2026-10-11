@@ -24,14 +24,13 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ currentTab, setC
     setIsAddCashModalOpen, 
     setIsCashExpenseModalOpen,
     setIsAddModalOpen,
-    dueRecurringCount,
-    bankAccounts
+    dueRecurringCount
   } = useTransactions();
 
   const navItems = [
     { id: 'dashboard', label: 'Galaxy Dashboard', icon: Orbit },
     { id: 'calendar', label: 'Cosmic Calendar', icon: Calendar },
-    { id: 'banks', label: 'Banks & Vaults', icon: Building2, badge: bankAccounts.length },
+    { id: 'banks', label: 'Banks & Vaults', icon: Building2 },
     { id: 'transactions', label: 'Transactions Log', icon: ListFilter },
     { id: 'reports', label: 'Financial Reports', icon: FileText },
     { id: 'budgets', label: 'Monthly Budgets', icon: PiggyBank },

@@ -18,6 +18,10 @@ const accountSchema = new mongoose.Schema({
     default: 'bank',
     required: true,
   },
+  openingBalance: {
+    type: Number,
+    default: 0,
+  },
   balance: {
     type: Number,
     default: 0,

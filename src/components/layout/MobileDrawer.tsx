@@ -43,7 +43,6 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
   const { 
     settings, 
     updateSettings,
-    bankAccounts,
     totalBankBalance,
     cashBalance,
     dueRecurringCount,
@@ -78,7 +77,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
   const navLinks = [
     { id: 'dashboard', label: 'Home / Dashboard', icon: BarChart3, badge: null },
     { id: 'calendar', label: 'Calendar', icon: Calendar, badge: null },
-    { id: 'banks', label: 'Bank Vaults', icon: Building2, badge: `${bankAccounts.length}` },
+    { id: 'banks', label: 'Bank Vaults', icon: Building2, badge: null },
     { id: 'transactions', label: 'Transactions', icon: ListFilter, badge: null },
     { id: 'budgets', label: 'Budgets', icon: PiggyBank, badge: null },
     { id: 'recurring', label: 'Recurring Schedules', icon: RotateCcw, badge: dueRecurringCount > 0 ? `${dueRecurringCount}` : null },

@@ -160,12 +160,12 @@ export const api = {
     }
   },
 
-  async createAccount(accountData: { accountName: string; accountType?: string; balance?: number; accountNumberMask?: string }) {
+  async createAccount(accountData: { accountName: string; accountType?: string; balance?: number; openingBalance?: number; accountNumberMask?: string }) {
     const res = await apiClient.post('/accounts', accountData);
     return res.data;
   },
 
-  async updateAccount(id: string, accountData: Partial<{ accountName: string; balance: number; accountNumberMask: string }>) {
+  async updateAccount(id: string, accountData: Partial<{ accountName: string; balance: number; openingBalance: number; accountNumberMask: string }>) {
     const res = await apiClient.patch(`/accounts/${id}`, accountData);
     return res.data;
   },

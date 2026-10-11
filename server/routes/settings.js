@@ -11,7 +11,7 @@ router.get('/', requireAuth, (req, res) => {
       const now = new Date().toISOString();
       db.prepare(`
         INSERT INTO user_settings (user_id, theme, currency, notifications, reduce_motion, galaxy_intensity, opening_cash, created_at, updated_at)
-        VALUES (?, 'light', '₹', 1, 0, 'medium', 7000, ?, ?)
+        VALUES (?, 'light', '₹', 1, 0, 'medium', 0, ?, ?)
       `).run(req.userId, now, now);
       settings = db.prepare('SELECT * FROM user_settings WHERE user_id = ?').get(req.userId);
     }
@@ -46,7 +46,7 @@ router.patch('/', requireAuth, (req, res) => {
         notifications !== undefined ? (notifications ? 1 : 0) : 1,
         reduceMotion !== undefined ? (reduceMotion ? 1 : 0) : 0,
         galaxyIntensity || 'medium',
-        openingCash !== undefined ? Number(openingCash) : 7000,
+        openingCash !== undefined ? Number(openingCash) : 0,
         now,
         now
       );

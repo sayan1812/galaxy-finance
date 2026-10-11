@@ -165,6 +165,8 @@ export interface TransactionContextType {
   setIsAddModalOpen: (open: boolean) => void;
   isAddCashModalOpen: boolean;
   setIsAddCashModalOpen: (open: boolean) => void;
+  addCashModalInitialType: TransactionType;
+  openAddCashModal: (initialType?: TransactionType) => void;
   isCashExpenseModalOpen: boolean;
   setIsCashExpenseModalOpen: (open: boolean) => void;
   isAddBankModalOpen: boolean;
@@ -221,6 +223,44 @@ const DEFAULT_SETTINGS: AppSettings = {
   autoSyncIntervalMinutes: 15,
   demoModeEnabled: false,
   enableDuplicateAutoPrompt: true,
+};
+
+/**
+ * Pure atomic derivation of physical cash available from recorded transactions.
+ * Strictly guarantees that cash transactions mutate physical cash reserves
+ * without any hardcoded starting figures (defaulting strictly to 0).
+ */
+export const computeCashAvailable = (transactions: Transaction[], baseCashOpening: number = 0): number => {
+  const isCashMatch = (tBankId?: string, tMethod?: string, tAccount?: string) => {
+    const method = String(tMethod || '').toUpperCase();
+    if (method === 'CASH') return true;
+    if (tBankId === 'cash-wallet' || tBankId === 'cash' || tBankId === 'physical-cash') return true;
+    if (tAccount && (tAccount.toLowerCase().includes('cash') || tAccount.toLowerCase().includes('physical cash'))) return true;
+    return false;
+  };
+
+  return transactions.reduce((acc, tx) => {
+    const amount = Number(tx.amount) || 0;
+    const isCash = isCashMatch(tx.bankAccountId, tx.paymentMethod, tx.account) ||
+      (tx as any).accountId === 'cash-wallet' ||
+      (tx as any).accountId === 'cash' ||
+      (tx as any).accountName === 'Cash' ||
+      (tx as any).accountName === 'Cash in Hand';
+
+    if (tx.type === 'INCOME') {
+      if (isCash) return acc + amount;
+    } else if (tx.type === 'EXPENSE') {
+      if (isCash) return acc - amount;
+    } else if (tx.type === 'TRANSFER') {
+      const toBankId = String(tx.toBankAccountId || (tx as any).toAccountId || '');
+      const toAccountName = String(tx.toAccount || (tx as any).toAccountName || '');
+      const isCashDest = isCashMatch(toBankId, undefined, toAccountName);
+      const isCashSource = isCash;
+      if (isCashDest && !isCashSource) return acc + amount;
+      if (isCashSource && !isCashDest) return acc - amount;
+    }
+    return acc;
+  }, baseCashOpening);
 };
 
 const TransactionContext = createContext<TransactionContextType | null>(null);
@@ -320,7 +360,13 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // 9. Modals & UI State
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [isAddCashModalOpen, setIsAddCashModalOpen] = useState<boolean>(false);
+  const [addCashModalInitialType, setAddCashModalInitialType] = useState<TransactionType>('INCOME');
   const [isCashExpenseModalOpen, setIsCashExpenseModalOpen] = useState<boolean>(false);
+
+  const openAddCashModal = useCallback((initialType: TransactionType = 'INCOME') => {
+    setAddCashModalInitialType(initialType);
+    setIsAddCashModalOpen(true);
+  }, []);
   const [isAddBankModalOpen, setIsAddBankModalOpen] = useState<boolean>(false);
   const [editingBank, setEditingBank] = useState<BankAccount | null>(null);
   const [selectedBankDetail, setSelectedBankDetail] = useState<BankAccount | null>(null);
@@ -484,7 +530,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
               bankName: a.accountName,
               accountType: 'Savings' as const,
               nickname: a.accountName,
-              openingBalance: Number(a.balance || 0),
+              openingBalance: Number(a.openingBalance !== undefined ? a.openingBalance : (a.balance || 0)),
               balance: Number(a.balance || 0),
               accountNumberMasked: a.accountNumberMask || 'XXXX XXXX 0000',
               createdAt: a.createdAt || new Date().toISOString(),
@@ -496,7 +542,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
           if (cashAcc) {
             setCashWalletConfig((prev) => ({
               ...prev,
-              openingCash: Number(cashAcc.balance || 0),
+              openingCash: Number(cashAcc.openingBalance || 0),
             }));
           } else {
             setCashWalletConfig((prev) => ({
@@ -739,7 +785,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
               bankName: a.accountName,
               accountType: 'Savings' as const,
               nickname: a.accountName,
-              openingBalance: Number(a.balance || 0),
+              openingBalance: Number(a.openingBalance !== undefined ? a.openingBalance : (a.balance || 0)),
               balance: Number(a.balance || 0),
               accountNumberMasked: a.accountNumberMask || 'XXXX XXXX 0000',
               createdAt: a.createdAt || new Date().toISOString(),
@@ -879,7 +925,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
               bankName: a.accountName,
               accountType: 'Savings' as const,
               nickname: a.accountName,
-              openingBalance: Number(a.balance || 0),
+              openingBalance: Number(a.openingBalance !== undefined ? a.openingBalance : (a.balance || 0)),
               balance: Number(a.balance || 0),
               accountNumberMasked: a.accountNumberMask || 'XXXX XXXX 0000',
               createdAt: a.createdAt || new Date().toISOString(),
@@ -1427,32 +1473,9 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return bankStatsList.reduce((sum, b) => sum + b.currentBalance, 0);
   }, [bankStatsList]);
 
-  // Cash Balance: Opening Cash + Cash Income - Cash Expense + Transfers In - Transfers Out
+  // Cash Available: Derived dynamically and purely from user transactions via computeCashAvailable
   const cashBalance = useMemo(() => {
-    const isCashMatch = (tBankId?: string, tMethod?: string, tAccount?: string) => {
-      if (tMethod === 'CASH') return true;
-      if (tBankId === 'cash-wallet' || tBankId === 'cash') return true;
-      if (tAccount && tAccount.toLowerCase().includes('cash')) return true;
-      return false;
-    };
-
-    const cashIncome = transactions
-      .filter((t) => t.type === 'INCOME' && isCashMatch(t.bankAccountId, t.paymentMethod, t.account))
-      .reduce((sum, t) => sum + t.amount, 0);
-
-    const cashExpense = transactions
-      .filter((t) => t.type === 'EXPENSE' && isCashMatch(t.bankAccountId, t.paymentMethod, t.account))
-      .reduce((sum, t) => sum + t.amount, 0);
-
-    const cashTransferIn = transactions
-      .filter((t) => t.type === 'TRANSFER' && isCashMatch(t.toBankAccountId, undefined, t.toAccount))
-      .reduce((sum, t) => sum + t.amount, 0);
-
-    const cashTransferOut = transactions
-      .filter((t) => t.type === 'TRANSFER' && isCashMatch(t.bankAccountId, undefined, t.account))
-      .reduce((sum, t) => sum + t.amount, 0);
-
-    return (cashWalletConfig.openingCash || 0) + cashIncome - cashExpense + cashTransferIn - cashTransferOut;
+    return computeCashAvailable(transactions, cashWalletConfig.openingCash || 0);
   }, [transactions, cashWalletConfig.openingCash]);
 
   // NET AVAILABLE MONEY = Total Available Bank Balance + Cash Balance
@@ -1732,6 +1755,8 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
         setIsAddModalOpen,
         isAddCashModalOpen,
         setIsAddCashModalOpen,
+        addCashModalInitialType,
+        openAddCashModal,
         isCashExpenseModalOpen,
         setIsCashExpenseModalOpen,
         isAddBankModalOpen,
@@ -1855,6 +1880,8 @@ export const DEFAULT_FALLBACK_TRANSACTION_CONTEXT: TransactionContextType = {
   setIsAddModalOpen: () => {},
   isAddCashModalOpen: false,
   setIsAddCashModalOpen: () => {},
+  addCashModalInitialType: 'INCOME',
+  openAddCashModal: () => {},
   isCashExpenseModalOpen: false,
   setIsCashExpenseModalOpen: () => {},
   isAddBankModalOpen: false,

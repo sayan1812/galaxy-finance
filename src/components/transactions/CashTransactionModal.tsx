@@ -17,14 +17,15 @@ export const CashTransactionModal: React.FC = () => {
   const {
     isAddCashModalOpen,
     setIsAddCashModalOpen,
+    addCashModalInitialType,
     addCashTransaction,
     categories,
     settings,
   } = useTransactions();
 
-  const [type, setType] = useState<TransactionType>('EXPENSE');
+  const [type, setType] = useState<TransactionType>('INCOME');
   const [amount, setAmount] = useState<string>('');
-  const [category, setCategory] = useState<string>('Food & Restaurant');
+  const [category, setCategory] = useState<string>('Salary');
   const [dateTime, setDateTime] = useState<string>(getLocalDateTimeInputValue());
   const [merchant, setMerchant] = useState<string>('');
   const [description, setDescription] = useState<string>('');
@@ -32,15 +33,16 @@ export const CashTransactionModal: React.FC = () => {
 
   useEffect(() => {
     if (isAddCashModalOpen) {
-      setType('EXPENSE');
+      const initialType = addCashModalInitialType || 'INCOME';
+      setType(initialType);
       setAmount('');
-      setCategory('Food & Restaurant');
+      setCategory(initialType === 'INCOME' ? 'Salary' : 'Food & Restaurant');
       setDateTime(getLocalDateTimeInputValue());
       setMerchant('');
       setDescription('');
       setError('');
     }
-  }, [isAddCashModalOpen]);
+  }, [isAddCashModalOpen, addCashModalInitialType]);
 
   const handleClose = () => {
     setIsAddCashModalOpen(false);
@@ -101,7 +103,7 @@ export const CashTransactionModal: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                  Add Cash Transaction
+                  {type === 'INCOME' ? 'Add Cash (Inflow)' : 'Cash Outflow (Expense)'}
                 </h2>
                 <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300">
                   Manual Entry

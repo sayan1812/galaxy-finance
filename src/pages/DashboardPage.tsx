@@ -43,7 +43,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     transactions, 
     settings, 
     setIsAddModalOpen, 
-    setIsAddCashModalOpen,
+    openAddCashModal,
     addCashTransaction,
     addTransaction,
     monthIncome,
@@ -233,7 +233,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <div className="grid grid-cols-3 sm:flex sm:items-center gap-2 w-full sm:w-auto">
                 {/* Cash Action */}
                 <button
-                  onClick={() => setIsAddCashModalOpen(true)}
+                  onClick={() => openAddCashModal('INCOME')}
                   className="inline-flex items-center justify-center font-bold text-xs transition-all duration-200 cursor-pointer active:scale-[0.98] hover:-translate-y-0.5 px-3 sm:px-4 py-2.5 rounded-xl border border-emerald-500/35 bg-emerald-500/15 text-emerald-500 dark:text-emerald-400 gap-1.5"
                   title="Cash Inflow"
                 >
@@ -243,7 +243,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
                 {/* Outflow Action */}
                 <button
-                  onClick={() => setIsCashExpenseOpen(true)}
+                  onClick={() => openAddCashModal('EXPENSE')}
                   className="inline-flex items-center justify-center font-bold text-xs transition-all duration-200 cursor-pointer active:scale-[0.98] hover:-translate-y-0.5 px-3 sm:px-4 py-2.5 rounded-xl border border-rose-500/35 bg-rose-500/15 text-rose-500 dark:text-rose-400 gap-1.5"
                   title="Log Outflow"
                 >
@@ -432,13 +432,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
           <div className="space-y-2">
             <button
-              onClick={() => setIsAddCashModalOpen(true)}
+              onClick={() => openAddCashModal('INCOME')}
               className="w-full py-2.5 rounded-xl btn-primary font-bold text-xs shadow-xs transition cursor-pointer"
             >
               Add Cash
             </button>
             <button
-              onClick={() => setIsCashExpenseOpen(true)}
+              onClick={() => openAddCashModal('EXPENSE')}
               className="w-full py-2.5 rounded-xl btn-secondary font-bold text-xs transition cursor-pointer text-rose-500"
             >
               Cash Outflow

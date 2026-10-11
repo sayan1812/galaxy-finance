@@ -73,16 +73,25 @@ router.post('/', authenticateOrDemo, async (req, res) => {
     if (reqAccountId) {
       targetAccount = await Account.findOne({ _id: reqAccountId, userId: req.userId });
     }
+    const isExplicitCash = (req.body.paymentMethod || '').toLowerCase() === 'cash';
     if (!targetAccount) {
-      targetAccount = await Account.findOne({ userId: req.userId });
+      if (!isExplicitCash) {
+        targetAccount = await Account.findOne({ userId: req.userId, accountType: 'bank' });
+        if (!targetAccount) {
+          targetAccount = await Account.findOne({ userId: req.userId });
+        }
+      } else {
+        targetAccount = await Account.findOne({ userId: req.userId, accountType: 'cash' });
+      }
     }
     if (!targetAccount) {
       targetAccount = await Account.create({
         userId: req.userId,
-        accountName: 'Cash in Hand',
-        accountType: 'cash',
+        accountName: isExplicitCash ? 'Cash in Hand' : 'Primary Vault',
+        accountType: isExplicitCash ? 'cash' : 'bank',
+        openingBalance: 0,
         balance: 0,
-        accountNumberMask: 'CASH',
+        accountNumberMask: isExplicitCash ? 'CASH' : 'VAULT',
       });
     }
 

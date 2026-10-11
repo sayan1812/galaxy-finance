@@ -25,17 +25,19 @@ router.get('/', authenticateOrDemo, getAccounts);
 // POST /api/v1/accounts
 router.post('/', authenticateOrDemo, async (req, res) => {
   try {
-    const { accountName, accountType = 'bank', balance = 0, accountNumberMask = 'XXXX XXXX 0000' } = req.body;
+    const { accountName, accountType = 'bank', balance = 0, openingBalance, accountNumberMask = 'XXXX XXXX 0000' } = req.body;
 
     if (!accountName || !accountName.trim()) {
       return res.status(400).json({ error: 'Account name is required' });
     }
 
+    const initialBal = Number(balance) || 0;
     const account = await Account.create({
       userId: req.userId,
       accountName: accountName.trim(),
       accountType: accountType === 'cash' ? 'cash' : 'bank',
-      balance: Number(balance) || 0,
+      openingBalance: openingBalance !== undefined ? Number(openingBalance) : initialBal,
+      balance: initialBal,
       accountNumberMask: accountNumberMask.trim(),
     });
 
@@ -49,12 +51,13 @@ router.post('/', authenticateOrDemo, async (req, res) => {
 // PATCH /api/v1/accounts/:id
 router.patch('/:id', authenticateOrDemo, async (req, res) => {
   try {
-    const { accountName, balance, accountNumberMask } = req.body;
+    const { accountName, balance, openingBalance, accountNumberMask } = req.body;
     const account = await Account.findOneAndUpdate(
       { _id: req.params.id, userId: req.userId },
       { 
         ...(accountName && { accountName: accountName.trim() }),
         ...(balance !== undefined && { balance: Number(balance) }),
+        ...(openingBalance !== undefined && { openingBalance: Number(openingBalance) }),
         ...(accountNumberMask && { accountNumberMask: accountNumberMask.trim() }),
         updatedAt: new Date(),
       },

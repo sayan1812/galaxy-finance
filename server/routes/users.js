@@ -19,7 +19,7 @@ router.get('/me', requireAuth, (req, res) => {
       notifications: 1,
       reduce_motion: 0,
       galaxy_intensity: 'medium',
-      opening_cash: 7000
+      opening_cash: 0
     };
 
     return res.json({

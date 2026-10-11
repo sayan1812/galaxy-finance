@@ -60,14 +60,16 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
 
   const num = Number(displayValue);
   const safeNum = Number.isNaN(num) ? 0 : num;
+  const isNegative = safeNum < 0;
+  const absNum = Math.abs(safeNum);
 
   const formatted = formatter 
     ? formatter(safeNum) 
-    : Math.round(safeNum).toLocaleString('en-IN');
+    : Math.round(absNum).toLocaleString('en-IN');
 
   return (
     <span className={`inline-block transition-colors duration-300 ${className}`}>
-      {prefix}{formatted}
+      {formatter ? formatted : `${isNegative ? '-' : ''}${prefix}${formatted}`}
     </span>
   );
 };

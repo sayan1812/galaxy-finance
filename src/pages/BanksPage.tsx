@@ -24,7 +24,7 @@ export const BanksPage: React.FC = () => {
     netAvailableMoney,
     deleteBankAccount,
     settings,
-    setIsAddCashModalOpen,
+    openAddCashModal,
     isMasked
   } = useTransactions();
 
@@ -121,13 +121,13 @@ export const BanksPage: React.FC = () => {
 
           <div className="flex items-center gap-2 mt-3 pt-2 border-t border-slate-800/80">
             <button
-              onClick={() => setIsAddCashModalOpen(true)}
+              onClick={() => openAddCashModal('INCOME')}
               className="flex-1 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-bold transition cursor-pointer text-center"
             >
               Add Cash
             </button>
             <button
-              onClick={() => setIsCashExpenseOpen(true)}
+              onClick={() => openAddCashModal('EXPENSE')}
               className="flex-1 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-bold transition cursor-pointer text-center"
             >
               Cash Outflow
