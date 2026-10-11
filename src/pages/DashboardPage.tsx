@@ -23,7 +23,7 @@ import { FinancialGalaxy3D } from '../components/galaxy/FinancialGalaxy3D';
 import { CommandCenterSummary } from '../components/dashboard/CommandCenterSummary';
 import { WhereIsMoneyGoingChart } from '../components/dashboard/WhereIsMoneyGoingChart';
 import { DailyExpenseChart } from '../components/dashboard/DailyExpenseChart';
-import { CategoryPieChart } from '../components/dashboard/CategoryPieChart';
+import { ExpenseCategoryChart } from '../components/analytics/ExpenseCategoryChart';
 import { PaymentMethodChart } from '../components/dashboard/PaymentMethodChart';
 import { IncomeExpenseChart } from '../components/dashboard/IncomeExpenseChart';
 import { BudgetAlertBanner } from '../components/dashboard/BudgetAlertBanner';
@@ -457,9 +457,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
       {/* 4 CORE CHARTS GRID */}
       <div className="reveal-on-scroll stagger-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="fin-card">
-          <CategoryPieChart />
-        </div>
+        <ExpenseCategoryChart title="Expense Distribution & Category Breakdown" showPeriodSelector />
         <div className="fin-card">
           <PaymentMethodChart />
         </div>

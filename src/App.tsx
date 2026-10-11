@@ -100,6 +100,7 @@ const MainLayout: React.FC = () => {
       case 'recurring':
         return <RecurringPage />;
       case 'reports':
+      case 'analytics':
         return <ReportsPage />;
       case 'settings':
         return <SettingsPage onNavigate={setCurrentTab} />;

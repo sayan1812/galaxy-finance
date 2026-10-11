@@ -6,7 +6,7 @@ import {
 import { useTransactions } from '../context/TransactionContext';
 import { ReportSummary } from '../components/reports/ReportSummary';
 import { ExportButtons } from '../components/reports/ExportButtons';
-import { CategoryPieChart } from '../components/dashboard/CategoryPieChart';
+import { ExpenseCategoryChart } from '../components/analytics/ExpenseCategoryChart';
 import { PaymentMethodChart } from '../components/dashboard/PaymentMethodChart';
 import { IncomeExpenseChart } from '../components/dashboard/IncomeExpenseChart';
 import { DailyExpenseChart } from '../components/dashboard/DailyExpenseChart';
@@ -241,10 +241,17 @@ export const ReportsPage: React.FC = () => {
 
       {/* Tab 1: Executive Summary */}
       {reportTab === 'summary' && (
-        <ReportSummary
-          transactions={reportTransactions}
-          currency={settings.currency}
-        />
+        <div className="space-y-6">
+          <ReportSummary
+            transactions={reportTransactions}
+            currency={settings.currency}
+          />
+          <ExpenseCategoryChart
+            transactions={reportTransactions}
+            title="Expense Category Breakdown"
+            subtitle={`Distribution for ${periodLabel}`}
+          />
+        </div>
       )}
 
       {/* Tab 2: Daily Breakdown Table */}
@@ -367,7 +374,11 @@ export const ReportsPage: React.FC = () => {
       {/* Tab 4: Visual Analytics (Charts) */}
       {reportTab === 'charts' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <CategoryPieChart />
+          <ExpenseCategoryChart
+            transactions={reportTransactions}
+            title="Expense Category Breakdown"
+            subtitle={`Distribution for ${periodLabel}`}
+          />
           <PaymentMethodChart />
           <DailyExpenseChart />
           <IncomeExpenseChart />
