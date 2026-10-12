@@ -170,6 +170,13 @@ export const api = {
     return res.data;
   },
 
+  async adjustAccountBalance(id: string, newBalance: number, reason: string = 'Manual Balance Adjustment') {
+    const res = await apiClient.post(`/accounts/${id}/adjust`, { newBalance, reason }).catch(() => {
+      return apiClient.put(`/accounts/${id}`, { newBalance, balance: newBalance, openingBalance: newBalance, reason });
+    });
+    return res.data;
+  },
+
   async deleteAccount(id: string) {
     const res = await apiClient.delete(`/accounts/${id}`);
     return res.data;

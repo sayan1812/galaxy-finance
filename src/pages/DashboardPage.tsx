@@ -7,7 +7,6 @@ import {
   ArrowDownLeft,
   ArrowUpRight, 
   ArrowRight, 
-  Sparkles, 
   Building2, 
   ListFilter, 
   Info,
@@ -44,8 +43,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     settings, 
     setIsAddModalOpen, 
     openAddCashModal,
-    addCashTransaction,
-    addTransaction,
     monthIncome,
     monthExpense,
     cashBalance,
@@ -64,38 +61,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
 
   // Last 5 recent transactions
   const recentTransactions = transactions.slice(0, 5);
-
-  const handleQuickAddCash = (merchant: string, category: string, amount: number) => {
-    const now = new Date();
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    addCashTransaction({
-      type: 'EXPENSE',
-      amount,
-      category,
-      merchant,
-      description: `Quick ${merchant}`,
-      date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
-      time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
-    });
-  };
-
-  const handleQuickAddUpi = (merchant: string, category: string, amount: number) => {
-    const now = new Date();
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    addTransaction({
-      type: 'EXPENSE',
-      amount,
-      currency: 'INR',
-      paymentMethod: 'UPI',
-      source: 'AUTOMATIC',
-      category,
-      merchant,
-      description: `Quick ${merchant}`,
-      account: 'SBI UPI (user@okhdfcbank)',
-      date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
-      time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
-    });
-  };
 
   return (
     <div className="space-y-6 pb-12 text-left">
@@ -466,43 +431,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         </div>
         <div className="fin-card">
           <IncomeExpenseChart />
-        </div>
-      </div>
-
-      {/* QUICK LOG ACCELERATORS (One-Tap Entry) */}
-      <div className="reveal-on-scroll stagger-6 p-5 rounded-3xl bg-[var(--card-bg)] border border-[var(--card-border)] shadow-sm fin-card">
-        <div className="flex items-center gap-2 text-xs font-bold text-[var(--text-secondary)] mb-3">
-          <Sparkles size={14} className="text-[var(--accent-primary)]" />
-          <span>One-Tap Quick Logging Accelerators</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {[
-            { name: 'Tea & Snacks', cat: 'Food & Restaurant', amt: 40, mode: 'cash' },
-            { name: 'Lunch', cat: 'Food & Restaurant', amt: 250, mode: 'cash' },
-            { name: 'Metro / Auto', cat: 'Transportation', amt: 50, mode: 'cash' },
-            { name: 'Coffee', cat: 'Food & Restaurant', amt: 120, mode: 'upi' },
-            { name: 'Swiggy / Dinner', cat: 'Food & Restaurant', amt: 350, mode: 'upi' },
-            { name: 'Groceries', cat: 'Grocery', amt: 450, mode: 'upi' },
-          ].map((item, idx) => (
-            <button
-              key={idx}
-              onClick={() => {
-                if (item.mode === 'cash') {
-                  handleQuickAddCash(item.name, item.cat, item.amt);
-                } else {
-                  handleQuickAddUpi(item.name, item.cat, item.amt);
-                }
-              }}
-              className="px-3.5 py-2 rounded-2xl bg-[var(--bg-subsurface)] hover:bg-[var(--row-hover-bg)] border border-[var(--card-border)] hover:border-[var(--card-border-hover)] text-xs font-semibold text-[var(--text-primary)] transition-all flex items-center gap-2 cursor-pointer shadow-xs"
-            >
-              <span>{item.name}</span>
-              <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
-                item.mode === 'cash' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
-              }`}>
-                ₹{item.amt} ({item.mode.toUpperCase()})
-              </span>
-            </button>
-          ))}
         </div>
       </div>
 

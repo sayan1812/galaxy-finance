@@ -265,11 +265,27 @@ class ApiClient {
     });
   }
 
-  async updateBankBalance(id: string, newBalance: number, reason: string) {
-    return this.request<{ bank: any; adjustment: any; message: string }>(`/banks/${id}/balance`, {
+  async updateAccount(id: string, accountData: any) {
+    return this.request<{ account: any; message: string }>(`/accounts/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(accountData)
+    });
+  }
+
+  async adjustAccountBalance(id: string, newBalance: number, reason: string = 'Manual Balance Adjustment') {
+    return this.request<{ account: any; message: string }>(`/accounts/${id}/adjust`, {
       method: 'POST',
       body: JSON.stringify({ newBalance, reason })
+    }).catch(() => {
+      return this.request<any>(`/accounts/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ newBalance, balance: newBalance, openingBalance: newBalance, reason })
+      });
     });
+  }
+
+  async updateBankBalance(id: string, newBalance: number, reason: string = 'Manual Balance Adjustment') {
+    return this.adjustAccountBalance(id, newBalance, reason);
   }
 
   // --- Transactions ---

@@ -5,8 +5,7 @@ import {
   ArrowUpRight, 
   ArrowDownLeft, 
   Edit3, 
-  Check, 
-  Receipt,
+  FileText,
   Search,
   Plus
 } from 'lucide-react';
@@ -15,6 +14,7 @@ import { formatCurrency } from '../../utils/formatters';
 import { formatDate, formatTime } from '../../utils/dateUtils';
 import { CategoryIcon } from '../common/CategoryIcon';
 import { PaymentMethodBadge } from '../common/PaymentMethodBadge';
+import { AdjustBalanceModal } from './AdjustBalanceModal';
 import type { BankAccount, Transaction } from '../../types';
 
 interface BankDetailModalProps {
@@ -31,13 +31,11 @@ export const BankDetailModal: React.FC<BankDetailModalProps> = ({
   const { 
     transactions, 
     bankStatsList, 
-    updateBankBalance, 
     settings, 
     setIsAddModalOpen 
   } = useTransactions();
 
-  const [isEditingBalance, setIsEditingBalance] = useState<boolean>(false);
-  const [newBalanceInput, setNewBalanceInput] = useState<string>('');
+  const [isAdjustModalOpen, setIsAdjustModalOpen] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
 
   const stats = useMemo(() => {
@@ -73,15 +71,6 @@ export const BankDetailModal: React.FC<BankDetailModalProps> = ({
   }, [bankTransactions, searchTerm]);
 
   if (!bank || !stats) return null;
-
-  const handleSaveBalance = (e: React.FormEvent) => {
-    e.preventDefault();
-    const val = parseFloat(newBalanceInput);
-    if (!isNaN(val) && val >= 0) {
-      updateBankBalance(bank.id, val);
-      setIsEditingBalance(false);
-    }
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
@@ -136,49 +125,18 @@ export const BankDetailModal: React.FC<BankDetailModalProps> = ({
           <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800">
             <div className="flex items-center justify-between text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1">
               <span>Available Balance</span>
-              {!isEditingBalance && (
-                <button
-                  onClick={() => {
-                    setNewBalanceInput(stats.currentBalance.toString());
-                    setIsEditingBalance(true);
-                  }}
-                  className="text-cyan-400 hover:underline cursor-pointer lowercase"
-                >
-                  adjust
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setIsAdjustModalOpen(true)}
+                className="text-cyan-400 hover:text-cyan-300 hover:underline cursor-pointer lowercase font-medium"
+              >
+                adjust
+              </button>
             </div>
 
-            {isEditingBalance ? (
-              <form onSubmit={handleSaveBalance} className="flex items-center gap-1.5 mt-1">
-                <input
-                  type="number"
-                  min="0"
-                  step="any"
-                  value={newBalanceInput}
-                  onChange={(e) => setNewBalanceInput(e.target.value)}
-                  className="w-full px-2.5 py-1 rounded-xl bg-slate-900 border border-cyan-500 text-sm font-bold text-white focus:outline-hidden"
-                  autoFocus
-                />
-                <button
-                  type="submit"
-                  className="p-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white cursor-pointer"
-                >
-                  <Check size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsEditingBalance(false)}
-                  className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
-                >
-                  <X size={14} />
-                </button>
-              </form>
-            ) : (
-              <div className="text-xl font-black text-white">
-                {formatCurrency(stats.currentBalance, settings.currency)}
-              </div>
-            )}
+            <div className="text-xl font-black text-white">
+              {formatCurrency(stats.currentBalance, settings.currency)}
+            </div>
           </div>
 
           {/* Total Income for this Bank */}
@@ -204,24 +162,24 @@ export const BankDetailModal: React.FC<BankDetailModalProps> = ({
           </div>
         </div>
 
-        {/* Transactions Section Header */}
-        <div className="flex items-center justify-between gap-3 pb-2 flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <Receipt size={16} className="text-indigo-400" />
-            <h3 className="text-sm font-bold text-white">
+        {/* Transactions Section Header & Responsive Search Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full my-4 flex-shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
+            <FileText className="text-[#89D7B7]" size={16} />
+            <h4 className="text-sm font-semibold text-[#FFF4E1]">
               Bank Statements & Log ({bankTransactions.length})
-            </h3>
+            </h4>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64 min-w-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-400/60" size={14} />
               <input
                 type="text"
                 placeholder="Search transactions..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 pr-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-cyan-500"
+                className="w-full bg-[#1A312C]/60 border border-[#89D7B7]/20 rounded-lg pl-9 pr-3 py-1.5 text-xs text-[#FFF4E1] placeholder-emerald-400/40 focus:outline-none focus:border-[#89D7B7]"
               />
             </div>
 
@@ -230,7 +188,7 @@ export const BankDetailModal: React.FC<BankDetailModalProps> = ({
                 onClose();
                 setIsAddModalOpen(true);
               }}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs transition cursor-pointer"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#2D7A61] hover:bg-[#3B9E7E] text-[#FFF4E1] font-bold text-xs transition cursor-pointer shrink-0 shadow-xs"
             >
               <Plus size={14} />
               <span className="hidden sm:inline">Add Entry</span>
@@ -298,6 +256,16 @@ export const BankDetailModal: React.FC<BankDetailModalProps> = ({
             })
           )}
         </div>
+
+        {/* Adjust Account Balance Modal */}
+        {isAdjustModalOpen && (
+          <AdjustBalanceModal
+            bank={bank}
+            currentBalance={stats.currentBalance}
+            isOpen={isAdjustModalOpen}
+            onClose={() => setIsAdjustModalOpen(false)}
+          />
+        )}
       </div>
     </div>
   );

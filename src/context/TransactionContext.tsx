@@ -79,7 +79,7 @@ export interface TransactionContextType {
   addBankAccount: (data: Omit<BankAccount, 'id' | 'createdAt' | 'updatedAt'>) => BankAccount;
   updateBankAccount: (id: string, data: Partial<Omit<BankAccount, 'id' | 'createdAt'>>) => void;
   deleteBankAccount: (id: string) => void;
-  updateBankBalance: (id: string, newBalance: number) => void;
+  updateBankBalance: (id: string, newBalance: number, reason?: string) => void;
   getBankById: (id: string) => BankAccount | undefined;
   updateCashWalletOpening: (openingCash: number) => void;
 
@@ -1425,8 +1425,8 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     });
   }, [bankAccounts, transactions]);
 
-  // Direct Balance Adjuster: Adjust openingBalance so currentBalance = newBalance
-  const updateBankBalance = useCallback((id: string, newBalance: number) => {
+  // Direct Balance Adjuster: Adjust balance and openingBalance so currentBalance = newBalance
+  const updateBankBalance = useCallback((id: string, newBalance: number, reason: string = 'Manual Balance Adjustment') => {
     setBankAccounts((prev) =>
       prev.map((bank) => {
         if (bank.id === id) {
@@ -1455,10 +1455,11 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
             newBalance,
             '🏦'
           );
-          api.updateBankBalance(id, newBalance, 'Manual Balance Adjustment').catch(() => {});
+          api.adjustAccountBalance(id, newBalance, reason).catch(() => {});
 
           return {
             ...bank,
+            balance: newBalance,
             openingBalance: calculatedOpening,
             updatedAt: new Date().toISOString(),
           };

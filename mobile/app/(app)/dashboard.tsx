@@ -22,7 +22,7 @@ export default function DashboardScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { typography } = useResponsive();
-  const { triggerLight, triggerMedium, triggerSuccess } = useHaptics();
+  const { triggerLight } = useHaptics();
 
   const {
     overview,
@@ -30,36 +30,7 @@ export default function DashboardScreen() {
     transactions,
     isRefreshing,
     refreshData,
-    addTransaction,
   } = useFinance();
-
-  // One-Tap Quick Log Accelerators
-  const quickItems = [
-    { name: 'Tea & Snacks', cat: 'Food & Restaurant', amt: 40, mode: 'Cash' as const },
-    { name: 'Coffee', cat: 'Food & Restaurant', amt: 120, mode: 'UPI' as const },
-    { name: 'Metro / Auto', cat: 'Transportation', amt: 50, mode: 'Cash' as const },
-    { name: 'Lunch / Swiggy', cat: 'Food & Restaurant', amt: 350, mode: 'UPI' as const },
-    { name: 'Groceries', cat: 'Grocery', amt: 450, mode: 'UPI' as const },
-  ];
-
-  const handleQuickLog = async (item: typeof quickItems[0]) => {
-    triggerMedium();
-    const now = new Date();
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    try {
-      await addTransaction({
-        type: 'expense',
-        amount: item.amt,
-        category: item.cat,
-        merchant: item.name,
-        paymentMethod: item.mode,
-        source: 'Manual',
-        date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
-        time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
-      });
-      triggerSuccess();
-    } catch {}
-  };
 
   return (
     <View style={styles.container}>
@@ -123,44 +94,6 @@ export default function DashboardScreen() {
           />
         </View>
 
-        {/* SECTION 2: ONE-TAP QUICK LOG ACCELERATORS */}
-        <View style={styles.sectionSpacer}>
-          <View style={styles.sectionHeaderRow}>
-            <Text style={[styles.sectionTitle, { fontSize: typography.cardHeader }]}>
-              ONE-TAP ACCELERATORS
-            </Text>
-            <Text style={[styles.sectionMeta, { fontSize: typography.microMeta }]}>
-              Rapid Entry
-            </Text>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.acceleratorsRow}
-          >
-            {quickItems.map((item, idx) => (
-              <PressableScale
-                key={idx}
-                activeScale={0.97}
-                onPress={() => handleQuickLog(item)}
-                style={styles.quickCard}
-              >
-                <Text style={[styles.quickName, { fontSize: typography.microMeta }]}>
-                  {item.name}
-                </Text>
-                <Text style={[styles.quickAmount, { fontSize: typography.bodyRegular }]}>
-                  ₹{item.amt}
-                </Text>
-                <View style={styles.quickPill}>
-                  <Text style={[styles.quickPillText, { fontSize: typography.caption }]}>
-                    {item.mode}
-                  </Text>
-                </View>
-              </PressableScale>
-            ))}
-          </ScrollView>
-        </View>
 
         {/* SECTION 3: CONNECTED BANK VAULTS PREVIEW */}
         <View style={styles.sectionSpacer}>
@@ -314,42 +247,6 @@ const styles = StyleSheet.create({
     color: COLORS.primaryAccent,
     fontWeight: '700',
     fontFamily: 'monospace',
-  },
-  acceleratorsRow: {
-    gap: SPACING.sm,
-    paddingRight: SPACING.md,
-  },
-  quickCard: {
-    backgroundColor: COLORS.cardSurface,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.md,
-    width: 124,
-    borderWidth: 1,
-    borderColor: COLORS.borderSand,
-  },
-  quickName: {
-    color: COLORS.secondaryText,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  quickAmount: {
-    color: COLORS.primaryText,
-    fontWeight: '800',
-    fontFamily: 'monospace',
-    marginBottom: 8,
-  },
-  quickPill: {
-    backgroundColor: COLORS.canvas,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: RADIUS.sm,
-    borderWidth: 1,
-    borderColor: COLORS.borderSand,
-    alignSelf: 'flex-start',
-  },
-  quickPillText: {
-    color: COLORS.secondaryText,
-    fontWeight: '600',
   },
   vaultsGrid: {
     gap: SPACING.sm,

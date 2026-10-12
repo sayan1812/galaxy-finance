@@ -112,7 +112,74 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
     }));
   }, [sortedCategories]);
 
-  const activeCategory = activeIndex !== null ? sortedCategories[activeIndex] : null;
+  // Custom outer radial leader lines and perimeter labels (Money-Manager style)
+  const renderCustomizedLabel = (props: any) => {
+    const { cx, cy, midAngle, outerRadius, percent, index, name } = props;
+    if (!percent || percent < 0.02) return null; // Skip slices < 2% to avoid overlap
+
+    const RADIAN = Math.PI / 180;
+    // 1. Point on the slice perimeter
+    const rStart = outerRadius + 4;
+    const sx = cx + rStart * Math.cos(-midAngle * RADIAN);
+    const sy = cy + rStart * Math.sin(-midAngle * RADIAN);
+
+    // 2. Elbow inflection point
+    const rElbow = outerRadius + 20;
+    const mx = cx + rElbow * Math.cos(-midAngle * RADIAN);
+    const my = cy + rElbow * Math.sin(-midAngle * RADIAN);
+
+    // 3. Horizontal extension endpoint
+    const isRight = Math.cos(-midAngle * RADIAN) >= 0;
+    const ex = isRight ? mx + 16 : mx - 16;
+    const ey = my;
+
+    // 4. Anchor and text coordinates
+    const textAnchor = isRight ? 'start' : 'end';
+    const textX = isRight ? ex + 4 : ex - 4;
+    const textY = ey;
+
+    const percentageStr = `${Math.round(percent * 100)}%`;
+    const truncatedName = name.length > 14 ? `${name.substring(0, 13)}…` : name;
+    const sliceColor = pieChartData[index]?.color || (isDark ? '#89D7B7' : '#059669');
+
+    return (
+      <g key={`leader-label-${index}`} className="transition-opacity duration-200">
+        {/* Curved pointer line */}
+        <path
+          d={`M ${sx} ${sy} Q ${mx} ${my} ${ex} ${ey}`}
+          stroke={isDark ? 'rgba(137, 215, 183, 0.45)' : 'rgba(5, 150, 105, 0.5)'}
+          strokeWidth={1.5}
+          fill="none"
+        />
+        {/* Small radial pin dot */}
+        <circle cx={sx} cy={sy} r={2} fill={sliceColor} />
+
+        {/* Category Label */}
+        <text
+          x={textX}
+          y={textY - 3}
+          textAnchor={textAnchor}
+          dominantBaseline="auto"
+          fill={isDark ? '#FFF4E1' : '#064E3B'}
+          style={{ fontSize: '11px', fontWeight: 600 }}
+        >
+          {truncatedName}
+        </text>
+
+        {/* Percentage Label */}
+        <text
+          x={textX}
+          y={textY + 11}
+          textAnchor={textAnchor}
+          dominantBaseline="auto"
+          fill={isDark ? '#89D7B7' : '#047857'}
+          style={{ fontSize: '10px', fontWeight: 700, fontFamily: 'monospace' }}
+        >
+          {percentageStr}
+        </text>
+      </g>
+    );
+  };
 
   return (
     <div
@@ -225,19 +292,21 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
       ) : (
         <div className="space-y-6">
           {/* Interactive Donut / Pie Chart */}
-          <div className="relative w-full h-64 sm:h-72 flex items-center justify-center">
+          <div className="relative w-full h-72 sm:h-80 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
+              <PieChart margin={{ top: 15, right: 25, bottom: 15, left: 25 }}>
                 <Pie
                   data={pieChartData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={62}
-                  outerRadius={96}
+                  innerRadius={52}
+                  outerRadius={76}
                   paddingAngle={3}
                   dataKey="value"
                   animationDuration={800}
                   animationEasing="ease-out"
+                  label={renderCustomizedLabel}
+                  labelLine={false}
                   onMouseEnter={(_, index) => setActiveIndex(index)}
                   onMouseLeave={() => setActiveIndex(null)}
                 >
@@ -308,27 +377,25 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
             {/* Central Donut Callout Stat */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
               <span
-                className={`text-[10px] sm:text-xs font-mono uppercase tracking-wider font-semibold truncate max-w-[120px] ${
-                  isDark ? 'text-[#89D7B7]/80' : 'text-slate-500'
+                className={`text-[9px] sm:text-[10px] font-mono uppercase tracking-wider font-bold ${
+                  isDark ? 'text-[#89D7B7]/80' : 'text-emerald-800/80'
                 }`}
               >
-                {activeCategory ? activeCategory.category : 'Total Expense'}
+                TOTAL EXPENSE
               </span>
               <span
-                className={`text-base sm:text-lg font-black font-mono tracking-tight ${
-                  isDark ? 'text-[#FFF4E1]' : 'text-slate-900'
+                className={`text-base sm:text-xl font-black font-mono tracking-tight my-0.5 ${
+                  isDark ? 'text-[#FFF4E1]' : 'text-emerald-950'
                 }`}
               >
-                {activeCategory
-                  ? formatCurrency(activeCategory.amount, settings?.currency)
-                  : formatCurrency(totalExpense, settings?.currency)}
+                {formatCurrency(totalExpense, settings?.currency)}
               </span>
               <span
-                className={`text-[11px] font-bold font-mono ${
-                  isDark ? 'text-[#89D7B7]' : 'text-emerald-600'
+                className={`text-[10px] sm:text-[11px] font-bold font-mono ${
+                  isDark ? 'text-[#89D7B7]' : 'text-emerald-700'
                 }`}
               >
-                {activeCategory ? `${activeCategory.percentage.toFixed(1)}%` : '100%'}
+                {sortedCategories.length} {sortedCategories.length === 1 ? 'Category' : 'Categories'}
               </span>
             </div>
           </div>
@@ -348,7 +415,7 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
                     isHovered
                       ? isDark
                         ? 'bg-[#1A312C]/60 scale-[1.01]'
-                        : 'bg-slate-50 scale-[1.01]'
+                        : 'bg-emerald-50/70 scale-[1.01]'
                       : 'hover:bg-emerald-500/5'
                   }`}
                 >
@@ -360,15 +427,15 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
                     >
                       {Math.round(item.percentage)}%
                     </span>
-                    <span className="text-sm font-semibold text-slate-800 dark:text-[#FFF4E1] truncate">
+                    <span className="text-sm font-medium text-emerald-900 dark:text-[#FFF4E1]/90 truncate">
                       {item.category}
                     </span>
                   </div>
 
                   {/* Right: Calculated Amount */}
-                  <div className="text-sm font-bold text-slate-900 dark:text-[#FFF4E1] font-mono shrink-0 ml-3">
+                  <span className="text-sm font-semibold text-emerald-950 dark:text-[#89D7B7] font-mono shrink-0 ml-3">
                     {formatCurrency(item.amount, settings?.currency)}
-                  </div>
+                  </span>
                 </div>
               );
             })}

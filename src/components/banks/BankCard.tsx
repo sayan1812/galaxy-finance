@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Building2, 
   ArrowUpRight, 
@@ -10,6 +10,7 @@ import {
 import type { BankComputedStats } from '../../types';
 import { useTransactions } from '../../context/TransactionContext';
 import { formatCurrency, maskCurrency } from '../../utils/formatters';
+import { AdjustBalanceModal } from './AdjustBalanceModal';
 
 interface BankCardProps {
   bankStats: BankComputedStats;
@@ -26,6 +27,7 @@ export const BankCard: React.FC<BankCardProps> = ({
 }) => {
   const { settings, isMasked } = useTransactions();
   const { bank, currentBalance, totalIncome, totalExpense, transactionCount } = bankStats;
+  const [isAdjustOpen, setIsAdjustOpen] = useState<boolean>(false);
 
   return (
     <div className="relative group p-6 rounded-3xl bg-slate-900/70 border border-slate-800 hover:border-cyan-500/50 shadow-lg hover:shadow-[0_0_30px_rgba(6,182,212,0.15)] transition-all duration-300 backdrop-blur-xl flex flex-col justify-between overflow-hidden text-left">
@@ -85,9 +87,19 @@ export const BankCard: React.FC<BankCardProps> = ({
 
         {/* Current Balance Display (Live dynamic computation) */}
         <div className="my-5 p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
-          <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">
-            Current Available Balance
-          </span>
+          <div className="flex items-center justify-between text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1">
+            <span>Current Available Balance</span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsAdjustOpen(true);
+              }}
+              className="text-cyan-400 hover:text-cyan-300 hover:underline cursor-pointer lowercase font-medium"
+            >
+              adjust
+            </button>
+          </div>
           <div className="text-2xl font-black text-white tracking-tight">
             {isMasked ? maskCurrency(settings?.currency) : formatCurrency(currentBalance, settings?.currency)}
           </div>
@@ -134,6 +146,16 @@ export const BankCard: React.FC<BankCardProps> = ({
           <span>View Statement</span>
         </button>
       </div>
+
+      {/* Adjust Account Balance Modal */}
+      {isAdjustOpen && (
+        <AdjustBalanceModal
+          bank={bank}
+          currentBalance={currentBalance}
+          isOpen={isAdjustOpen}
+          onClose={() => setIsAdjustOpen(false)}
+        />
+      )}
     </div>
   );
 };
