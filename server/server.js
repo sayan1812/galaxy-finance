@@ -115,6 +115,50 @@ app.use('/api/dashboard', dashboardMongoRoutes);
 app.use('/api/v1/download', downloadRoutes);
 app.use('/download', downloadRoutes);
 
+// Android APK & Package Downloads Static Serving with verified MIME type
+const publicDownloadsPath = path.resolve(process.cwd(), 'public/downloads');
+const serverDownloadsPath = path.resolve(process.cwd(), 'server/downloads');
+
+// Route handler for any /downloads/*.apk file request
+app.get('/downloads/:filename', (req, res, next) => {
+  if (req.params.filename.endsWith('.apk')) {
+    const candidatePaths = [
+      path.resolve(publicDownloadsPath, req.params.filename),
+      path.resolve(serverDownloadsPath, req.params.filename),
+      path.resolve(publicDownloadsPath, 'galaxy-finance-release.apk'),
+      path.resolve(serverDownloadsPath, 'galaxy-finance-v1.0.0.apk'),
+    ];
+    const target = candidatePaths.find((p) => fs.existsSync(p) && fs.statSync(p).size > 10000);
+    if (target) {
+      res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+      res.setHeader('Content-Disposition', 'attachment; filename="galaxy-finance-v1.0.0.apk"');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      return res.sendFile(target);
+    }
+  }
+  next();
+});
+
+app.use('/downloads', express.static(publicDownloadsPath, {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.apk')) {
+      res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+      res.setHeader('Content-Disposition', 'attachment; filename="galaxy-finance-v1.0.0.apk"');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+    }
+  }
+}));
+
+app.use('/downloads', express.static(serverDownloadsPath, {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.apk')) {
+      res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+      res.setHeader('Content-Disposition', 'attachment; filename="galaxy-finance-v1.0.0.apk"');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+    }
+  }
+}));
+
 // Ancillary Routes (Budgets, Reports, Settings, Calendar, Sync)
 app.use('/api/budgets', budgetsRoutes);
 app.use('/api/reports', reportsRoutes);

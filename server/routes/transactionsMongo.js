@@ -5,6 +5,12 @@ import { authenticateOrDemo } from '../middleware/mongoAuth.js';
 
 const router = express.Router();
 
+// Prevent intermediate browser/PWA caching for real-time multi-device synchronization
+router.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  next();
+});
+
 // GET /api/v1/transactions
 router.get('/', authenticateOrDemo, async (req, res) => {
   try {

@@ -199,6 +199,7 @@ export interface TransactionContextType {
   requestDeleteTransaction: (id: string) => void;
   cancelDeleteTransaction: () => void;
   confirmDeleteTransaction: () => void;
+  refreshUserData: () => Promise<void>;
 }
 
 const STORAGE_KEYS = {
@@ -493,9 +494,130 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [settings]);
 
   // Strictly scope user financial data to activeUserId and sync with MongoDB Atlas
-  useEffect(() => {
-    let isMounted = true;
+  const loadUserData = useCallback(async () => {
+    const activeToken = typeof window !== 'undefined'
+      ? (localStorage.getItem('token') || localStorage.getItem('galaxy_token') || localStorage.getItem('rupeewise_token'))
+      : null;
+    if (!activeToken) return;
 
+    // 1. Fetch live bank accounts & cash wallet from MongoDB Atlas
+    try {
+      const res = await api.getAccounts();
+      const accountsList = Array.isArray(res) ? res : (res && Array.isArray(res.accounts) ? res.accounts : null);
+      if (accountsList) {
+        const liveBanks: BankAccount[] = accountsList
+          .filter((a: any) => a.accountType !== 'cash')
+          .map((a: any) => ({
+            id: a._id || a.id,
+            bankName: a.accountName,
+            accountType: 'Savings' as const,
+            nickname: a.accountName,
+            openingBalance: Number(a.openingBalance !== undefined ? a.openingBalance : (a.balance || 0)),
+            balance: Number(a.balance || 0),
+            accountNumberMasked: a.accountNumberMask || 'XXXX XXXX 0000',
+            createdAt: a.createdAt || new Date().toISOString(),
+            updatedAt: a.updatedAt || new Date().toISOString(),
+          }));
+        setBankAccounts(liveBanks);
+
+        const cashAcc = accountsList.find((a: any) => a.accountType === 'cash');
+        if (cashAcc) {
+          setCashWalletConfig((prev) => ({
+            ...prev,
+            openingCash: Number(cashAcc.openingBalance || 0),
+          }));
+        } else {
+          setCashWalletConfig((prev) => ({
+            ...prev,
+            openingCash: 0,
+          }));
+        }
+      }
+    } catch (e: any) {
+      if (e?.status !== 401 && !e?.isAuthError) {
+        console.warn('Failed to load accounts for user:', e);
+      }
+    }
+
+    // 2. Fetch live transactions for user
+    try {
+      const res = await api.getTransactions();
+      if (res && Array.isArray(res.transactions)) {
+        const mappedTxns: Transaction[] = res.transactions.map((t: any) => {
+          const accId = t.accountId?._id || (typeof t.accountId === 'string' ? t.accountId : undefined);
+          const toAccId = t.toAccountId?._id || (typeof t.toAccountId === 'string' ? t.toAccountId : undefined);
+          const accName = t.accountId?.accountName || 'Primary Account';
+          const toAccName = t.toAccountId?.accountName || undefined;
+          const dStr = typeof t.date === 'string' ? t.date.slice(0, 10) : new Date(t.date).toISOString().slice(0, 10);
+          return {
+            id: t._id || t.id,
+            type: (t.type?.toUpperCase() || 'EXPENSE') as TransactionType,
+            amount: Number(t.amount || 0),
+            currency: 'INR',
+            category: t.category || 'General',
+            paymentMethod: (t.paymentMethod || (t.type === 'transfer' ? 'BANK_TRANSFER' : 'UPI')) as PaymentMethod,
+            source: (t.source || 'MANUAL') as TransactionSource,
+            merchant: t.merchant || '',
+            description: t.notes || t.description || '',
+            transactionReference: t.reference || t.transactionReference || '',
+            receiptUrl: t.receiptUrl || '',
+            date: dStr,
+            time: t.time || '12:00',
+            account: accName,
+            bankAccountId: accId,
+            toBankAccountId: toAccId,
+            toAccount: toAccName,
+            createdAt: t.createdAt || new Date().toISOString(),
+            updatedAt: t.updatedAt || new Date().toISOString(),
+          };
+        });
+        setTransactions(mappedTxns);
+      }
+    } catch (e: any) {
+      if (e?.status !== 401 && !e?.isAuthError) {
+        console.warn('Failed to load transactions for user:', e);
+      }
+    }
+
+    // 3. Fetch custom categories from user profile
+    try {
+      let rawCustom: any[] = [];
+      if (typeof (api as any)?.getCustomCategories === 'function') {
+        const res = await (api as any).getCustomCategories();
+        if (Array.isArray(res)) {
+          rawCustom = res;
+        } else if (res && Array.isArray(res.categories)) {
+          rawCustom = res.categories;
+        }
+      } else {
+        const local = localStorage.getItem('galaxy_custom_categories');
+        rawCustom = local ? JSON.parse(local) : [];
+      }
+
+      if (Array.isArray(rawCustom)) {
+        setCategories((prev) => {
+          const customMapped: Category[] = rawCustom.map((c: any) => ({
+            id: c.id || c._id || `cat-${c.name}`,
+            name: c.name,
+            color: c.color || '#6366f1',
+            icon: c.icon || 'Tag',
+            type: (c.type?.toUpperCase() || 'BOTH') as any,
+            isCustom: true,
+          }));
+          const existingNames = new Set(prev.map((c) => c.name.toLowerCase()));
+          const dedupedCustom = customMapped.filter((c) => !existingNames.has(c.name.toLowerCase()));
+          return [...prev, ...dedupedCustom];
+        });
+      }
+    } catch (err: any) {
+      if (err?.status !== 401 && !err?.isAuthError) {
+        console.warn('Failed to load custom categories for user:', err);
+      }
+    }
+  }, []);
+
+  // Initial load on mount or user switch
+  useEffect(() => {
     // Only fetch data if authentication check has finished and a user is actively signed in
     if (authLoading) return;
 
@@ -512,143 +634,40 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       return;
     }
 
-    const loadUserData = async () => {
-      const activeToken = typeof window !== 'undefined'
-        ? (localStorage.getItem('token') || localStorage.getItem('galaxy_token') || localStorage.getItem('rupeewise_token'))
-        : null;
-      if (!activeToken) return;
-
-      // 1. Fetch live bank accounts & cash wallet from MongoDB Atlas
-      try {
-        const res = await api.getAccounts();
-        const accountsList = Array.isArray(res) ? res : (res && Array.isArray(res.accounts) ? res.accounts : null);
-        if (isMounted && accountsList) {
-          const liveBanks: BankAccount[] = accountsList
-            .filter((a: any) => a.accountType !== 'cash')
-            .map((a: any) => ({
-              id: a._id || a.id,
-              bankName: a.accountName,
-              accountType: 'Savings' as const,
-              nickname: a.accountName,
-              openingBalance: Number(a.openingBalance !== undefined ? a.openingBalance : (a.balance || 0)),
-              balance: Number(a.balance || 0),
-              accountNumberMasked: a.accountNumberMask || 'XXXX XXXX 0000',
-              createdAt: a.createdAt || new Date().toISOString(),
-              updatedAt: a.updatedAt || new Date().toISOString(),
-            }));
-          setBankAccounts(liveBanks);
-
-          const cashAcc = accountsList.find((a: any) => a.accountType === 'cash');
-          if (cashAcc) {
-            setCashWalletConfig((prev) => ({
-              ...prev,
-              openingCash: Number(cashAcc.openingBalance || 0),
-            }));
-          } else {
-            setCashWalletConfig((prev) => ({
-              ...prev,
-              openingCash: 0,
-            }));
-          }
-        }
-      } catch (e: any) {
-        if (e?.status !== 401 && !e?.isAuthError) {
-          console.warn('Failed to load accounts for user:', e);
-        }
-      }
-
-      // 2. Fetch live transactions for user
-      try {
-        const res = await api.getTransactions();
-        if (isMounted && res && Array.isArray(res.transactions)) {
-          const mappedTxns: Transaction[] = res.transactions.map((t: any) => {
-            const accId = t.accountId?._id || (typeof t.accountId === 'string' ? t.accountId : undefined);
-            const toAccId = t.toAccountId?._id || (typeof t.toAccountId === 'string' ? t.toAccountId : undefined);
-            const accName = t.accountId?.accountName || 'Primary Account';
-            const toAccName = t.toAccountId?.accountName || undefined;
-            const dStr = typeof t.date === 'string' ? t.date.slice(0, 10) : new Date(t.date).toISOString().slice(0, 10);
-            return {
-              id: t._id || t.id,
-              type: (t.type?.toUpperCase() || 'EXPENSE') as TransactionType,
-              amount: Number(t.amount || 0),
-              currency: 'INR',
-              category: t.category || 'General',
-              paymentMethod: (t.paymentMethod || (t.type === 'transfer' ? 'BANK_TRANSFER' : 'UPI')) as PaymentMethod,
-              source: (t.source || 'MANUAL') as TransactionSource,
-              merchant: t.merchant || '',
-              description: t.notes || t.description || '',
-              transactionReference: t.reference || t.transactionReference || '',
-              receiptUrl: t.receiptUrl || '',
-              date: dStr,
-              time: t.time || '12:00',
-              account: accName,
-              bankAccountId: accId,
-              toBankAccountId: toAccId,
-              toAccount: toAccName,
-              createdAt: t.createdAt || new Date().toISOString(),
-              updatedAt: t.updatedAt || new Date().toISOString(),
-            };
-          });
-          setTransactions(mappedTxns);
-        }
-      } catch (e: any) {
-        if (e?.status !== 401 && !e?.isAuthError) {
-          console.warn('Failed to load transactions for user:', e);
-        }
-      }
-
-      // 3. Fetch custom categories from user profile
-      try {
-        let rawCustom: any[] = [];
-        if (typeof (api as any)?.getCustomCategories === 'function') {
-          const res = await (api as any).getCustomCategories();
-          if (Array.isArray(res)) {
-            rawCustom = res;
-          } else if (res && Array.isArray(res.categories)) {
-            rawCustom = res.categories;
-          }
-        } else {
-          const local = localStorage.getItem('galaxy_custom_categories');
-          rawCustom = local ? JSON.parse(local) : [];
-        }
-
-        if (isMounted && Array.isArray(rawCustom)) {
-          setCategories((prev) => {
-            const customMapped: Category[] = rawCustom.map((c: any) => ({
-              id: c.id || c._id || `cat-${c.name}`,
-              name: c.name,
-              color: c.color || '#6366f1',
-              icon: c.icon || 'Tag',
-              type: (c.type?.toUpperCase() || 'BOTH') as any,
-              isCustom: true,
-            }));
-            const existingNames = new Set(prev.map((c) => c.name.toLowerCase()));
-            const dedupedCustom = customMapped.filter((c) => !existingNames.has(c.name.toLowerCase()));
-            return [...prev, ...dedupedCustom];
-          });
-        }
-      } catch (err: any) {
-        if (err?.status !== 401 && !err?.isAuthError) {
-          console.warn('Failed to load custom categories for user:', err);
-        }
-      }
-    };
-
     loadUserData();
 
     const handleUserChanged = () => {
-      if (isMounted) {
-        loadUserData();
-      }
+      loadUserData();
     };
 
     window.addEventListener('auth:user-changed', handleUserChanged);
 
     return () => {
-      isMounted = false;
       window.removeEventListener('auth:user-changed', handleUserChanged);
     };
-  }, [isAuthenticated, user, authLoading, activeUserId]);
+  }, [isAuthenticated, user, authLoading, activeUserId, loadUserData]);
+
+  // Real-Time Cross-Device Sync: Re-fetch fresh account and ledger data on Window Focus or Visibility Change
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isAuthenticated) {
+        loadUserData();
+      }
+    };
+
+    const handleFocus = () => {
+      if (isAuthenticated) {
+        loadUserData();
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [isAuthenticated, loadUserData]);
 
   // --- Bank Operations ---
   const addBankAccount = useCallback((data: Omit<BankAccount, 'id' | 'createdAt' | 'updatedAt'>): BankAccount => {
@@ -1787,6 +1806,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
         requestDeleteTransaction,
         cancelDeleteTransaction,
         confirmDeleteTransaction,
+        refreshUserData: loadUserData,
       }}
     >
       {children}
@@ -1910,6 +1930,7 @@ export const DEFAULT_FALLBACK_TRANSACTION_CONTEXT: TransactionContextType = {
   requestDeleteTransaction: () => {},
   cancelDeleteTransaction: () => {},
   confirmDeleteTransaction: () => {},
+  refreshUserData: async () => {},
 };
 
 export const useTransactions = () => {

@@ -309,6 +309,7 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
                   labelLine={false}
                   onMouseEnter={(_, index) => setActiveIndex(index)}
                   onMouseLeave={() => setActiveIndex(null)}
+                  onClick={(_, index) => setActiveIndex(activeIndex === index ? null : index)}
                 >
                   {pieChartData.map((entry, index) => {
                     const isSelected = activeIndex === index;
@@ -332,13 +333,17 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
                   })}
                 </Pie>
                 <Tooltip
+                  cursor={false}
+                  wrapperStyle={{ pointerEvents: 'none', zIndex: 40 }}
+                  position={{ y: 6 }}
+                  offset={20}
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       const categoryColor = getCategoryThemeColor(data.name, isDark);
                       return (
                         <div
-                          className={`px-3.5 py-2.5 rounded-2xl shadow-xl text-xs backdrop-blur-md border ${
+                          className={`pointer-events-none select-none px-3.5 py-2.5 rounded-2xl shadow-xl text-xs backdrop-blur-md border ${
                             isDark
                               ? 'bg-[#10221E]/95 border-[#89D7B7]/30 text-[#FFF4E1]'
                               : 'bg-white/95 border-slate-200 text-[#1E293B]'

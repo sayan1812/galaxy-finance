@@ -76,10 +76,11 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
   // Drag interaction states
   const isDraggingRef = useRef<boolean>(false);
   const previousMousePositionRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const isMobileInitial = typeof window !== 'undefined' && window.innerWidth < 768;
   const cameraRotationRef = useRef<{ theta: number; phi: number; radius: number }>({
     theta: Math.PI / 4,
-    phi: Math.PI / 3.2,
-    radius: 42,
+    phi: isMobileInitial ? Math.PI / 3.4 : Math.PI / 3.2,
+    radius: isMobileInitial ? 57 : 42,
   });
 
   // Category statistics for Expense Galaxy Mode
@@ -128,15 +129,15 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
     scene.background = new THREE.Color(initBgColor);
     sceneRef.current = scene;
 
-    // 2. Camera
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    // 2. Camera with dynamic aspect & distance based on viewport width
+    const isMobile = window.innerWidth < 768;
+    const camera = new THREE.PerspectiveCamera(isMobile ? 60 : 45, width / height, 0.1, 1000);
     cameraRef.current = camera;
 
-    // Set initial camera position from spherical coordinates
-    const { theta, phi, radius } = cameraRotationRef.current;
-    camera.position.x = radius * Math.sin(phi) * Math.sin(theta);
-    camera.position.y = radius * Math.cos(phi);
-    camera.position.z = radius * Math.sin(phi) * Math.cos(theta);
+    // Responsive initial camera position
+    camera.position.set(0, isMobile ? 35 : 25, isMobile ? 45 : 35);
+    camera.fov = isMobile ? 60 : 45;
+    camera.updateProjectionMatrix();
     camera.lookAt(0, 0, 0);
 
     // 3. Renderer with clear color
@@ -210,7 +211,9 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
       if (!containerRef.current || !rendererRef.current || !cameraRef.current) return;
       const w = containerRef.current.clientWidth;
       const h = containerRef.current.clientHeight;
+      const isMob = window.innerWidth < 768;
       cameraRef.current.aspect = w / h;
+      cameraRef.current.fov = isMob ? 60 : 45;
       cameraRef.current.updateProjectionMatrix();
       rendererRef.current.setSize(w, h);
     };
@@ -266,7 +269,7 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
     const onNativeWheel = (e: WheelEvent) => {
       e.preventDefault();
       const cam = cameraRotationRef.current;
-      cam.radius = Math.max(20, Math.min(75, cam.radius + e.deltaY * 0.04));
+      cam.radius = Math.max(15, Math.min(80, cam.radius + e.deltaY * 0.04));
       updateCameraPosition();
     };
 
@@ -336,6 +339,10 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
 
     // MODE 1: ACCOUNTS GALAXY (Net Available at center, Banks & Cash orbiting)
     if (galaxyMode === 'accounts') {
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+      const baseBankRadius = isMobile ? 13.5 : 11.5;
+      const ringStep = isMobile ? 6.5 : 5.4;
+
       const allOrbits = [
         ...bankStatsList.map((bs, idx) => ({
           id: bs.bank.id,
@@ -345,9 +352,9 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
           balance: bs.currentBalance,
           bankStats: bs,
           color: bs.bank.planetColor || bs.bank.color || '#38bdf8',
-          orbitRadius: 9 + idx * 5.2,
+          orbitRadius: baseBankRadius + idx * ringStep,
           speed: 0.008 / (1 + idx * 0.25),
-          size: Math.max(1.1, Math.min(2.4, 0.9 + Math.log10(Math.max(100, bs.currentBalance)) * 0.3)),
+          size: Math.max(isMobile ? 0.95 : 1.1, Math.min(2.2, 0.9 + Math.log10(Math.max(100, bs.currentBalance)) * 0.28)),
           hasRings: idx === 0, // largest bank has rings
         })),
         {
@@ -357,9 +364,9 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
           type: 'CASH',
           balance: cashBalance,
           color: '#fbbf24',
-          orbitRadius: 7.2,
+          orbitRadius: isMobile ? 6.8 : 6.2,
           speed: 0.015,
-          size: Math.max(1.0, Math.min(2.0, 0.8 + Math.log10(Math.max(100, cashBalance)) * 0.28)),
+          size: Math.max(isMobile ? 0.9 : 1.0, Math.min(1.9, 0.8 + Math.log10(Math.max(100, cashBalance)) * 0.25)),
           hasRings: false,
         },
       ];
@@ -425,11 +432,15 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
 
     // MODE 2: 3D EXPENSE VISUALIZATION ("Expense Sun" & Category Planets)
     if (galaxyMode === 'expenses') {
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+      const baseCatRadius = isMobile ? 9.0 : 8.0;
+      const catStep = isMobile ? 6.2 : 5.0;
+
       categoryStats.forEach((cat, index) => {
-        const orbitRadius = 7.5 + index * 4.4;
+        const orbitRadius = baseCatRadius + index * catStep;
         const speed = 0.012 / (1 + index * 0.2);
         // Size proportional to monthly spend
-        const size = Math.max(0.9, Math.min(2.5, 0.7 + (cat.total / (monthExpense || 1)) * 3.5));
+        const size = Math.max(isMobile ? 0.85 : 0.9, Math.min(2.3, 0.7 + (cat.total / (monthExpense || 1)) * 3.2));
 
         // Orbit Ring
         const ringGeo = new THREE.RingGeometry(orbitRadius - 0.05, orbitRadius + 0.05, 64);
@@ -613,31 +624,38 @@ export const FinancialGalaxy3D: React.FC<FinancialGalaxy3DProps> = ({
   };
 
   const handleResetCamera = () => {
+    const isMobile = window.innerWidth < 768;
     cameraRotationRef.current = {
       theta: Math.PI / 4,
-      phi: Math.PI / 3.2,
-      radius: 42,
+      phi: isMobile ? Math.PI / 3.4 : Math.PI / 3.2,
+      radius: isMobile ? 57 : 42,
     };
-    updateCameraPosition();
+    if (cameraRef.current) {
+      cameraRef.current.position.set(0, isMobile ? 35 : 25, isMobile ? 45 : 35);
+      cameraRef.current.fov = isMobile ? 60 : 45;
+      cameraRef.current.updateProjectionMatrix();
+      cameraRef.current.lookAt(0, 0, 0);
+    }
   };
 
   const handleZoom = (direction: 'in' | 'out') => {
     const cam = cameraRotationRef.current;
     const step = 6;
     cam.radius = direction === 'in' 
-      ? Math.max(20, cam.radius - step) 
-      : Math.min(75, cam.radius + step);
+      ? Math.max(15, cam.radius - step) 
+      : Math.min(80, cam.radius + step);
     updateCameraPosition();
   };
 
   return (
     <div 
       ref={containerRef}
-      className={`relative w-full h-[400px] sm:h-[480px] lg:h-[540px] rounded-3xl overflow-hidden border shadow-md backdrop-blur-xl group select-none transition-colors duration-300 ${
+      className={`relative w-full h-[400px] sm:h-[480px] lg:h-[540px] rounded-3xl overflow-hidden border shadow-md backdrop-blur-xl group select-none touch-none transition-colors duration-300 ${
         isLight
           ? 'bg-[#F4F8F6] border-[#287A74]/20'
           : 'bg-[#10221E] border-[var(--card-border)]'
       }`}
+      style={{ touchAction: 'none' }}
     >
       {/* 3D WebGL Canvas */}
       <canvas

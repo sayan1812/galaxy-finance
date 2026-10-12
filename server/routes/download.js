@@ -24,23 +24,54 @@ if (!fs.existsSync(APK_PATH)) {
   fs.writeFileSync(APK_PATH, Buffer.concat([stubHeader, content]));
 }
 
+// Helper to find the best valid APK file
+function resolveValidApk() {
+  const candidatePaths = [
+    path.resolve(process.cwd(), 'public', 'downloads', 'galaxy-finance-v1.0.0.apk'),
+    path.resolve(process.cwd(), 'public', 'downloads', 'galaxy-finance-release.apk'),
+    path.join(DOWNLOAD_DIR, 'galaxy-finance-v1.0.0.apk'),
+    path.join(DOWNLOAD_DIR, 'galaxy-finance-release.apk'),
+  ];
+
+  for (const p of candidatePaths) {
+    if (fs.existsSync(p)) {
+      const stats = fs.statSync(p);
+      if (stats.size > 10000) {
+        return p;
+      }
+    }
+  }
+  return APK_PATH;
+}
+
 // GET /api/v1/download/apk & /api/v1/download/info
 router.get('/info', (req, res) => {
+  const validApk = resolveValidApk();
+  let sizeMb = '18.6 MB';
+  try {
+    if (fs.existsSync(validApk)) {
+      const bytes = fs.statSync(validApk).size;
+      sizeMb = `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+  } catch {}
+
   res.json({
     appName: 'Galaxy Finance',
     version: '1.0.0',
     platform: 'Android',
     architecture: 'arm64-v8a, armeabi-v7a',
-    fileSize: '42.8 MB',
-    releaseDate: '2026-10-08',
+    fileSize: sizeMb,
+    releaseDate: '2026-10-12',
     downloadUrl: '/api/v1/download/apk',
   });
 });
 
 router.get('/apk', (req, res) => {
+  const filePath = resolveValidApk();
   res.setHeader('Content-Type', 'application/vnd.android.package-archive');
   res.setHeader('Content-Disposition', 'attachment; filename="galaxy-finance-v1.0.0.apk"');
-  res.download(APK_PATH, 'galaxy-finance-v1.0.0.apk', (err) => {
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.download(filePath, 'galaxy-finance-v1.0.0.apk', (err) => {
     if (err && !res.headersSent) {
       res.status(500).json({ error: 'Failed to initiate APK download' });
     }

@@ -10,6 +10,12 @@ import {
 
 const router = express.Router();
 
+// Prevent intermediate browser/PWA caching for real-time multi-device synchronization
+router.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  next();
+});
+
 // GET /api/v1/accounts
 router.get('/', authenticateOrDemo, getAccounts);
 
