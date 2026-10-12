@@ -74,7 +74,12 @@ export interface TransactionContextType {
   bankStatsList: BankComputedStats[];
   totalBankBalance: number;
   netAvailableMoney: number;
+  netAvailableCapital: number;
+  thisMonthInflows: number;
+  thisMonthOutflows: number;
   commandCenterStats: CommandCenterStats;
+  refreshData: () => Promise<void>;
+  refetchData: () => Promise<void>;
 
   addBankAccount: (data: Omit<BankAccount, 'id' | 'createdAt' | 'updatedAt'>) => BankAccount;
   updateBankAccount: (id: string, data: Partial<Omit<BankAccount, 'id' | 'createdAt'>>) => void;
@@ -84,7 +89,7 @@ export interface TransactionContextType {
   updateCashWalletOpening: (openingCash: number) => void;
 
   // Transaction CRUD
-  addTransaction: (data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => Transaction;
+  addTransaction: (data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Transaction> | Transaction;
   addCashTransaction: (data: {
     amount: number;
     type: TransactionType;
@@ -102,9 +107,9 @@ export interface TransactionContextType {
     date: string;
     time?: string;
   }) => Transaction;
-  updateTransaction: (id: string, data: Partial<Omit<Transaction, 'id' | 'createdAt'>>) => void;
-  deleteTransaction: (id: string) => void;
-  duplicateTransaction: (id: string) => Transaction | null;
+  updateTransaction: (id: string, data: Partial<Omit<Transaction, 'id' | 'createdAt'>>) => Promise<void> | void;
+  deleteTransaction: (id: string) => Promise<void> | void;
+  duplicateTransaction: (id: string) => Promise<Transaction | null> | Transaction | null;
   bulkDeleteTransactions: (ids: string[]) => void;
   getTransactionById: (id: string) => Transaction | undefined;
 
@@ -500,50 +505,57 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       : null;
     if (!activeToken) return;
 
-    // 1. Fetch live bank accounts & cash wallet from MongoDB Atlas
     try {
-      const res = await api.getAccounts();
-      const accountsList = Array.isArray(res) ? res : (res && Array.isArray(res.accounts) ? res.accounts : null);
-      if (accountsList) {
-        const liveBanks: BankAccount[] = accountsList
-          .filter((a: any) => a.accountType !== 'cash')
-          .map((a: any) => ({
-            id: a._id || a.id,
-            bankName: a.accountName,
-            accountType: 'Savings' as const,
-            nickname: a.accountName,
-            openingBalance: Number(a.openingBalance !== undefined ? a.openingBalance : (a.balance || 0)),
-            balance: Number(a.balance || 0),
-            accountNumberMasked: a.accountNumberMask || 'XXXX XXXX 0000',
-            createdAt: a.createdAt || new Date().toISOString(),
-            updatedAt: a.updatedAt || new Date().toISOString(),
-          }));
-        setBankAccounts(liveBanks);
+      // 1. Fetch live bank accounts & transactions concurrently from MongoDB Atlas
+      const [accountsRes, transactionsRes] = await Promise.all([
+        api.getAccounts().catch((e: any) => {
+          if (e?.status !== 401 && !e?.isAuthError) console.warn('Failed to load accounts for user:', e);
+          return null;
+        }),
+        api.getTransactions().catch((e: any) => {
+          if (e?.status !== 401 && !e?.isAuthError) console.warn('Failed to load transactions for user:', e);
+          return null;
+        }),
+      ]);
 
-        const cashAcc = accountsList.find((a: any) => a.accountType === 'cash');
-        if (cashAcc) {
-          setCashWalletConfig((prev) => ({
-            ...prev,
-            openingCash: Number(cashAcc.openingBalance || 0),
-          }));
-        } else {
-          setCashWalletConfig((prev) => ({
-            ...prev,
-            openingCash: 0,
-          }));
+      if (accountsRes) {
+        const accountsList = Array.isArray(accountsRes) 
+          ? accountsRes 
+          : (accountsRes && Array.isArray(accountsRes.accounts) ? accountsRes.accounts : null);
+
+        if (accountsList) {
+          const liveBanks: BankAccount[] = accountsList
+            .filter((a: any) => a.accountType !== 'cash')
+            .map((a: any) => ({
+              id: a._id || a.id,
+              bankName: a.accountName,
+              accountType: 'Savings' as const,
+              nickname: a.accountName,
+              openingBalance: Number(a.openingBalance !== undefined ? a.openingBalance : (a.balance || 0)),
+              balance: Number(a.balance || 0),
+              accountNumberMasked: a.accountNumberMask || 'XXXX XXXX 0000',
+              createdAt: a.createdAt || new Date().toISOString(),
+              updatedAt: a.updatedAt || new Date().toISOString(),
+            }));
+          setBankAccounts(liveBanks);
+
+          const cashAcc = accountsList.find((a: any) => a.accountType === 'cash');
+          if (cashAcc) {
+            setCashWalletConfig((prev) => ({
+              ...prev,
+              openingCash: Number(cashAcc.openingBalance || 0),
+            }));
+          } else {
+            setCashWalletConfig((prev) => ({
+              ...prev,
+              openingCash: 0,
+            }));
+          }
         }
       }
-    } catch (e: any) {
-      if (e?.status !== 401 && !e?.isAuthError) {
-        console.warn('Failed to load accounts for user:', e);
-      }
-    }
 
-    // 2. Fetch live transactions for user
-    try {
-      const res = await api.getTransactions();
-      if (res && Array.isArray(res.transactions)) {
-        const mappedTxns: Transaction[] = res.transactions.map((t: any) => {
+      if (transactionsRes && Array.isArray(transactionsRes.transactions)) {
+        const mappedTxns: Transaction[] = transactionsRes.transactions.map((t: any) => {
           const accId = t.accountId?._id || (typeof t.accountId === 'string' ? t.accountId : undefined);
           const toAccId = t.toAccountId?._id || (typeof t.toAccountId === 'string' ? t.toAccountId : undefined);
           const accName = t.accountId?.accountName || 'Primary Account';
@@ -573,48 +585,61 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
         });
         setTransactions(mappedTxns);
       }
+
+      // 3. Fetch custom categories from user profile
+      try {
+        let rawCustom: any[] = [];
+        if (typeof (api as any)?.getCustomCategories === 'function') {
+          const res = await (api as any).getCustomCategories();
+          if (Array.isArray(res)) {
+            rawCustom = res;
+          } else if (res && Array.isArray(res.categories)) {
+            rawCustom = res.categories;
+          }
+        } else {
+          const local = localStorage.getItem('galaxy_custom_categories');
+          rawCustom = local ? JSON.parse(local) : [];
+        }
+
+        if (Array.isArray(rawCustom)) {
+          setCategories((prev) => {
+            const customMapped: Category[] = rawCustom.map((c: any) => ({
+              id: c.id || c._id || `cat-${c.name}`,
+              name: c.name,
+              color: c.color || '#6366f1',
+              icon: c.icon || 'Tag',
+              type: (c.type?.toUpperCase() || 'BOTH') as any,
+              isCustom: true,
+            }));
+            const existingNames = new Set(prev.map((c) => c.name.toLowerCase()));
+            const dedupedCustom = customMapped.filter((c) => !existingNames.has(c.name.toLowerCase()));
+            return [...prev, ...dedupedCustom];
+          });
+        }
+      } catch (err: any) {
+        if (err?.status !== 401 && !err?.isAuthError) {
+          console.warn('Failed to load custom categories for user:', err);
+        }
+      }
     } catch (e: any) {
       if (e?.status !== 401 && !e?.isAuthError) {
-        console.warn('Failed to load transactions for user:', e);
-      }
-    }
-
-    // 3. Fetch custom categories from user profile
-    try {
-      let rawCustom: any[] = [];
-      if (typeof (api as any)?.getCustomCategories === 'function') {
-        const res = await (api as any).getCustomCategories();
-        if (Array.isArray(res)) {
-          rawCustom = res;
-        } else if (res && Array.isArray(res.categories)) {
-          rawCustom = res.categories;
-        }
-      } else {
-        const local = localStorage.getItem('galaxy_custom_categories');
-        rawCustom = local ? JSON.parse(local) : [];
-      }
-
-      if (Array.isArray(rawCustom)) {
-        setCategories((prev) => {
-          const customMapped: Category[] = rawCustom.map((c: any) => ({
-            id: c.id || c._id || `cat-${c.name}`,
-            name: c.name,
-            color: c.color || '#6366f1',
-            icon: c.icon || 'Tag',
-            type: (c.type?.toUpperCase() || 'BOTH') as any,
-            isCustom: true,
-          }));
-          const existingNames = new Set(prev.map((c) => c.name.toLowerCase()));
-          const dedupedCustom = customMapped.filter((c) => !existingNames.has(c.name.toLowerCase()));
-          return [...prev, ...dedupedCustom];
-        });
-      }
-    } catch (err: any) {
-      if (err?.status !== 401 && !err?.isAuthError) {
-        console.warn('Failed to load custom categories for user:', err);
+        console.warn('Failed to load user financial data:', e);
       }
     }
   }, []);
+
+  const refreshData = useCallback(async () => {
+    try {
+      await loadUserData();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('galaxy:ledger-updated'));
+      }
+    } catch (err) {
+      console.error('Failed to revalidate ledger data:', err);
+    }
+  }, [loadUserData]);
+
+  const refetchData = refreshData;
 
   // Initial load on mount or user switch
   useEffect(() => {
@@ -728,7 +753,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, []);
 
   // --- Transaction Operations ---
-  const addTransaction = useCallback((data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>): Transaction => {
+  const addTransaction = useCallback(async (data: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>): Promise<Transaction> => {
     const now = new Date().toISOString();
     const pad = (n: number) => n.toString().padStart(2, '0');
     const d = new Date();
@@ -747,9 +772,10 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       updatedAt: now,
     };
 
+    // 1. Optimistic transactions update
     setTransactions((prev) => [newTx, ...prev]);
 
-    // Trigger micro-interaction reaction
+    // 2. Trigger micro-interaction reaction
     triggerMicroInteraction(
       'TRANSACTION_ADDED',
       'Transaction Added',
@@ -758,7 +784,8 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       data.type === 'INCOME' ? '💰' : '💸'
     );
 
-    if (data.bankAccountId) {
+    // 3. Optimistic bank account balance update
+    if (data.bankAccountId && data.paymentMethod !== 'CASH') {
       setBankAccounts((prev) =>
         prev.map((b) => {
           if (b.id === data.bankAccountId) {
@@ -775,48 +802,35 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       );
     }
 
-    // Sync to backend asynchronously & re-sync live accounts
-    api.createTransaction({
-      amount: data.amount,
-      type: data.type.toLowerCase(),
-      category: data.category,
-      subcategory: data.subcategory,
-      paymentMethod: data.paymentMethod,
-      source: data.source,
-      merchant: data.merchant,
-      description: data.description,
-      notes: data.description,
-      receiptUrl: data.receiptUrl,
-      reference: data.transactionReference,
-      transactionReference: data.transactionReference,
-      date: data.date,
-      time: data.time || defaultTime,
-      bankId: data.bankAccountId,
-      accountId: data.bankAccountId,
-      toAccountId: data.toBankAccountId,
-    }).then(() => {
-      api.getAccounts().then((res: any) => {
-        if (res && Array.isArray(res.accounts)) {
-          const liveBanks: BankAccount[] = res.accounts
-            .filter((a: any) => a.accountType !== 'cash')
-            .map((a: any) => ({
-              id: a._id || a.id,
-              bankName: a.accountName,
-              accountType: 'Savings' as const,
-              nickname: a.accountName,
-              openingBalance: Number(a.openingBalance !== undefined ? a.openingBalance : (a.balance || 0)),
-              balance: Number(a.balance || 0),
-              accountNumberMasked: a.accountNumberMask || 'XXXX XXXX 0000',
-              createdAt: a.createdAt || new Date().toISOString(),
-              updatedAt: a.updatedAt || new Date().toISOString(),
-            }));
-          setBankAccounts(liveBanks);
-        }
-      }).catch(() => {});
-    }).catch(() => {});
+    // 4. Dual-write to MongoDB and full re-validation
+    try {
+      await api.createTransaction({
+        amount: data.amount,
+        type: data.type.toLowerCase(),
+        category: data.category,
+        subcategory: data.subcategory,
+        paymentMethod: data.paymentMethod,
+        source: data.source,
+        merchant: data.merchant,
+        description: data.description,
+        notes: data.description,
+        receiptUrl: data.receiptUrl,
+        reference: data.transactionReference,
+        transactionReference: data.transactionReference,
+        date: data.date,
+        time: data.time || defaultTime,
+        bankId: data.bankAccountId,
+        accountId: data.bankAccountId,
+        toAccountId: data.toBankAccountId,
+      });
+      await refreshData();
+    } catch (err) {
+      console.error('Failed to sync created transaction:', err);
+      await refreshData();
+    }
 
     return newTx;
-  }, [triggerMicroInteraction]);
+  }, [triggerMicroInteraction, refreshData]);
 
   const addCashTransaction = useCallback((data: {
     amount: number;
@@ -826,7 +840,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     description?: string;
     date: string;
     time?: string;
-  }): Transaction => {
+  }): any => {
     const pad = (n: number) => n.toString().padStart(2, '0');
     const d = new Date();
     const defaultTime = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -853,14 +867,17 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     description?: string;
     date: string;
     time?: string;
-  }): Transaction => {
+  }): any => {
     return addCashTransaction({
       ...data,
       type: 'EXPENSE',
     });
   }, [addCashTransaction]);
 
-  const updateTransaction = useCallback((id: string, data: Partial<Omit<Transaction, 'id' | 'createdAt'>>) => {
+  const updateTransaction = useCallback(async (id: string, data: Partial<Omit<Transaction, 'id' | 'createdAt'>>) => {
+    const oldTx = transactions.find((item) => item.id === id);
+
+    // 1. Optimistic transactions update
     setTransactions((prev) =>
       prev.map((item) => {
         if (item.id === id) {
@@ -870,7 +887,6 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
             updatedAt: new Date().toISOString(),
           };
 
-          // If merchant category is updated, teach merchant memory
           if (updated.merchant && updated.category && updated.category !== item.category) {
             categorizationService.learnMerchantCategory(updated.merchant, updated.category);
           }
@@ -880,81 +896,95 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       })
     );
 
-    api.updateTransaction(id, {
-      ...data,
-      accountId: data.bankAccountId,
-      toAccountId: data.toBankAccountId,
-      type: data.type ? data.type.toLowerCase() : undefined,
-      notes: data.description,
-      receiptUrl: data.receiptUrl,
-      reference: data.transactionReference,
-    }).then(() => {
-      api.getAccounts().then((res: any) => {
-        if (res && Array.isArray(res.accounts)) {
-          const liveBanks: BankAccount[] = res.accounts
-            .filter((a: any) => a.accountType !== 'cash')
-            .map((a: any) => ({
-              id: a._id || a.id,
-              bankName: a.accountName,
-              accountType: 'Savings' as const,
-              nickname: a.accountName,
-              openingBalance: Number(a.balance || 0),
-              balance: Number(a.balance || 0),
-              accountNumberMasked: a.accountNumberMask || 'XXXX XXXX 0000',
-              createdAt: a.createdAt || new Date().toISOString(),
-              updatedAt: a.updatedAt || new Date().toISOString(),
-            }));
-          setBankAccounts(liveBanks);
-        }
-      }).catch(() => {});
-    }).catch(() => {});
-  }, []);
+    // 2. Optimistic bank account balance adjustment
+    if (oldTx) {
+      const oldAmount = Number(oldTx.amount) || 0;
+      const newAmount = data.amount !== undefined ? Number(data.amount) : oldAmount;
+      const oldType = oldTx.type;
+      const newType = data.type || oldType;
+      const oldBankId = oldTx.bankAccountId;
+      const newBankId = data.bankAccountId !== undefined ? data.bankAccountId : oldBankId;
+      const oldMethod = oldTx.paymentMethod;
+      const newMethod = data.paymentMethod !== undefined ? data.paymentMethod : oldMethod;
 
-  const deleteTransaction = useCallback((id: string) => {
-    setTransactions((prev) => {
-      const tx = prev.find((item) => item.id === id);
-      if (tx && tx.bankAccountId) {
-        setBankAccounts((bPrev) =>
-          bPrev.map((b) => {
-            if (b.id === tx.bankAccountId) {
-              const cur = b.balance !== undefined ? b.balance : b.openingBalance;
-              const delta = tx.type === 'INCOME' ? -tx.amount : tx.amount;
-              return { ...b, balance: cur + delta };
-            }
-            if (tx.type === 'TRANSFER' && b.id === tx.toBankAccountId) {
-              const cur = b.balance !== undefined ? b.balance : b.openingBalance;
-              return { ...b, balance: cur - tx.amount };
-            }
-            return b;
-          })
-        );
-      }
-      return prev.filter((item) => item.id !== id);
-    });
+      setBankAccounts((prev) =>
+        prev.map((b) => {
+          let balance = b.balance !== undefined ? b.balance : b.openingBalance;
+
+          // Revert old transaction if on this bank
+          if (oldBankId === b.id && oldMethod !== 'CASH') {
+            if (oldType === 'INCOME') balance -= oldAmount;
+            if (oldType === 'EXPENSE' || oldType === 'TRANSFER') balance += oldAmount;
+          }
+          if (oldType === 'TRANSFER' && oldTx.toBankAccountId === b.id) {
+            balance -= oldAmount;
+          }
+
+          // Apply new transaction if on this bank
+          if (newBankId === b.id && newMethod !== 'CASH') {
+            if (newType === 'INCOME') balance += newAmount;
+            if (newType === 'EXPENSE' || newType === 'TRANSFER') balance -= newAmount;
+          }
+          if (newType === 'TRANSFER' && (data.toBankAccountId || oldTx.toBankAccountId) === b.id) {
+            balance += newAmount;
+          }
+
+          return { ...b, balance };
+        })
+      );
+    }
+
+    // 3. Backend synchronization & re-sync live accounts
+    try {
+      await api.updateTransaction(id, {
+        ...data,
+        accountId: data.bankAccountId,
+        toAccountId: data.toBankAccountId,
+        type: data.type ? data.type.toLowerCase() : undefined,
+        notes: data.description,
+        receiptUrl: data.receiptUrl,
+        reference: data.transactionReference,
+      });
+      await refreshData();
+    } catch (err) {
+      console.error('Failed to sync updated transaction:', err);
+      await refreshData();
+    }
+  }, [transactions, refreshData]);
+
+  const deleteTransaction = useCallback(async (id: string) => {
+    const tx = transactions.find((item) => item.id === id);
+
+    // 1. Optimistic bank account balance restoration
+    if (tx && tx.bankAccountId && tx.paymentMethod !== 'CASH') {
+      setBankAccounts((bPrev) =>
+        bPrev.map((b) => {
+          if (b.id === tx.bankAccountId) {
+            const cur = b.balance !== undefined ? b.balance : b.openingBalance;
+            const delta = tx.type === 'INCOME' ? -tx.amount : tx.amount;
+            return { ...b, balance: cur + delta };
+          }
+          if (tx.type === 'TRANSFER' && b.id === tx.toBankAccountId) {
+            const cur = b.balance !== undefined ? b.balance : b.openingBalance;
+            return { ...b, balance: cur - tx.amount };
+          }
+          return b;
+        })
+      );
+    }
+    setTransactions((prev) => prev.filter((item) => item.id !== id));
 
     triggerMicroInteraction('TRANSACTION_DELETED', 'Transaction Deleted', 'Balances and reports recalculated', undefined, '🗑️');
 
-    api.deleteTransaction(id).then(() => {
-      api.getAccounts().then((res: any) => {
-        if (res && Array.isArray(res.accounts)) {
-          const liveBanks: BankAccount[] = res.accounts
-            .filter((a: any) => a.accountType !== 'cash')
-            .map((a: any) => ({
-              id: a._id || a.id,
-              bankName: a.accountName,
-              accountType: 'Savings' as const,
-              nickname: a.accountName,
-              openingBalance: Number(a.openingBalance !== undefined ? a.openingBalance : (a.balance || 0)),
-              balance: Number(a.balance || 0),
-              accountNumberMasked: a.accountNumberMask || 'XXXX XXXX 0000',
-              createdAt: a.createdAt || new Date().toISOString(),
-              updatedAt: a.updatedAt || new Date().toISOString(),
-            }));
-          setBankAccounts(liveBanks);
-        }
-      }).catch(() => {});
-    }).catch(() => {});
-  }, [triggerMicroInteraction]);
+    // 2. Backend synchronization & refresh
+    try {
+      await api.deleteTransaction(id);
+      await refreshData();
+    } catch (err) {
+      console.error('Failed to sync deleted transaction:', err);
+      await refreshData();
+    }
+  }, [transactions, triggerMicroInteraction, refreshData]);
 
   const requestDeleteTransaction = useCallback((id: string) => {
     setDeleteConfirmation({
@@ -981,7 +1011,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setTransactions((prev) => prev.filter((item) => !set.has(item.id)));
   }, []);
 
-  const duplicateTransaction = useCallback((id: string): Transaction | null => {
+  const duplicateTransaction = useCallback(async (id: string): Promise<Transaction | null> => {
     const original = transactions.find((t) => t.id === id);
     if (!original) return null;
 
@@ -990,20 +1020,19 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const currentDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
     const currentTime = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
-    const newTx: Transaction = {
+    const newTxPayload = {
       ...original,
-      id: `tx-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       date: currentDate,
       time: currentTime,
       transactionReference: original.transactionReference ? `${original.transactionReference}-COPY` : undefined,
       description: original.description ? `${original.description} (Copy)` : 'Copy',
-      createdAt: now.toISOString(),
-      updatedAt: now.toISOString(),
     };
+    delete (newTxPayload as any).id;
+    delete (newTxPayload as any).createdAt;
+    delete (newTxPayload as any).updatedAt;
 
-    setTransactions((prev) => [newTx, ...prev]);
-    return newTx;
-  }, [transactions]);
+    return await addTransaction(newTxPayload);
+  }, [transactions, addTransaction]);
 
   const getTransactionById = useCallback((id: string): Transaction | undefined => {
     return transactions.find((t) => t.id === id);
@@ -1499,9 +1528,11 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [transactions, cashWalletConfig.openingCash]);
 
   // NET AVAILABLE MONEY = Total Available Bank Balance + Cash Balance
-  const netAvailableMoney = useMemo(() => {
+  const netAvailableCapital = useMemo(() => {
     return totalBankBalance + cashBalance;
   }, [totalBankBalance, cashBalance]);
+
+  const netAvailableMoney = netAvailableCapital;
 
   // --- Dashboard Aggregates ---
   const todayTransactions = useMemo(() => {
@@ -1547,6 +1578,9 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       .filter((t) => t.type === 'EXPENSE')
       .reduce((sum, t) => sum + t.amount, 0);
   }, [currentMonthTransactions]);
+
+  const thisMonthInflows = monthIncome;
+  const thisMonthOutflows = monthExpense;
 
   const monthBalance = monthIncome - monthExpense;
 
@@ -1711,6 +1745,11 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
         bankStatsList,
         totalBankBalance,
         netAvailableMoney,
+        netAvailableCapital,
+        thisMonthInflows,
+        thisMonthOutflows,
+        refreshData,
+        refetchData,
         commandCenterStats,
 
         addBankAccount,
@@ -1831,6 +1870,11 @@ export const DEFAULT_FALLBACK_TRANSACTION_CONTEXT: TransactionContextType = {
   bankStatsList: [],
   totalBankBalance: 0,
   netAvailableMoney: 0,
+  netAvailableCapital: 0,
+  thisMonthInflows: 0,
+  thisMonthOutflows: 0,
+  refreshData: async () => {},
+  refetchData: async () => {},
   commandCenterStats: {
     netAvailableMoney: 0,
     totalBanks: 0,

@@ -10,7 +10,8 @@ const transactionSchema = new mongoose.Schema({
   accountId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Account',
-    required: true,
+    required: false,
+    default: null,
     index: true,
   },
   toAccountId: {
@@ -23,6 +24,11 @@ const transactionSchema = new mongoose.Schema({
     required: [true, 'Please provide transaction amount'],
     min: [0, 'Amount must be positive'],
   },
+  paymentMethod: {
+    type: String,
+    default: 'UPI',
+    trim: true,
+  },
   merchant: {
     type: String,
     default: '',
@@ -30,7 +36,7 @@ const transactionSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['income', 'expense', 'transfer', 'adjustment', 'ADJUSTMENT'],
+    enum: ['income', 'expense', 'transfer', 'adjustment', 'ADJUSTMENT', 'INCOME', 'EXPENSE', 'TRANSFER'],
     required: true,
   },
   category: {

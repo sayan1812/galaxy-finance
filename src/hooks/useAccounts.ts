@@ -75,6 +75,18 @@ export function useAccounts() {
 
   useEffect(() => {
     fetchAccounts();
+
+    const handleLedgerUpdate = () => {
+      fetchAccounts();
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('galaxy:ledger-updated', handleLedgerUpdate);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('galaxy:ledger-updated', handleLedgerUpdate);
+      }
+    };
   }, [fetchAccounts]);
 
   return {

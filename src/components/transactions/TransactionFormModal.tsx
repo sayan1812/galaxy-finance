@@ -260,23 +260,23 @@ export const TransactionFormModal: React.FC = () => {
     setIsAddCategoryOpen(false);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (editingTransaction) {
-      deleteTransaction(editingTransaction.id);
-      refetchAccounts();
+      await deleteTransaction(editingTransaction.id);
+      await refetchAccounts();
       handleClose();
     }
   };
 
-  const handleDuplicate = () => {
+  const handleDuplicate = async () => {
     if (editingTransaction) {
-      duplicateTransaction(editingTransaction.id);
-      refetchAccounts();
+      await duplicateTransaction(editingTransaction.id);
+      await refetchAccounts();
       handleClose();
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const numAmount = parseFloat(amount);
 
@@ -366,12 +366,12 @@ export const TransactionFormModal: React.FC = () => {
     };
 
     if (editingTransaction) {
-      updateTransaction(editingTransaction.id, payload);
+      await updateTransaction(editingTransaction.id, payload);
     } else {
-      addTransaction(payload);
+      await addTransaction(payload);
     }
 
-    refetchAccounts();
+    await refetchAccounts();
     handleClose();
   };
 
