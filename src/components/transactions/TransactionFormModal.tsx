@@ -21,7 +21,7 @@ import { getLocalDateTimeInputValue } from '../../utils/dateUtils';
 import { categorizationService } from '../../services/categorizationService';
 import { CategoryIcon } from '../common/CategoryIcon';
 import { PaymentMethodBadge } from '../common/PaymentMethodBadge';
-import { useAccounts } from '../../hooks/useAccounts';
+import { formatCurrency } from '../../utils/formatters';
 
 const CATEGORY_COLORS = [
   '#10b981', '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', 
@@ -47,9 +47,10 @@ export const TransactionFormModal: React.FC = () => {
     addCategory,
     categories,
     settings,
+    accounts,
+    cashBalance,
+    refreshData,
   } = useTransactions();
-
-  const { accounts, refetch: refetchAccounts } = useAccounts();
 
   const [type, setType] = useState<TransactionType>('EXPENSE');
   const [amount, setAmount] = useState<string>('');
@@ -69,6 +70,27 @@ export const TransactionFormModal: React.FC = () => {
   const [source, setSource] = useState<TransactionSource>('MANUAL');
   const [error, setError] = useState<string>('');
   const [autoCategorySuggested, setAutoCategorySuggested] = useState<boolean>(false);
+
+  // Synchronize account selector with payment method
+  const handleAccountChange = (accId: string) => {
+    setSelectedAccountId(accId);
+    if (accId === 'cash') {
+      setPaymentMethod('CASH');
+    } else if (accId && paymentMethod === 'CASH') {
+      setPaymentMethod('UPI');
+    }
+  };
+
+  const handlePaymentMethodChange = (pm: PaymentMethod) => {
+    setPaymentMethod(pm);
+    if (pm === 'CASH') {
+      setSelectedAccountId('cash');
+    } else if (selectedAccountId === 'cash') {
+      if (accounts.length > 0) {
+        setSelectedAccountId(accounts[0]._id || accounts[0].id || '');
+      }
+    }
+  };
 
   // Inline Category Creation Modal state
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState<boolean>(false);
@@ -96,15 +118,23 @@ export const TransactionFormModal: React.FC = () => {
       
       if (editingTransaction.bankAccountId) {
         setSelectedAccountId(editingTransaction.bankAccountId);
+      } else if (editingTransaction.paymentMethod === 'CASH' || editingTransaction.account?.toLowerCase().includes('cash')) {
+        setSelectedAccountId('cash');
       } else if (accounts.length > 0) {
         setSelectedAccountId(accounts[0]._id || accounts[0].id || '');
+      } else {
+        setSelectedAccountId('cash');
       }
 
       if (editingTransaction.toBankAccountId) {
         setToAccountId(editingTransaction.toBankAccountId);
+      } else if (editingTransaction.toAccount?.toLowerCase().includes('cash')) {
+        setToAccountId('cash');
       } else if (accounts.length > 1) {
         const other = accounts.find(a => (a._id || a.id) !== editingTransaction.bankAccountId);
         if (other) setToAccountId(other._id || other.id || '');
+      } else {
+        setToAccountId('cash');
       }
 
       setSource(editingTransaction.source || 'MANUAL');
@@ -112,7 +142,6 @@ export const TransactionFormModal: React.FC = () => {
     } else {
       setType('EXPENSE');
       setAmount('');
-      setPaymentMethod(accounts.length === 0 ? 'CASH' : 'UPI');
       setCategory('Food & Restaurant');
       setDateTime(getLocalDateTimeInputValue());
       setMerchant('');
@@ -120,16 +149,18 @@ export const TransactionFormModal: React.FC = () => {
       setTransactionReference('');
       setReceiptUrl('');
       
-      // Default to first user MongoDB account if available
+      // Default to primary bank account if present, otherwise Cash in Hand
       if (accounts.length > 0) {
         setSelectedAccountId(accounts[0]._id || accounts[0].id || '');
+        setPaymentMethod('UPI');
         if (accounts.length > 1) {
           setToAccountId(accounts[1]._id || accounts[1].id || '');
         } else {
-          setToAccountId('');
+          setToAccountId('cash');
         }
       } else {
-        setSelectedAccountId('');
+        setSelectedAccountId('cash');
+        setPaymentMethod('CASH');
         setToAccountId('');
       }
       
@@ -137,7 +168,7 @@ export const TransactionFormModal: React.FC = () => {
       setAutoCategorySuggested(false);
     }
     setError('');
-  }, [editingTransaction, isAddModalOpen, accounts]);
+  }, [editingTransaction, isAddModalOpen, accounts, cashBalance]);
 
   // Adjust default category when type toggles
   useEffect(() => {
@@ -263,7 +294,7 @@ export const TransactionFormModal: React.FC = () => {
   const handleDelete = async () => {
     if (editingTransaction) {
       await deleteTransaction(editingTransaction.id);
-      await refetchAccounts();
+      await refreshData();
       handleClose();
     }
   };
@@ -271,7 +302,7 @@ export const TransactionFormModal: React.FC = () => {
   const handleDuplicate = async () => {
     if (editingTransaction) {
       await duplicateTransaction(editingTransaction.id);
-      await refetchAccounts();
+      await refreshData();
       handleClose();
     }
   };
@@ -296,8 +327,9 @@ export const TransactionFormModal: React.FC = () => {
     }
 
     if (type === 'TRANSFER') {
-      if (accounts.length < 2) {
-        setError('At least two bank accounts are required for an internal transfer');
+      const totalAccounts = accounts.length + 1; // Bank accounts + Cash in Hand
+      if (totalAccounts < 2) {
+        setError('At least two accounts (Bank or Cash) are required for an internal transfer');
         return;
       }
       if (!selectedAccountId) {
@@ -320,17 +352,17 @@ export const TransactionFormModal: React.FC = () => {
     const timeStr = `${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}`;
 
     // Resolve From Account
-    let fromAccountName = 'Physical Cash Wallet';
+    let fromAccountName = 'Cash in Hand';
     let resolvedBankId: string | undefined = undefined;
 
-    if (paymentMethod === 'CASH') {
-      fromAccountName = 'Physical Cash Wallet';
+    if (selectedAccountId === 'cash' || paymentMethod === 'CASH') {
+      fromAccountName = 'Cash in Hand';
       resolvedBankId = undefined;
     } else {
       const matchedFrom = accounts.find((a) => (a._id || a.id) === selectedAccountId);
       if (matchedFrom) {
-        fromAccountName = matchedFrom.accountName;
-        resolvedBankId = selectedAccountId || undefined;
+        fromAccountName = matchedFrom.name || matchedFrom.accountName;
+        resolvedBankId = matchedFrom._id || matchedFrom.id || selectedAccountId;
       } else {
         fromAccountName = 'Bank Vault';
         resolvedBankId = selectedAccountId || undefined;
@@ -339,10 +371,17 @@ export const TransactionFormModal: React.FC = () => {
 
     // Resolve To Account if transfer
     let toAccountName: string | undefined = undefined;
+    let resolvedToBankId: string | undefined = undefined;
     if (type === 'TRANSFER') {
-      const matchedTo = accounts.find((a) => (a._id || a.id) === toAccountId);
-      if (matchedTo) {
-        toAccountName = matchedTo.accountName;
+      if (toAccountId === 'cash') {
+        toAccountName = 'Cash in Hand';
+        resolvedToBankId = 'cash';
+      } else {
+        const matchedTo = accounts.find((a) => (a._id || a.id) === toAccountId);
+        if (matchedTo) {
+          toAccountName = matchedTo.name || matchedTo.accountName;
+          resolvedToBankId = matchedTo._id || matchedTo.id || toAccountId;
+        }
       }
     }
 
@@ -350,14 +389,16 @@ export const TransactionFormModal: React.FC = () => {
       type,
       amount: numAmount,
       currency: settings.currency.code || 'INR',
-      paymentMethod: type === 'TRANSFER' ? ('BANK_TRANSFER' as PaymentMethod) : paymentMethod,
+      paymentMethod: type === 'TRANSFER' 
+        ? ((selectedAccountId === 'cash' || toAccountId === 'cash') ? 'CASH' : 'BANK_TRANSFER') 
+        : paymentMethod,
       source,
       category: type === 'TRANSFER' ? (category || 'Transfer') : category,
       date: dateStr,
       time: timeStr,
       account: fromAccountName,
       bankAccountId: resolvedBankId,
-      toBankAccountId: type === 'TRANSFER' ? toAccountId : undefined,
+      toBankAccountId: type === 'TRANSFER' ? resolvedToBankId : undefined,
       toAccount: toAccountName,
       merchant: merchant.trim() || undefined,
       description: description.trim() || undefined,
@@ -371,7 +412,7 @@ export const TransactionFormModal: React.FC = () => {
       await addTransaction(payload);
     }
 
-    await refetchAccounts();
+    await refreshData();
     handleClose();
   };
 
@@ -535,7 +576,7 @@ export const TransactionFormModal: React.FC = () => {
             />
           </div>
 
-          {/* Account Selector: Bound strictly to active MongoDB accounts */}
+          {/* Account Selector: Bound strictly to reactive context accounts and live cashBalance */}
           {type === 'TRANSFER' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80">
               <div>
@@ -545,19 +586,19 @@ export const TransactionFormModal: React.FC = () => {
                 </label>
                 <select
                   value={selectedAccountId}
-                  onChange={(e) => setSelectedAccountId(e.target.value)}
+                  onChange={(e) => handleAccountChange(e.target.value)}
                   required
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-medium focus:outline-none focus:border-sky-500 cursor-pointer"
                 >
-                  {accounts.length === 0 ? (
-                    <option value="">No Accounts Available</option>
-                  ) : (
-                    accounts.map((acc) => (
-                      <option key={acc._id || acc.id} value={acc._id || acc.id}>
-                        {acc.accountName} (₹{Number(acc.balance || 0).toLocaleString('en-IN')})
-                      </option>
-                    ))
-                  )}
+                  <option value="">Select Account</option>
+                  <option value="cash">
+                    Cash in Hand ({formatCurrency(cashBalance, settings?.currency)})
+                  </option>
+                  {accounts.map((acc) => (
+                    <option key={acc._id || acc.id} value={acc._id || acc.id}>
+                      {acc.name || acc.accountName} ({formatCurrency(acc.balance, settings?.currency)})
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -572,15 +613,15 @@ export const TransactionFormModal: React.FC = () => {
                   required
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-medium focus:outline-none focus:border-emerald-500 cursor-pointer"
                 >
-                  {accounts.length === 0 ? (
-                    <option value="">No Accounts Available</option>
-                  ) : (
-                    accounts.map((acc) => (
-                      <option key={acc._id || acc.id} value={acc._id || acc.id}>
-                        {acc.accountName} (₹{Number(acc.balance || 0).toLocaleString('en-IN')})
-                      </option>
-                    ))
-                  )}
+                  <option value="">Select Account</option>
+                  <option value="cash">
+                    Cash in Hand ({formatCurrency(cashBalance, settings?.currency)})
+                  </option>
+                  {accounts.map((acc) => (
+                    <option key={acc._id || acc.id} value={acc._id || acc.id}>
+                      {acc.name || acc.accountName} ({formatCurrency(acc.balance, settings?.currency)})
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -593,18 +634,18 @@ export const TransactionFormModal: React.FC = () => {
                 <Wallet size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <select
                   value={selectedAccountId}
-                  onChange={(e) => setSelectedAccountId(e.target.value)}
+                  onChange={(e) => handleAccountChange(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer"
                 >
-                  {accounts.length === 0 ? (
-                    <option value="">No Accounts Connected (Add in Vault)</option>
-                  ) : (
-                    accounts.map((acc) => (
-                      <option key={acc._id || acc.id} value={acc._id || acc.id}>
-                        {acc.accountName} (₹{Number(acc.balance || 0).toLocaleString('en-IN')})
-                      </option>
-                    ))
-                  )}
+                  <option value="">Select Account</option>
+                  <option value="cash">
+                    Cash in Hand ({formatCurrency(cashBalance, settings?.currency)})
+                  </option>
+                  {accounts.map((acc) => (
+                    <option key={acc._id || acc.id} value={acc._id || acc.id}>
+                      {acc.name || acc.accountName} ({formatCurrency(acc.balance, settings?.currency)})
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -623,7 +664,7 @@ export const TransactionFormModal: React.FC = () => {
                     <button
                       key={pm.id}
                       type="button"
-                      onClick={() => setPaymentMethod(pm.id)}
+                      onClick={() => handlePaymentMethodChange(pm.id)}
                       className={`flex flex-col items-center justify-center p-2 rounded-xl border text-xs font-medium transition cursor-pointer text-center ${
                         isSelected
                           ? 'border-emerald-500 bg-emerald-50/70 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300 ring-2 ring-emerald-500/20 font-semibold'

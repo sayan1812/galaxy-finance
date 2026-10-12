@@ -59,6 +59,18 @@ export interface CommandCenterStats {
   highestBalanceBank: { name: string; balance: number } | null;
 }
 
+export interface ReactiveAccount {
+  _id: string;
+  id: string;
+  name: string;
+  accountName: string;
+  balance: number;
+  openingBalance?: number;
+  accountType?: string;
+  accountNumberMask?: string;
+  planetColor?: string;
+}
+
 export interface TransactionContextType {
   transactions: Transaction[];
   budgets: Budget[];
@@ -70,6 +82,7 @@ export interface TransactionContextType {
 
   // Bank Accounts Management
   bankAccounts: BankAccount[];
+  accounts: ReactiveAccount[];
   cashWalletConfig: CashWalletConfig;
   bankStatsList: BankComputedStats[];
   totalBankBalance: number;
@@ -233,40 +246,41 @@ const DEFAULT_SETTINGS: AppSettings = {
 
 /**
  * Pure atomic derivation of physical cash available from recorded transactions.
- * Strictly guarantees that cash transactions mutate physical cash reserves
- * without any hardcoded starting figures (defaulting strictly to 0).
+ * STRICT CASH FILTER: MUST only match true physical cash transactions.
+ * Never mutates physical cash reserves for UPI, Debit Card, Credit Card, or Bank Transfers.
  */
 export const computeCashAvailable = (transactions: Transaction[], baseCashOpening: number = 0): number => {
-  const isCashMatch = (tBankId?: string, tMethod?: string, tAccount?: string) => {
-    const method = String(tMethod || '').toUpperCase();
-    if (method === 'CASH') return true;
-    if (tBankId === 'cash-wallet' || tBankId === 'cash' || tBankId === 'physical-cash') return true;
-    if (tAccount && (tAccount.toLowerCase().includes('cash') || tAccount.toLowerCase().includes('physical cash'))) return true;
-    return false;
-  };
-
   return transactions.reduce((acc, tx) => {
-    const amount = Number(tx.amount) || 0;
-    const isCash = isCashMatch(tx.bankAccountId, tx.paymentMethod, tx.account) ||
-      (tx as any).accountId === 'cash-wallet' ||
-      (tx as any).accountId === 'cash' ||
-      (tx as any).accountName === 'Cash' ||
-      (tx as any).accountName === 'Cash in Hand';
+    const amt = Number(tx.amount) || 0;
+    const method = String(tx.paymentMethod || '').toUpperCase();
+    const bankId = String(tx.bankAccountId || (tx as any).accountId || '');
+
+    // MUST only match true physical cash transactions
+    const isPhysicalCash = 
+      method === 'CASH' || 
+      bankId === 'cash' || 
+      bankId === 'cash-wallet' || 
+      bankId === 'physical-cash';
+
+    if (tx.type === 'TRANSFER') {
+      const toBankId = String(tx.toBankAccountId || (tx as any).toAccountId || '');
+      const isCashDest = toBankId === 'cash' || toBankId === 'cash-wallet' || toBankId === 'physical-cash';
+      const isCashSource = isPhysicalCash;
+      if (isCashDest && !isCashSource) return acc + amt;
+      if (isCashSource && !isCashDest) return acc - amt;
+      return acc;
+    }
+
+    // DO NOT mutate cash for UPI, Debit Card, Credit Card, or Bank Transfer
+    if (!isPhysicalCash) return acc;
 
     if (tx.type === 'INCOME') {
-      if (isCash) return acc + amount;
+      return acc + amt;
     } else if (tx.type === 'EXPENSE') {
-      if (isCash) return acc - amount;
-    } else if (tx.type === 'TRANSFER') {
-      const toBankId = String(tx.toBankAccountId || (tx as any).toAccountId || '');
-      const toAccountName = String(tx.toAccount || (tx as any).toAccountName || '');
-      const isCashDest = isCashMatch(toBankId, undefined, toAccountName);
-      const isCashSource = isCash;
-      if (isCashDest && !isCashSource) return acc + amount;
-      if (isCashSource && !isCashDest) return acc - amount;
+      return acc - amt;
     }
     return acc;
-  }, baseCashOpening);
+  }, Math.max(0, Number(baseCashOpening) || 0));
 };
 
 const TransactionContext = createContext<TransactionContextType | null>(null);
@@ -1473,6 +1487,21 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     });
   }, [bankAccounts, transactions]);
 
+  // Reactive accounts with strictly reconciled balances for modals and selectors
+  const accounts: ReactiveAccount[] = useMemo(() => {
+    return bankStatsList.map((bs) => ({
+      _id: bs.bank.id,
+      id: bs.bank.id,
+      name: bs.bank.nickname || bs.bank.bankName,
+      accountName: bs.bank.bankName,
+      balance: bs.currentBalance,
+      openingBalance: bs.bank.openingBalance,
+      accountType: bs.bank.accountType,
+      accountNumberMask: bs.bank.accountNumberMasked,
+      planetColor: bs.bank.planetColor || bs.bank.color,
+    }));
+  }, [bankStatsList]);
+
   // Direct Balance Adjuster: Adjust balance and openingBalance so currentBalance = newBalance
   const updateBankBalance = useCallback((id: string, newBalance: number, reason: string = 'Manual Balance Adjustment') => {
     setBankAccounts((prev) =>
@@ -1741,6 +1770,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
         syncStatus,
 
         bankAccounts,
+        accounts,
         cashWalletConfig,
         bankStatsList,
         totalBankBalance,
@@ -1866,6 +1896,7 @@ export const DEFAULT_FALLBACK_TRANSACTION_CONTEXT: TransactionContextType = {
     message: 'Accounts synchronized and up to date.',
   },
   bankAccounts: DEFAULT_BANK_ACCOUNTS,
+  accounts: [],
   cashWalletConfig: DEFAULT_CASH_WALLET,
   bankStatsList: [],
   totalBankBalance: 0,

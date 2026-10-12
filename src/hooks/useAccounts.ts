@@ -1,99 +1,44 @@
-import { useState, useEffect, useCallback } from 'react';
-import api from '../services/apiClient';
+import { useMemo } from 'react';
 import { useTransactions } from '../context/TransactionContext';
 
 export interface LiveAccount {
   _id: string;
   id?: string;
+  name?: string;
   accountName: string;
   accountType: 'bank' | 'cash';
   balance: number;
+  openingBalance?: number;
   accountNumberMask?: string;
   accountNumber?: string;
 }
 
 /**
  * useAccounts Hook
- * Fetches the active user's registered bank and cash accounts directly from
- * MongoDB Atlas (`GET /api/v1/accounts`) with graceful fallback to local vault state.
+ * Exposes the active user's reactive account state directly unified with TransactionContext
+ * and reconciled ledger balances.
  */
 export function useAccounts() {
-  const [accounts, setAccounts] = useState<LiveAccount[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const { bankStatsList } = useTransactions();
+  const { accounts: contextAccounts, refreshData } = useTransactions();
 
-  const fetchAccounts = useCallback(async () => {
-    const token = typeof window !== 'undefined'
-      ? (localStorage.getItem('token') || localStorage.getItem('galaxy_token') || localStorage.getItem('rupeewise_token'))
-      : null;
-
-    if (!token) {
-      setAccounts([]);
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    try {
-      const res = await api.getAccounts();
-      const list = Array.isArray(res) ? res : (res && Array.isArray(res.accounts) ? res.accounts : null);
-      if (list !== null) {
-        setAccounts(list);
-      } else {
-        const localMapped: LiveAccount[] = (bankStatsList || []).map((bs) => ({
-          _id: bs.bank.id,
-          id: bs.bank.id,
-          accountName: bs.bank.bankName,
-          accountType: 'bank',
-          balance: bs.currentBalance,
-          accountNumberMask: bs.bank.accountNumberMasked,
-        }));
-        setAccounts(localMapped);
-      }
-    } catch (err: any) {
-      const isAuth = err?.status === 401 || err?.isAuthError;
-      if (!isAuth) {
-        const message = err instanceof Error ? err.message : 'Failed to fetch accounts';
-        console.warn('[useAccounts] Backend unreachable:', message);
-        setError(message);
-      }
-      const localMapped: LiveAccount[] = (bankStatsList || []).map((bs) => ({
-        _id: bs.bank.id,
-        id: bs.bank.id,
-        accountName: bs.bank.bankName,
-        accountType: 'bank',
-        balance: bs.currentBalance,
-        accountNumberMask: bs.bank.accountNumberMasked,
-      }));
-      setAccounts(localMapped);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [bankStatsList]);
-
-  useEffect(() => {
-    fetchAccounts();
-
-    const handleLedgerUpdate = () => {
-      fetchAccounts();
-    };
-    if (typeof window !== 'undefined') {
-      window.addEventListener('galaxy:ledger-updated', handleLedgerUpdate);
-    }
-    return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('galaxy:ledger-updated', handleLedgerUpdate);
-      }
-    };
-  }, [fetchAccounts]);
+  const accounts: LiveAccount[] = useMemo(() => {
+    return (contextAccounts || []).map((acc) => ({
+      _id: acc._id || acc.id,
+      id: acc.id || acc._id,
+      name: acc.name,
+      accountName: acc.accountName || acc.name,
+      accountType: (acc.accountType || 'bank') as 'bank' | 'cash',
+      balance: acc.balance,
+      openingBalance: acc.openingBalance,
+      accountNumberMask: acc.accountNumberMask,
+    }));
+  }, [contextAccounts]);
 
   return {
     accounts,
-    isLoading,
-    error,
-    refetch: fetchAccounts,
+    isLoading: false,
+    error: null,
+    refetch: refreshData,
   };
 }
 

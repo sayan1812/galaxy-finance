@@ -6,6 +6,8 @@ import {
   adjustBalance,
   updateAccount,
   deleteAccount,
+  recalculateAccounts,
+  recalculateLedgerBalances,
 } from '../controllers/accountController.js';
 
 const router = express.Router();
@@ -22,6 +24,10 @@ router.get('/', authenticateOrDemo, getAccounts);
 // POST /api/v1/accounts
 router.post('/', authenticateOrDemo, createAccount);
 
+// POST & GET /api/v1/accounts/recalculate
+router.post('/recalculate', authenticateOrDemo, recalculateAccounts);
+router.get('/recalculate', authenticateOrDemo, recalculateAccounts);
+
 // POST /api/v1/accounts/:id/adjust (and alias /balance for bank reconciliations)
 router.post('/:id/adjust', authenticateOrDemo, adjustBalance);
 router.post('/:id/balance', authenticateOrDemo, adjustBalance);
@@ -33,5 +39,13 @@ router.patch('/:id', authenticateOrDemo, updateAccount);
 // DELETE /api/v1/accounts/:id
 router.delete('/:id', authenticateOrDemo, deleteAccount);
 
-export { getAccounts, createAccount, adjustBalance, updateAccount, deleteAccount };
+export { 
+  getAccounts, 
+  createAccount, 
+  adjustBalance, 
+  updateAccount, 
+  deleteAccount, 
+  recalculateAccounts, 
+  recalculateLedgerBalances 
+};
 export default router;

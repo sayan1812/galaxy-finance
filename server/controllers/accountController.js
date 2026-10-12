@@ -173,10 +173,89 @@ export const deleteAccount = async (req, res) => {
   }
 };
 
+// Recalculate Ledger Balances Integrity Routine
+export const recalculateLedgerBalances = (accounts, transactions) => {
+  // 1. Reset balances to initial vault baselines
+  const accountBalances = {};
+  accounts.forEach((acc) => {
+    const accIdStr = (acc._id || acc.id).toString();
+    const baseline = Number(acc.openingBalance !== undefined ? acc.openingBalance : (acc.balance || 0));
+    accountBalances[accIdStr] = baseline;
+  });
+  let cashTotal = 0;
+
+  // 2. Play ledger forward strictly once
+  transactions.forEach((tx) => {
+    const amt = Number(tx.amount) || 0;
+    const normType = String(tx.type || '').toUpperCase();
+    const isIncome = normType === 'INCOME';
+    const isExpense = normType === 'EXPENSE';
+    const isTransfer = normType === 'TRANSFER';
+    const method = String(tx.paymentMethod || '').toUpperCase();
+    const txAccId = tx.accountId?._id ? tx.accountId._id.toString() : (tx.accountId ? tx.accountId.toString() : null);
+    const toAccId = tx.toAccountId?._id ? tx.toAccountId._id.toString() : (tx.toAccountId ? tx.toAccountId.toString() : null);
+    const isCash = method === 'CASH' || txAccId === 'cash' || txAccId === 'cash-wallet';
+
+    if (txAccId && accountBalances[txAccId] !== undefined && !isCash) {
+      if (isIncome) accountBalances[txAccId] += amt;
+      if (isExpense || isTransfer) accountBalances[txAccId] -= amt;
+    }
+
+    if (isTransfer && toAccId && accountBalances[toAccId] !== undefined) {
+      accountBalances[toAccId] += amt;
+    }
+
+    if (isCash) {
+      if (isIncome) cashTotal += amt;
+      if (isExpense) cashTotal -= amt;
+    }
+  });
+
+  return { accountBalances, cashTotal };
+};
+
+// POST /api/v1/accounts/recalculate
+export const recalculateAccounts = async (req, res) => {
+  try {
+    const userId = req.user?.id || req.userId;
+    const [accounts, transactions] = await Promise.all([
+      Account.find({ userId }),
+      Transaction.find({ userId }).sort({ date: 1, createdAt: 1 })
+    ]);
+
+    const { accountBalances, cashTotal } = recalculateLedgerBalances(accounts, transactions);
+
+    // Persist healed balances to MongoDB Atlas
+    await Promise.all(
+      accounts.map(async (acc) => {
+        const healedBal = accountBalances[(acc._id || acc.id).toString()];
+        if (healedBal !== undefined && healedBal !== acc.balance) {
+          acc.balance = healedBal;
+          await acc.save();
+        }
+      })
+    );
+
+    const updatedAccounts = await Account.find({ userId }).sort({ updatedAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Ledger integrity verified and balances reconciled',
+      accounts: updatedAccounts,
+      cashTotal,
+    });
+  } catch (error) {
+    console.error('[Recalculate Accounts Error]:', error);
+    return res.status(500).json({ error: error.message || 'Failed to recalculate accounts' });
+  }
+};
+
 export default {
   getAccounts,
   createAccount,
   adjustBalance,
   updateAccount,
   deleteAccount,
+  recalculateAccounts,
+  recalculateLedgerBalances,
 };
