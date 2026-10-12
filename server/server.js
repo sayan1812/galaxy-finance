@@ -3,6 +3,11 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const projectRoot = path.resolve(__dirname, '..');
 
 // Automatically load environment variables from .env
 try {
@@ -115,29 +120,113 @@ app.use('/api/dashboard', dashboardMongoRoutes);
 app.use('/api/v1/download', downloadRoutes);
 app.use('/download', downloadRoutes);
 
-// Android APK & Package Downloads Static Serving with verified MIME type
-const publicDownloadsPath = path.resolve(process.cwd(), 'public/downloads');
-const serverDownloadsPath = path.resolve(process.cwd(), 'server/downloads');
+// Android APK Package Delivery — Binary Streaming & Strict Header Enforcement
+function resolveApkPath(requestedName = 'galaxy-finance-v1.0.0.apk') {
+  const specificPaths = [
+    path.join(projectRoot, 'public', 'downloads', requestedName),
+    path.join(projectRoot, 'public', requestedName),
+    path.join(__dirname, 'downloads', requestedName),
+    path.resolve(process.cwd(), 'public', 'downloads', requestedName),
+    path.resolve(process.cwd(), 'public', requestedName),
+    path.resolve(process.cwd(), 'server', 'downloads', requestedName),
+  ];
 
-// Route handler for any /downloads/*.apk file request
-app.get('/downloads/:filename', (req, res, next) => {
-  if (req.params.filename.endsWith('.apk')) {
-    const candidatePaths = [
-      path.resolve(publicDownloadsPath, req.params.filename),
-      path.resolve(serverDownloadsPath, req.params.filename),
-      path.resolve(publicDownloadsPath, 'galaxy-finance-release.apk'),
-      path.resolve(serverDownloadsPath, 'galaxy-finance-v1.0.0.apk'),
-    ];
-    const target = candidatePaths.find((p) => fs.existsSync(p) && fs.statSync(p).size > 10000);
-    if (target) {
-      res.setHeader('Content-Type', 'application/vnd.android.package-archive');
-      res.setHeader('Content-Disposition', 'attachment; filename="galaxy-finance-v1.0.0.apk"');
-      res.setHeader('Cache-Control', 'public, max-age=86400');
-      return res.sendFile(target);
+  for (const candidate of specificPaths) {
+    if (fs.existsSync(candidate)) {
+      try {
+        const stats = fs.statSync(candidate);
+        if (stats.size > 1000000) return candidate;
+      } catch {}
     }
+  }
+
+  // If the request was for galaxy-finance apk (or generic download), allow fallback to standard release APK
+  if (!requestedName || requestedName.includes('galaxy') || requestedName === 'app-release.apk' || requestedName === 'app.apk') {
+    const fallbackPaths = [
+      path.join(projectRoot, 'public', 'downloads', 'galaxy-finance-v1.0.0.apk'),
+      path.join(projectRoot, 'public', 'downloads', 'galaxy-finance-release.apk'),
+      path.join(projectRoot, 'public', 'galaxy-finance-v1.0.0.apk'),
+      path.join(__dirname, 'downloads', 'galaxy-finance-v1.0.0.apk'),
+      path.join(__dirname, 'downloads', 'galaxy-finance-release.apk'),
+    ];
+    for (const candidate of fallbackPaths) {
+      if (fs.existsSync(candidate)) {
+        try {
+          const stats = fs.statSync(candidate);
+          if (stats.size > 1000000) return candidate;
+        } catch {}
+      }
+    }
+  }
+
+  return null;
+}
+
+function streamApkResponse(req, res, filename = 'galaxy-finance-v1.0.0.apk') {
+  const apkPath = resolveApkPath(filename);
+
+  if (!apkPath || !fs.existsSync(apkPath)) {
+    return res.status(404).type('text/plain').send('APK file not found on server.');
+  }
+
+  const stat = fs.statSync(apkPath);
+  res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.setHeader('Content-Length', stat.size);
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+
+  if (req.method === 'HEAD') {
+    return res.end();
+  }
+
+  const fileStream = fs.createReadStream(apkPath);
+  fileStream.on('error', (err) => {
+    console.error('[APK Streaming Error]:', err);
+    if (!res.headersSent) {
+      res.status(500).type('text/plain').send('Error streaming APK file.');
+    }
+  });
+  fileStream.pipe(res);
+}
+
+// 1. Direct explicit route for galaxy-finance-v1.0.0.apk
+app.get('/downloads/galaxy-finance-v1.0.0.apk', (req, res) => {
+  streamApkResponse(req, res, 'galaxy-finance-v1.0.0.apk');
+});
+app.head('/downloads/galaxy-finance-v1.0.0.apk', (req, res) => {
+  streamApkResponse(req, res, 'galaxy-finance-v1.0.0.apk');
+});
+
+// 2. Generic route for any .apk download requested under /downloads/
+app.get('/downloads/:filename', (req, res, next) => {
+  if (req.params.filename && req.params.filename.endsWith('.apk')) {
+    return streamApkResponse(req, res, req.params.filename);
   }
   next();
 });
+app.head('/downloads/:filename', (req, res, next) => {
+  if (req.params.filename && req.params.filename.endsWith('.apk')) {
+    return streamApkResponse(req, res, req.params.filename);
+  }
+  next();
+});
+
+// 3. Direct route aliases for /download/apk
+app.get('/download/apk', (req, res) => {
+  streamApkResponse(req, res, 'galaxy-finance-v1.0.0.apk');
+});
+app.head('/download/apk', (req, res) => {
+  streamApkResponse(req, res, 'galaxy-finance-v1.0.0.apk');
+});
+app.get('/api/download/apk', (req, res) => {
+  streamApkResponse(req, res, 'galaxy-finance-v1.0.0.apk');
+});
+app.head('/api/download/apk', (req, res) => {
+  streamApkResponse(req, res, 'galaxy-finance-v1.0.0.apk');
+});
+
+const publicDownloadsPath = path.resolve(projectRoot, 'public/downloads');
+const serverDownloadsPath = path.resolve(__dirname, 'downloads');
 
 app.use('/downloads', express.static(publicDownloadsPath, {
   setHeaders: (res, filePath) => {

@@ -33,3 +33,4 @@ build/
 !public/downloads/*.apk
 !server/downloads/*.apk
 !release/*.apk
+!public/*.apk

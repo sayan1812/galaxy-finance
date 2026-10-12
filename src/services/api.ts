@@ -305,7 +305,8 @@ export const api = {
   },
 
   getApkDownloadUrl(): string {
-    return `${BASE_URL}/download/apk`;
+    const apiHost = BASE_URL.replace(/\/api(\/v1)?\/?$/, '');
+    return `${apiHost}/downloads/galaxy-finance-v1.0.0.apk`;
   },
 };
 

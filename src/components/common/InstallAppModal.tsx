@@ -168,7 +168,7 @@ export const InstallAppModal: React.FC = () => {
                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
             }`}
           >
-            PWA Web App
+            PWA Instant App
           </button>
           <button
             type="button"
@@ -180,8 +180,22 @@ export const InstallAppModal: React.FC = () => {
             }`}
           >
             <ArrowDownToLine size={13} />
-            <span>Android APK</span>
+            <span>Direct APK</span>
           </button>
+        </div>
+
+        {/* Tab-specific explanation */}
+        <div className="mt-2 text-[11px] text-[var(--text-secondary)] leading-relaxed">
+          {activeTab === 'pwa' ? (
+            <p className="flex items-center gap-1 text-emerald-400 font-medium">
+              <CheckCircle2 size={12} className="shrink-0" />
+              <span>Recommended: Instant 1-tap install with zero package parsing errors.</span>
+            </p>
+          ) : (
+            <p className="flex items-center gap-1 text-[var(--text-secondary)]">
+              <span>Compatible with Android 5.1+ (API 22–34). Requires "Install Unknown Apps" permission.</span>
+            </p>
+          )}
         </div>
 
         {/* Action Buttons */}
@@ -192,7 +206,7 @@ export const InstallAppModal: React.FC = () => {
               className="flex-1 py-2.5 px-4 rounded-xl bg-[var(--accent-primary)] text-[var(--btn-primary-text)] font-extrabold text-xs shadow-md shadow-[var(--accent-glow)] hover:opacity-95 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <Download size={15} className="stroke-[2.5]" />
-              <span>Install Now</span>
+              <span>Install PWA (Instant)</span>
             </button>
           ) : (
             <button
@@ -200,7 +214,7 @@ export const InstallAppModal: React.FC = () => {
               className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/25 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <ArrowDownToLine size={15} className="stroke-[2.5]" />
-              <span>Download APK (42.8 MB)</span>
+              <span>Download APK (18.6 MB)</span>
             </button>
           )}
 

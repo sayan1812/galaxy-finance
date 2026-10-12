@@ -4,44 +4,37 @@ import fs from 'node:fs';
 
 const router = express.Router();
 
-const DOWNLOAD_DIR = path.resolve(process.cwd(), 'server', 'downloads');
-if (!fs.existsSync(DOWNLOAD_DIR)) {
-  fs.mkdirSync(DOWNLOAD_DIR, { recursive: true });
-}
+import { fileURLToPath } from 'node:url';
 
-const APK_PATH = path.join(DOWNLOAD_DIR, 'galaxy-finance-v1.0.0.apk');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const projectRoot = path.resolve(__dirname, '..', '..');
 
-// Ensure an APK package file exists so download never 404s
-if (!fs.existsSync(APK_PATH)) {
-  // Create a valid zip-based APK archive stub
-  const stubHeader = Buffer.from([
-    0x50, 0x4B, 0x03, 0x04, // ZIP header
-    0x14, 0x00, 0x00, 0x00,
-    0x08, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00,
-  ]);
-  const content = Buffer.from('Galaxy Finance Android Mobile Application Build v1.0.0 (Release APK)');
-  fs.writeFileSync(APK_PATH, Buffer.concat([stubHeader, content]));
-}
-
-// Helper to find the best valid APK file
+// Helper to find the best valid APK file (must be > 1 MB)
 function resolveValidApk() {
   const candidatePaths = [
+    path.join(projectRoot, 'public', 'downloads', 'galaxy-finance-v1.0.0.apk'),
+    path.join(projectRoot, 'public', 'downloads', 'galaxy-finance-release.apk'),
+    path.join(projectRoot, 'public', 'galaxy-finance-v1.0.0.apk'),
+    path.join(__dirname, '..', 'downloads', 'galaxy-finance-v1.0.0.apk'),
+    path.join(__dirname, '..', 'downloads', 'galaxy-finance-release.apk'),
     path.resolve(process.cwd(), 'public', 'downloads', 'galaxy-finance-v1.0.0.apk'),
     path.resolve(process.cwd(), 'public', 'downloads', 'galaxy-finance-release.apk'),
-    path.join(DOWNLOAD_DIR, 'galaxy-finance-v1.0.0.apk'),
-    path.join(DOWNLOAD_DIR, 'galaxy-finance-release.apk'),
+    path.resolve(process.cwd(), 'public', 'galaxy-finance-v1.0.0.apk'),
+    path.resolve(process.cwd(), 'server', 'downloads', 'galaxy-finance-v1.0.0.apk'),
   ];
 
   for (const p of candidatePaths) {
     if (fs.existsSync(p)) {
-      const stats = fs.statSync(p);
-      if (stats.size > 10000) {
-        return p;
-      }
+      try {
+        const stats = fs.statSync(p);
+        if (stats.size > 1000000) {
+          return p;
+        }
+      } catch {}
     }
   }
-  return APK_PATH;
+  return null;
 }
 
 // GET /api/v1/download/apk & /api/v1/download/info
@@ -49,7 +42,7 @@ router.get('/info', (req, res) => {
   const validApk = resolveValidApk();
   let sizeMb = '18.6 MB';
   try {
-    if (fs.existsSync(validApk)) {
+    if (validApk && fs.existsSync(validApk)) {
       const bytes = fs.statSync(validApk).size;
       sizeMb = `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     }
@@ -62,20 +55,37 @@ router.get('/info', (req, res) => {
     architecture: 'arm64-v8a, armeabi-v7a',
     fileSize: sizeMb,
     releaseDate: '2026-10-12',
-    downloadUrl: '/api/v1/download/apk',
+    downloadUrl: '/downloads/galaxy-finance-v1.0.0.apk',
   });
 });
 
-router.get('/apk', (req, res) => {
+const handleApkStream = (req, res) => {
   const filePath = resolveValidApk();
+  if (!filePath || !fs.existsSync(filePath)) {
+    return res.status(404).type('text/plain').send('APK file not found on server.');
+  }
+
+  const stat = fs.statSync(filePath);
   res.setHeader('Content-Type', 'application/vnd.android.package-archive');
   res.setHeader('Content-Disposition', 'attachment; filename="galaxy-finance-v1.0.0.apk"');
+  res.setHeader('Content-Length', stat.size);
   res.setHeader('Cache-Control', 'public, max-age=86400');
-  res.download(filePath, 'galaxy-finance-v1.0.0.apk', (err) => {
-    if (err && !res.headersSent) {
-      res.status(500).json({ error: 'Failed to initiate APK download' });
+
+  if (req.method === 'HEAD') {
+    return res.end();
+  }
+
+  const fileStream = fs.createReadStream(filePath);
+  fileStream.on('error', () => {
+    if (!res.headersSent) {
+      res.status(500).type('text/plain').send('Error streaming APK file.');
     }
   });
-});
+  fileStream.pipe(res);
+};
+
+router.get('/apk', handleApkStream);
+router.head('/apk', handleApkStream);
+
 
 export default router;
