@@ -406,7 +406,7 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
           </div>
 
           {/* Category List View with Percentage Badges */}
-          <div className="w-full divide-y divide-emerald-950/20 dark:divide-emerald-900/30">
+          <div className="w-full divide-y divide-emerald-900/20 dark:divide-emerald-900/30">
             {sortedCategories.map((item, idx) => {
               const color = getCategoryThemeColor(item.category, isDark);
               const isHovered = activeIndex === idx;
@@ -416,12 +416,12 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
                   key={item.category}
                   onMouseEnter={() => setActiveIndex(idx)}
                   onMouseLeave={() => setActiveIndex(null)}
-                  className={`flex items-center justify-between py-3 px-2 rounded-xl transition-all duration-150 cursor-pointer ${
+                  className={`flex items-center justify-between py-2.5 px-3 border-b border-emerald-900/20 hover:bg-emerald-500/5 transition-colors cursor-pointer rounded-xl ${
                     isHovered
                       ? isDark
                         ? 'bg-[#1A312C]/60 scale-[1.01]'
                         : 'bg-emerald-50/70 scale-[1.01]'
-                      : 'hover:bg-emerald-500/5'
+                      : ''
                   }`}
                 >
                   {/* Left: Badge + Category Name */}
@@ -432,13 +432,13 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
                     >
                       {Math.round(item.percentage)}%
                     </span>
-                    <span className="text-sm font-medium text-emerald-900 dark:text-[#FFF4E1]/90 truncate">
+                    <span className="text-sm font-medium text-slate-900 dark:text-[#FFF4E1]/90 truncate">
                       {item.category}
                     </span>
                   </div>
 
                   {/* Right: Calculated Amount */}
-                  <span className="text-sm font-semibold text-emerald-950 dark:text-[#89D7B7] font-mono shrink-0 ml-3">
+                  <span className="text-sm font-bold text-slate-900 dark:text-[#89D7B7] font-mono shrink-0 ml-3">
                     {formatCurrency(item.amount, settings?.currency)}
                   </span>
                 </div>

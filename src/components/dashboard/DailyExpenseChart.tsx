@@ -58,11 +58,10 @@ export const DailyExpenseChart: React.FC = () => {
   const totalPeriodExpense = chartData.reduce((sum, d) => sum + d.amount, 0);
   const avgDailyExpense = Math.round(totalPeriodExpense / daysCount);
 
-  // Bi-modal tokens
   const gridStroke = isDark ? 'rgba(137, 215, 183, 0.15)' : 'rgba(40, 122, 116, 0.12)';
   const tickColor = isDark ? 'rgba(255, 244, 225, 0.72)' : '#55A9A0';
   const axisColor = isDark ? 'rgba(137, 215, 183, 0.22)' : 'rgba(40, 122, 116, 0.18)';
-  const cursorFill = isDark ? 'rgba(66, 132, 117, 0.2)' : 'rgba(174, 238, 211, 0.35)';
+  const cursorFill = 'rgba(137, 215, 183, 0.08)';
   const barFill = isDark ? '#FF8A8A' : '#D9534F';
 
   return (
@@ -112,8 +111,9 @@ export const DailyExpenseChart: React.FC = () => {
               tickFormatter={(v) => formatCompactCurrency(v, settings.currency)}
             />
             <Tooltip
-              cursor={{ fill: cursorFill, radius: 6 }}
-              offset={12}
+              cursor={{ fill: cursorFill }}
+              offset={16}
+              wrapperStyle={{ zIndex: 50, pointerEvents: 'none' }}
               content={<CustomChartTooltip currency={settings.currency} type="daily" />}
             />
             <Bar 

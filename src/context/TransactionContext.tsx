@@ -505,11 +505,6 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } catch (e) {
       console.error('Failed to save settings:', e);
     }
-
-    // Enforce light mode (dark and night modes withdrawn)
-    document.documentElement.classList.remove('dark', 'night');
-    document.documentElement.classList.add('light');
-    document.documentElement.setAttribute('data-theme', 'light');
   }, [settings]);
 
   // Strictly scope user financial data to activeUserId and sync with MongoDB Atlas

@@ -186,13 +186,13 @@ export const CategoryPieChart: React.FC = () => {
                     className="w-3 h-3 rounded-md flex-shrink-0 shadow-xs"
                     style={{ backgroundColor: item.color }}
                   />
-                  <span className="font-semibold truncate text-[var(--text-primary)]">{item.name}</span>
+                  <span className="font-semibold truncate text-slate-900 dark:text-[#FFF4E1]/90">{item.name}</span>
                 </div>
                 <div className="flex items-center gap-2.5 font-mono">
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                     {Math.round(item.percent)}%
                   </span>
-                  <span className="font-bold text-[var(--text-primary)]">{formatCurrency(item.value, settings.currency)}</span>
+                  <span className="font-bold text-slate-900 dark:text-[#89D7B7]">{formatCurrency(item.value, settings.currency)}</span>
                 </div>
               </div>
             ))}

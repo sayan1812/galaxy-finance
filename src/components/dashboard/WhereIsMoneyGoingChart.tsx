@@ -68,6 +68,7 @@ export const WhereIsMoneyGoingChart: React.FC = () => {
         method: m.method,
         amount,
         percentage: Math.round(percentage * 10) / 10,
+        share: Math.round(percentage * 10) / 10,
         color: colorMap[m.method],
       };
     }).sort((a, b) => b.amount - a.amount);
@@ -77,7 +78,7 @@ export const WhereIsMoneyGoingChart: React.FC = () => {
     return data.reduce((s, d) => s + d.amount, 0);
   }, [data]);
 
-  const cursorFill = isDark ? 'rgba(66, 132, 117, 0.2)' : 'rgba(174, 238, 211, 0.35)';
+  const cursorFill = 'rgba(137, 215, 183, 0.08)';
   const tickColor = isDark ? 'rgba(255, 244, 225, 0.72)' : '#55A9A0';
   const axisColor = isDark ? 'rgba(137, 215, 183, 0.22)' : 'rgba(40, 122, 116, 0.18)';
 
@@ -123,14 +124,14 @@ export const WhereIsMoneyGoingChart: React.FC = () => {
                   className="w-2.5 h-2.5 rounded-full transition-transform duration-200 group-hover:scale-125" 
                   style={{ backgroundColor: item.color }} 
                 />
-                <span className="font-bold text-[var(--text-primary)]">{item.name}</span>
+                <span className="font-bold text-slate-900 dark:text-[#FFF4E1]/90">{item.name}</span>
               </div>
 
               <div className="flex items-center gap-2 font-mono">
-                <span className="font-black text-[var(--text-primary)]">
+                <span className="font-black text-slate-900 dark:text-[#89D7B7]">
                   {formatCurrency(item.amount, settings.currency)}
                 </span>
-                <span className="text-[11px] text-[var(--text-secondary)] w-10 text-right">
+                <span className="text-[11px] text-slate-500 dark:text-[#FFF4E1]/70 w-10 text-right">
                   {item.percentage}%
                 </span>
               </div>
@@ -170,8 +171,9 @@ export const WhereIsMoneyGoingChart: React.FC = () => {
               tickFormatter={(v) => `₹${v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}`}
             />
             <Tooltip
-              cursor={{ fill: cursorFill, radius: 6 }}
-              offset={12}
+              cursor={{ fill: cursorFill }}
+              offset={16}
+              wrapperStyle={{ zIndex: 50, pointerEvents: 'none' }}
               content={<CustomChartTooltip currency={settings.currency} type="channel" />}
             />
             <Bar 

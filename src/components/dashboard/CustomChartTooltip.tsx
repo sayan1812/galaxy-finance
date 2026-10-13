@@ -1,6 +1,6 @@
 import React from 'react';
 import type { CurrencyConfig } from '../../types';
-import { formatCurrency, formatPercentage } from '../../utils/formatters';
+import { formatCurrency } from '../../utils/formatters';
 import { useTheme } from '../../context/ThemeContext';
 
 export interface CustomChartTooltipProps {
@@ -40,38 +40,36 @@ export const CustomChartTooltip: React.FC<CustomChartTooltipProps> = ({
   const isDaily = type === 'daily' || ('displayDate' in rawData && 'amount' in rawData && !('income' in rawData));
 
   // Bi-modal styling variables
-  const containerBg = isDark ? 'rgba(66, 132, 117, 0.92)' : 'rgba(255, 255, 255, 0.96)';
-  const borderColor = isDark ? 'rgba(137, 215, 183, 0.32)' : 'rgba(40, 122, 116, 0.22)';
+  const containerBg = isDark ? 'rgba(16, 34, 30, 0.95)' : 'rgba(255, 255, 255, 0.96)';
+  const borderColor = isDark ? 'rgba(137, 215, 183, 0.3)' : 'rgba(40, 122, 116, 0.22)';
   const shadow = isDark 
-    ? '0 10px 30px -4px rgba(0, 0, 0, 0.5), 0 0 16px rgba(137, 215, 183, 0.2)' 
+    ? '0 20px 40px -8px rgba(0, 0, 0, 0.7), 0 0 16px rgba(137, 215, 183, 0.25)' 
     : '0 8px 24px -4px rgba(40, 122, 116, 0.12), 0 0 14px rgba(174, 238, 211, 0.35)';
-  const labelColor = isDark ? 'rgba(255, 244, 225, 0.72)' : '#55A9A0';
-  const headingColor = isDark ? '#FFF4E1' : '#287A74';
+  const labelColor = isDark ? 'rgba(255, 244, 225, 0.7)' : '#55A9A0';
+  const headingColor = isDark ? '#89D7B7' : '#287A74';
   const textColor = isDark ? '#FFF4E1' : '#143834';
   const inflowColor = isDark ? '#89D7B7' : '#287A74';
-  const outflowColor = isDark ? '#FF8A8A' : '#D9534F';
+  const outflowColor = isDark ? '#F87171' : '#D9534F';
 
   return (
     <div
-      className="pointer-events-none select-none transition-all duration-150 text-left"
+      className="pointer-events-none select-none transition-all duration-150 text-left rounded-xl p-3 shadow-2xl backdrop-blur-md"
       style={{
         backgroundColor: containerBg,
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         border: `1px solid ${borderColor}`,
-        borderRadius: '12px',
-        padding: '10px 14px',
         boxShadow: shadow,
-        minWidth: '140px',
+        minWidth: '145px',
       }}
     >
       {/* Header / Date */}
       {displayTitle && (
         <div
-          className="uppercase tracking-wider font-mono font-semibold pb-1.5 mb-1.5 border-b"
+          className="uppercase tracking-wider font-mono font-bold pb-1.5 mb-1.5 border-b text-xs"
           style={{
             borderColor,
-            color: labelColor,
+            color: headingColor,
             fontSize: '11px',
             letterSpacing: '0.08em',
           }}
@@ -115,18 +113,18 @@ export const CustomChartTooltip: React.FC<CustomChartTooltipProps> = ({
         </div>
       ) : isChannel ? (
         /* Channel / Outflow Channel Mode */
-        <div className="space-y-1">
+        <div className="space-y-1 mt-0.5">
           <div className="flex items-center justify-between gap-4">
-            <span className="text-[12px] font-medium" style={{ color: labelColor }}>Amount</span>
-            <span className="font-mono font-bold text-[12px] tabular-nums" style={{ color: outflowColor }}>
-              {formatCurrency(Number(rawData.amount || 0), currency)}
+            <span className="text-xs font-medium text-[#FFF4E1]/70" style={{ color: labelColor }}>Amount</span>
+            <span className="font-mono font-bold text-sm tabular-nums" style={{ color: outflowColor }}>
+              {formatCurrency(Number(rawData.amount || payload[0]?.value || 0), currency)}
             </span>
           </div>
-          {rawData.percentage !== undefined && (
+          {(rawData.percentage !== undefined || rawData.share !== undefined) && (
             <div className="flex items-center justify-between gap-4">
-              <span className="text-[12px] font-medium" style={{ color: labelColor }}>Share</span>
-              <span className="font-mono font-medium text-[11px] tabular-nums" style={{ color: textColor }}>
-                {formatPercentage(Number(rawData.percentage))}
+              <span className="text-xs font-medium text-[#FFF4E1]/70" style={{ color: labelColor }}>Share</span>
+              <span className="font-mono font-semibold text-xs tabular-nums" style={{ color: headingColor }}>
+                {rawData.share !== undefined ? `${rawData.share}%` : (rawData.percentage !== undefined ? `${rawData.percentage}%` : '0%')}
               </span>
             </div>
           )}
