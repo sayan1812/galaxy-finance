@@ -78,7 +78,6 @@ export const WhereIsMoneyGoingChart: React.FC = () => {
     return data.reduce((s, d) => s + d.amount, 0);
   }, [data]);
 
-  const cursorFill = 'rgba(137, 215, 183, 0.08)';
   const tickColor = isDark ? 'rgba(255, 244, 225, 0.72)' : '#55A9A0';
   const axisColor = isDark ? 'rgba(137, 215, 183, 0.22)' : 'rgba(40, 122, 116, 0.18)';
 
@@ -124,14 +123,14 @@ export const WhereIsMoneyGoingChart: React.FC = () => {
                   className="w-2.5 h-2.5 rounded-full transition-transform duration-200 group-hover:scale-125" 
                   style={{ backgroundColor: item.color }} 
                 />
-                <span className="font-bold text-slate-900 dark:text-[#FFF4E1]/90">{item.name}</span>
+                <span className="font-bold text-[var(--text-primary)] dark:text-[#FFF4E1]">{item.name}</span>
               </div>
 
               <div className="flex items-center gap-2 font-mono">
-                <span className="font-black text-slate-900 dark:text-[#89D7B7]">
+                <span className="font-black text-[var(--text-headings)] dark:text-[#89D7B7]">
                   {formatCurrency(item.amount, settings.currency)}
                 </span>
-                <span className="text-[11px] text-slate-500 dark:text-[#FFF4E1]/70 w-10 text-right">
+                <span className="text-[11px] text-[var(--text-secondary)] dark:text-[#FFF4E1]/70 w-10 text-right">
                   {item.percentage}%
                 </span>
               </div>
@@ -152,7 +151,7 @@ export const WhereIsMoneyGoingChart: React.FC = () => {
         ))}
       </div>
 
-      {/* Mini Bar Chart with Jade/Emerald Cursor & Custom Tooltip */}
+      {/* Mini Bar Chart with Clean Tooltip (No cursor box collision) */}
       <div className="h-36 w-full pt-2 chart-container-fluid">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
@@ -171,7 +170,7 @@ export const WhereIsMoneyGoingChart: React.FC = () => {
               tickFormatter={(v) => `₹${v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}`}
             />
             <Tooltip
-              cursor={{ fill: cursorFill }}
+              cursor={false}
               offset={16}
               wrapperStyle={{ zIndex: 50, pointerEvents: 'none' }}
               content={<CustomChartTooltip currency={settings.currency} type="channel" />}

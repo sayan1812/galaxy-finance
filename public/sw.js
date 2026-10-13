@@ -1,10 +1,12 @@
-const CACHE_NAME = 'galaxy-finance-cache-v3';
+const CACHE_NAME = 'galaxy-finance-cache-v4';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/manifest.webmanifest',
   '/favicon.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
+  '/icons/icon-maskable-192.png',
+  '/icons/icon-maskable-512.png',
 ];
 
 // Install: Cache critical shell resources and activate immediately

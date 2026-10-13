@@ -432,13 +432,13 @@ export const ExpenseCategoryChart: React.FC<ExpenseCategoryChartProps> = ({
                     >
                       {Math.round(item.percentage)}%
                     </span>
-                    <span className="text-sm font-medium text-slate-900 dark:text-[#FFF4E1]/90 truncate">
+                    <span className="text-sm font-medium text-[var(--text-primary)] dark:text-[#FFF4E1] truncate">
                       {item.category}
                     </span>
                   </div>
 
                   {/* Right: Calculated Amount */}
-                  <span className="text-sm font-bold text-slate-900 dark:text-[#89D7B7] font-mono shrink-0 ml-3">
+                  <span className="text-sm font-bold text-[var(--text-headings)] dark:text-[#89D7B7] font-mono shrink-0 ml-3">
                     {formatCurrency(item.amount, settings?.currency)}
                   </span>
                 </div>

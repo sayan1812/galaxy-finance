@@ -163,9 +163,6 @@ const MainLayout: React.FC = () => {
         setCurrentTab={setCurrentTab} 
       />
 
-      {/* PWA & APK Download Notification Popup */}
-      <InstallAppModal />
-
       {/* Global Modals & Micro-Interactions */}
       <TransactionFormModal />
       <CashTransactionModal />
@@ -240,6 +237,7 @@ export function App() {
         <AuthProvider>
           <TransactionProvider>
             <AppGate />
+            <InstallAppModal />
           </TransactionProvider>
         </AuthProvider>
       </ThemeProvider>

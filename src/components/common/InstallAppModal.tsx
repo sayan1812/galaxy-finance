@@ -37,15 +37,37 @@ export const InstallAppModal: React.FC = () => {
     // Check if dismissed in this session
     const hasDismissed = sessionStorage.getItem('galaxy_install_dismissed');
 
+    // 1. Immediately pick up globally captured prompt if already fired
+    const globalPrompt = (window as any).__galaxyDeferredPrompt;
+    if (globalPrompt) {
+      setDeferredPrompt(globalPrompt);
+      if (!hasDismissed) {
+        setTimeout(() => setIsOpen(true), 800);
+      }
+    }
+
+    // 2. Listen for native browser prompt event
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
+      (window as any).__galaxyDeferredPrompt = e;
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       if (!hasDismissed) {
-        setTimeout(() => setIsOpen(true), 1200);
+        setTimeout(() => setIsOpen(true), 1000);
+      }
+    };
+
+    // 3. Listen for early-capture custom event
+    const handleCustomPrompt = (e: any) => {
+      if (e.detail) {
+        setDeferredPrompt(e.detail as BeforeInstallPromptEvent);
+        if (!hasDismissed) {
+          setTimeout(() => setIsOpen(true), 800);
+        }
       }
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('galaxy-beforeinstallprompt', handleCustomPrompt);
 
     // Listen for successful install event
     const handleAppInstalled = () => {
@@ -53,6 +75,7 @@ export const InstallAppModal: React.FC = () => {
       setIsStandalone(true);
       setIsOpen(false);
       setDeferredPrompt(null);
+      (window as any).__galaxyDeferredPrompt = null;
     };
 
     window.addEventListener('appinstalled', handleAppInstalled);
@@ -63,11 +86,12 @@ export const InstallAppModal: React.FC = () => {
     if (isMobile && !hasDismissed) {
       mobileTimer = setTimeout(() => {
         setIsOpen(true);
-      }, 2500);
+      }, 2000);
     }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('galaxy-beforeinstallprompt', handleCustomPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
       if (mobileTimer) clearTimeout(mobileTimer);
     };
@@ -75,13 +99,15 @@ export const InstallAppModal: React.FC = () => {
 
   // Primary 1-Tap PWA Installation Handler
   const handlePWAInstall = async () => {
-    if (deferredPrompt) {
+    const prompt = deferredPrompt || (window as any).__galaxyDeferredPrompt;
+    if (prompt) {
       try {
-        await deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
+        await prompt.prompt();
+        const { outcome } = await prompt.userChoice;
         if (outcome === 'accepted') {
           console.log('[PWA]: User accepted the install prompt');
           setDeferredPrompt(null);
+          (window as any).__galaxyDeferredPrompt = null;
           setIsInstalled(true);
           setIsOpen(false);
         }

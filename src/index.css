@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *, .galaxy, .galaxy *, [data-theme="dark"], [data-theme="dark"] *, [data-theme="galaxy"], [data-theme="galaxy"] *));
+
 /**
  * GALAXY FINANCE — BI-MODAL JADE/EMERALD & SOFT CREAM DESIGN SYSTEM
  *
