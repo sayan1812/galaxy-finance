@@ -1,4 +1,4 @@
-const CACHE_NAME = 'galaxy-finance-v1.1.0';
+const CACHE_NAME = 'galaxy-finance-v1.2.0';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/manifest.webmanifest',
