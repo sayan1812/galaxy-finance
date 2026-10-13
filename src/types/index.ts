@@ -72,6 +72,7 @@ export interface Transaction {
   recurringScheduleId?: string;
   isDuplicate?: boolean;
   duplicateResolved?: boolean;
+  /** @deprecated Receipt uploader removed from transaction modal */
   receiptUrl?: string;
   createdAt: string;
   updatedAt: string;
