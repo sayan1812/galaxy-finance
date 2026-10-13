@@ -1,39 +1,26 @@
 {
-  "name": "Galaxy Finance — Emerald Wealth System",
+  "id": "/",
   "short_name": "GalaxyFinance",
-  "description": "Cosmic personal finance, bank vaults, and real-time transaction telemetry",
+  "name": "Galaxy Finance — Emerald Wealth System",
+  "description": "Financial telemetry and portfolio orbit management",
   "start_url": "/",
   "scope": "/",
-  "id": "/",
   "display": "standalone",
-  "orientation": "portrait",
-  "theme_color": "#10221E",
   "background_color": "#10221E",
-  "categories": ["finance", "productivity", "utilities"],
+  "theme_color": "#10221E",
+  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "/pwa-192x192.png",
+      "type": "image/png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/pwa-512x512.png",
+      "type": "image/png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-maskable-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/icons/icon-maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ]
 }

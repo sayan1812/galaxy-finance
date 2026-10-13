@@ -1,19 +1,25 @@
-const CACHE_NAME = 'galaxy-finance-cache-v4';
+const CACHE_NAME = 'galaxy-finance-cache-v5';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/manifest.webmanifest',
   '/favicon.png',
+  '/pwa-192x192.png',
+  '/pwa-512x512.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
-  '/icons/icon-maskable-192.png',
-  '/icons/icon-maskable-512.png',
 ];
 
 // Install: Cache critical shell resources and activate immediately
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      for (const asset of STATIC_ASSETS) {
+        try {
+          await cache.add(asset);
+        } catch (e) {
+          console.warn('[SW]: Failed to precache asset:', asset, e);
+        }
+      }
     })
   );
   self.skipWaiting();
@@ -35,13 +41,13 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch handler
+// Fetch handler: Meets strict Android Chrome PWA installability requirements
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // Explicitly bypass all Vite development assets and HMR tooling
   if (url.pathname.includes('@vite') || url.pathname.includes('__vite') || url.port === '5173') {
-    return; // Do not handle or cache Vite internal dev tooling
+    return;
   }
 
   // 1. Ignore non-HTTP/HTTPS schemes
@@ -64,8 +70,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 4. Navigation requests (HTML pages): ALWAYS Network-First
-  // Guarantees users always receive the latest index.html with up-to-date JS bundle hashes.
+  // 4. Navigation requests (HTML pages): ALWAYS Network-First with offline fallback
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
@@ -91,9 +96,7 @@ self.addEventListener('fetch', (event) => {
       fetch(event.request)
         .then((response) => {
           const contentType = response.headers.get('content-type') || '';
-          // If Netlify redirected 404 to index.html, MIME is text/html for a .js file!
           if (contentType.includes('text/html')) {
-            console.warn('[SW]: Detected HTML response for asset request:', url.pathname);
             return new Response('Asset not found or stale bundle', {
               status: 404,
               statusText: 'Not Found',
@@ -127,7 +130,7 @@ self.addEventListener('fetch', (event) => {
           cache.put(event.request, responseToCache);
         });
         return networkResponse;
-      });
+      }).catch(() => caches.match(event.request));
     })
   );
 });

@@ -4,11 +4,15 @@ import './index.css'
 import App from './App.tsx'
 import { ErrorBoundary } from './components/common/ErrorBoundary.tsx'
 
-// Capture beforeinstallprompt immediately at startup so it is never missed by unmounted components
-(window as any).__galaxyDeferredPrompt = null;
+// Global install prompt fallback and synchronization
+if (!(window as any).deferredInstallPrompt) {
+  (window as any).deferredInstallPrompt = (window as any).__galaxyDeferredPrompt || null;
+}
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
+  (window as any).deferredInstallPrompt = e;
   (window as any).__galaxyDeferredPrompt = e;
+  window.dispatchEvent(new Event('pwa-prompt-ready'));
   window.dispatchEvent(new CustomEvent('galaxy-beforeinstallprompt', { detail: e }));
 });
 

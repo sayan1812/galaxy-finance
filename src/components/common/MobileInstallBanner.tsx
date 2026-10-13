@@ -2,85 +2,69 @@ import React, { useState, useEffect } from 'react';
 import { Download, X } from 'lucide-react';
 
 export const MobileInstallBanner: React.FC = () => {
-  const [installPrompt, setInstallPrompt] = useState<any>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [canInstall, setCanInstall] = useState<boolean>(
+    Boolean((window as any).deferredInstallPrompt || (window as any).__galaxyDeferredPrompt)
+  );
+  const [isDismissed, setIsDismissed] = useState<boolean>(false);
 
   useEffect(() => {
-    // Check if the app is already installed/running in standalone mode
+    // Check if app is already running in installed standalone mode
     const isStandalone = 
-      window.matchMedia('(display-mode: standalone)').matches || 
+      window.matchMedia('(display-mode: standalone)').matches ||
       (window.navigator as any).standalone === true;
 
-    if (isStandalone) {
-      setIsVisible(false);
-      return;
-    }
+    if (isStandalone) return;
 
-    // 1. Immediately pick up if already captured globally on window
-    const globalPrompt = (window as any).__galaxyDeferredPrompt;
-    if (globalPrompt) {
-      setInstallPrompt(globalPrompt);
-      setIsVisible(true);
-    }
+    const onReady = () => setCanInstall(true);
+    window.addEventListener('pwa-prompt-ready', onReady);
+    window.addEventListener('galaxy-beforeinstallprompt', onReady);
 
-    const handleBeforeInstall = (e: Event) => {
+    const onBeforeInstall = (e: Event) => {
       e.preventDefault();
+      (window as any).deferredInstallPrompt = e;
       (window as any).__galaxyDeferredPrompt = e;
-      setInstallPrompt(e);
-      setIsVisible(true);
+      setCanInstall(true);
     };
+    window.addEventListener('beforeinstallprompt', onBeforeInstall);
 
-    const handleCustomPrompt = (e: any) => {
-      if (e.detail) {
-        setInstallPrompt(e.detail);
-        setIsVisible(true);
-      }
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-    window.addEventListener('galaxy-beforeinstallprompt', handleCustomPrompt);
-
-    // Also display for mobile browsers so users can see how to install even if prompt is delayed
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    if (isMobile) {
-      timer = setTimeout(() => setIsVisible(true), 1500);
+    if ((window as any).deferredInstallPrompt || (window as any).__galaxyDeferredPrompt) {
+      setCanInstall(true);
     }
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
-      window.removeEventListener('galaxy-beforeinstallprompt', handleCustomPrompt);
-      if (timer) clearTimeout(timer);
+      window.removeEventListener('pwa-prompt-ready', onReady);
+      window.removeEventListener('galaxy-beforeinstallprompt', onReady);
+      window.removeEventListener('beforeinstallprompt', onBeforeInstall);
     };
   }, []);
 
   const handleInstallClick = async () => {
-    const prompt = installPrompt || (window as any).__galaxyDeferredPrompt;
-    if (prompt) {
+    const promptEvent = (window as any).deferredInstallPrompt || (window as any).__galaxyDeferredPrompt;
+    if (promptEvent) {
       try {
-        await prompt.prompt();
-        const choice = await prompt.userChoice;
-        if (choice.outcome === 'accepted') {
-          setIsVisible(false);
+        await promptEvent.prompt();
+        const { outcome } = await promptEvent.userChoice;
+        if (outcome === 'accepted') {
+          (window as any).deferredInstallPrompt = null;
           (window as any).__galaxyDeferredPrompt = null;
+          setCanInstall(false);
         }
-        setInstallPrompt(null);
       } catch {
-        alert("To install: Tap the 3 dots (⋮) in Chrome and select 'Install app' or 'Add to Home screen'.");
+        alert("To install Galaxy Finance: Tap the 3 dots (⋮) in Chrome and select 'Add to Home screen' or 'Install App'.");
       }
     } else {
-      // Fallback guide if browser prompt is suppressed or delayed
-      alert("To install: Tap the 3 dots (⋮) in Chrome and select 'Install app' or 'Add to Home screen'.");
+      // Fallback for browsers that block dynamic prompt execution
+      alert("To install Galaxy Finance: Tap the 3 dots (⋮) in Chrome and select 'Add to Home screen' or 'Install App'.");
     }
   };
 
-  if (!isVisible) return null;
+  if (isDismissed || !canInstall) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 p-4 rounded-2xl bg-[#10221E]/95 border border-[#89D7B7]/30 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-5 duration-300 max-w-md mx-auto">
+    <div className="fixed bottom-3 left-3 right-3 z-50 p-4 rounded-2xl bg-[#10221E]/95 border border-[#89D7B7]/30 backdrop-blur-xl shadow-2xl max-w-md mx-auto">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#1A312C] border border-[#89D7B7]/40 flex items-center justify-center text-[#89D7B7] font-bold">
+          <div className="w-10 h-10 rounded-xl bg-[#1A312C] border border-[#89D7B7]/40 flex items-center justify-center text-[#89D7B7] font-bold text-sm">
             GF
           </div>
           <div>
@@ -88,8 +72,8 @@ export const MobileInstallBanner: React.FC = () => {
             <p className="text-xs text-[#89D7B7]/80">Install for optimal full-screen mobile experience</p>
           </div>
         </div>
-        <button 
-          onClick={() => setIsVisible(false)} 
+        <button
+          onClick={() => setIsDismissed(true)}
           className="text-[#FFF4E1]/40 hover:text-[#FFF4E1] p-1 cursor-pointer transition-colors"
           aria-label="Close install banner"
         >
@@ -99,7 +83,7 @@ export const MobileInstallBanner: React.FC = () => {
 
       <button
         onClick={handleInstallClick}
-        className="w-full py-2.5 px-4 rounded-xl bg-[#89D7B7] hover:bg-[#A3E6CD] text-[#0D221E] font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md active:scale-98 cursor-pointer"
+        className="w-full py-2.5 px-4 rounded-xl bg-[#89D7B7] hover:bg-[#A3E6CD] text-[#0D221E] font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer"
       >
         <Download size={16} />
         Install App
