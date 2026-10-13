@@ -165,8 +165,10 @@ function resolveApkPath(requestedName = 'galaxy-finance-v1.0.0.apk') {
 function streamApkResponse(req, res, filename = 'galaxy-finance-v1.0.0.apk') {
   const apkPath = resolveApkPath(filename);
 
-  if (!apkPath || !fs.existsSync(apkPath)) {
-    return res.status(404).type('text/plain').send('APK file not found on server.');
+  if (!apkPath || !fs.existsSync(apkPath) || fs.statSync(apkPath).size < 100000) {
+    return res.status(404).json({
+      error: 'Native APK package currently unavailable. Please tap "PWA Instant App" to install directly via browser.'
+    });
   }
 
   const stat = fs.statSync(apkPath);
@@ -183,7 +185,9 @@ function streamApkResponse(req, res, filename = 'galaxy-finance-v1.0.0.apk') {
   fileStream.on('error', (err) => {
     console.error('[APK Streaming Error]:', err);
     if (!res.headersSent) {
-      res.status(500).type('text/plain').send('Error streaming APK file.');
+      res.status(500).json({
+        error: 'Error streaming APK file. Please tap "PWA Instant App" to install directly via browser.'
+      });
     }
   });
   fileStream.pipe(res);

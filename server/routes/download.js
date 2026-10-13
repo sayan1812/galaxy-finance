@@ -61,8 +61,10 @@ router.get('/info', (req, res) => {
 
 const handleApkStream = (req, res) => {
   const filePath = resolveValidApk();
-  if (!filePath || !fs.existsSync(filePath)) {
-    return res.status(404).type('text/plain').send('APK file not found on server.');
+  if (!filePath || !fs.existsSync(filePath) || fs.statSync(filePath).size < 100000) {
+    return res.status(404).json({
+      error: 'Native APK package currently unavailable. Please tap "PWA Instant App" to install directly via browser.'
+    });
   }
 
   const stat = fs.statSync(filePath);
@@ -78,7 +80,9 @@ const handleApkStream = (req, res) => {
   const fileStream = fs.createReadStream(filePath);
   fileStream.on('error', () => {
     if (!res.headersSent) {
-      res.status(500).type('text/plain').send('Error streaming APK file.');
+      res.status(500).json({
+        error: 'Error streaming APK file. Please tap "PWA Instant App" to install directly via browser.'
+      });
     }
   });
   fileStream.pipe(res);
