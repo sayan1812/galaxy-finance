@@ -4,7 +4,6 @@ import {
   Sun, 
   Moon,
   Orbit,
-  WalletCards, 
   Clock, 
   CheckCircle2, 
   BarChart3, 
@@ -20,6 +19,7 @@ import {
   ShieldCheck,
   Menu
 } from 'lucide-react';
+import logoImg from '../../assets/logo.png';
 import { useTransactions } from '../../context/TransactionContext';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -69,13 +69,20 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, onOpe
               <Menu size={22} className="stroke-[2.5]" />
             </button>
 
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentTab('dashboard')}>
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[var(--accent-primary)] border border-[var(--card-border)] flex items-center justify-center text-[var(--btn-primary-text)] shadow-md shadow-[var(--accent-glow)] btn-hover">
-                <WalletCards size={18} className="stroke-[2.2]" />
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentTab('dashboard')}>
+              <img
+                src={logoImg}
+                alt="Galaxy Finance Logo"
+                className="w-9 h-9 object-contain drop-shadow-[0_0_12px_rgba(56,189,248,0.45)]"
+              />
+              <div className="flex flex-col">
+                <span className="text-base font-bold tracking-tight text-white dark:text-[#FFF4E1] leading-tight">
+                  Galaxy <span className="text-[#38BDF8]">Finance</span>
+                </span>
+                <span className="text-[10px] uppercase tracking-widest text-[#89D7B7] font-semibold -mt-0.5">
+                  Your Wealth • In Orbit
+                </span>
               </div>
-              <span className="text-base sm:text-lg font-black tracking-tight text-[var(--text-headings)] whitespace-nowrap">
-                Galaxy Finance
-              </span>
             </div>
           </div>
 

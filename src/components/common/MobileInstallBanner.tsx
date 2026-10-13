@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Download, X } from 'lucide-react';
+import logoImg from '../../assets/logo.png';
 
 export const MobileInstallBanner: React.FC = () => {
   const [canInstall, setCanInstall] = useState<boolean>(
@@ -64,12 +65,14 @@ export const MobileInstallBanner: React.FC = () => {
     <div className="fixed bottom-3 left-3 right-3 z-50 p-4 rounded-2xl bg-[#10221E]/95 border border-[#89D7B7]/30 backdrop-blur-xl shadow-2xl max-w-md mx-auto">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#1A312C] border border-[#89D7B7]/40 flex items-center justify-center text-[#89D7B7] font-bold text-sm">
-            GF
-          </div>
+          <img
+            src={logoImg}
+            alt="Galaxy Finance"
+            className="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(56,189,248,0.5)] shrink-0"
+          />
           <div>
             <h4 className="text-sm font-bold text-[#FFF4E1]">Galaxy Finance App</h4>
-            <p className="text-xs text-[#89D7B7]/80">Install for optimal full-screen mobile experience</p>
+            <p className="text-xs text-[#89D7B7]/80">Your Wealth • In Orbit</p>
           </div>
         </div>
         <button

@@ -19,6 +19,7 @@ import { AuthModal } from './components/auth/AuthModal';
 import { AuthScreen } from './components/auth/AuthScreen';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { ShieldCheck, PlusCircle } from 'lucide-react';
+import logoImg from './assets/logo.png';
 
 // Pages
 import { DashboardPage } from './pages/DashboardPage';
@@ -221,11 +222,16 @@ const AppGate: React.FC = () => {
   if (authState === 'INITIALIZING' && !forceUnauth) {
     return (
       <div className="min-h-screen bg-[var(--bg-page)] flex flex-col items-center justify-center text-[var(--text-primary)] relative overflow-hidden select-none">
-        <div className="relative flex items-center justify-center">
-          <div className="w-16 h-16 rounded-full border-2 border-[var(--card-border)] border-t-[var(--accent-primary)] animate-spin" />
-          <ShieldCheck className="w-6 h-6 text-[var(--accent-primary)] absolute" />
+        <div className="relative flex items-center justify-center mb-4">
+          <div className="w-20 h-20 rounded-full border-2 border-[var(--card-border)] border-t-[var(--accent-primary)] animate-spin absolute" />
+          <img
+            src={logoImg}
+            alt="Galaxy Finance"
+            className="w-12 h-12 object-contain drop-shadow-[0_0_15px_rgba(56,189,248,0.6)] animate-pulse"
+          />
         </div>
-        <div className="mt-5 font-mono text-xs uppercase tracking-widest text-[var(--text-secondary)] animate-pulse">
+        <div className="text-base font-bold text-[#FFF4E1]">Galaxy Finance</div>
+        <div className="mt-1 font-mono text-xs uppercase tracking-widest text-[#89D7B7] animate-pulse">
           Restoring Financial Telemetry...
         </div>
       </div>

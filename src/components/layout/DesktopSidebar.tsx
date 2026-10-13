@@ -13,6 +13,7 @@ import {
   Minus
 } from 'lucide-react';
 import { useTransactions } from '../../context/TransactionContext';
+import logoImg from '../../assets/logo.png';
 
 interface DesktopSidebarProps {
   currentTab: string;
@@ -46,21 +47,18 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ currentTab, setC
           onClick={() => setCurrentTab('dashboard')}
           className="flex items-center gap-3 cursor-pointer group"
         >
-          <div className="w-11 h-11 rounded-2xl bg-[var(--accent-primary)] flex items-center justify-center text-[var(--btn-primary-text)] shadow-md shadow-[var(--accent-glow)] group-hover:scale-105 transition-transform border border-[var(--card-border)]">
-            <Orbit size={22} className="stroke-[2.2]" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xl font-black tracking-tight text-[var(--text-headings)]">
-                Galaxy
-              </span>
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[var(--row-hover-bg)] text-[var(--accent-primary)] border border-[var(--card-border)]">
-                JADE
-              </span>
-            </div>
-            <p className="text-[11px] text-[var(--text-secondary)] font-medium">
-              Emerald Wealth System
-            </p>
+          <img
+            src={logoImg}
+            alt="Galaxy Finance Logo"
+            className="w-10 h-10 object-contain drop-shadow-[0_0_12px_rgba(56,189,248,0.45)] group-hover:scale-105 transition-transform"
+          />
+          <div className="flex flex-col">
+            <span className="text-lg font-bold tracking-tight text-[var(--text-headings)] leading-tight">
+              Galaxy <span className="text-[#38BDF8]">Finance</span>
+            </span>
+            <span className="text-[10px] uppercase tracking-widest text-[#89D7B7] font-semibold -mt-0.5">
+              Your Wealth • In Orbit
+            </span>
           </div>
         </div>
 

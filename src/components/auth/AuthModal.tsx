@@ -7,12 +7,12 @@ import {
   Phone, 
   User as UserIcon, 
   KeyRound, 
-  ShieldCheck, 
   ArrowRight, 
   RefreshCw, 
   CheckCircle2, 
   AlertCircle 
 } from 'lucide-react';
+import logoImg from '../../assets/logo.png';
 
 export const AuthModal: React.FC = () => {
   const { 
@@ -237,26 +237,29 @@ export const AuthModal: React.FC = () => {
         </button>
 
         {/* Brand Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center">
-            <ShieldCheck className="w-6 h-6" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold tracking-tight text-slate-100">
-              {authModalMode === 'login' && 'Sign In to RupeeWise'}
-              {authModalMode === 'register' && 'Create Your Account'}
-              {authModalMode === 'verify-email' && 'Verify Your Email'}
-              {authModalMode === 'verify-phone' && 'Verify Phone OTP'}
-              {authModalMode === 'forgot-password' && 'Reset Password'}
-            </h2>
-            <p className="text-xs text-slate-400">
-              {authModalMode === 'login' && 'Access your 3D Galaxy vaults and balances'}
-              {authModalMode === 'register' && 'Secure multi-vault personal finance management'}
-              {authModalMode === 'verify-email' && `Activation code sent to ${user?.email || identifier}`}
-              {authModalMode === 'verify-phone' && 'Enter the 6-digit OTP sent to your phone'}
-              {authModalMode === 'forgot-password' && 'Enter email or phone to receive recovery OTP'}
-            </p>
-          </div>
+        <div className="flex flex-col items-center justify-center mb-6 text-center">
+          <img
+            src={logoImg}
+            alt="Galaxy Finance"
+            className="w-16 h-16 object-contain mb-2.5 drop-shadow-[0_0_20px_rgba(56,189,248,0.6)] animate-pulse"
+          />
+          <h2 className="text-xl font-bold text-[#FFF4E1]">
+            {authModalMode === 'login' && 'Sign In to Galaxy Finance'}
+            {authModalMode === 'register' && 'Create Your Account'}
+            {authModalMode === 'verify-email' && 'Verify Your Email'}
+            {authModalMode === 'verify-phone' && 'Verify Phone OTP'}
+            {authModalMode === 'forgot-password' && 'Reset Password'}
+          </h2>
+          <p className="text-[11px] text-[#89D7B7] tracking-wider uppercase font-semibold mb-1">
+            Your Wealth • In Orbit
+          </p>
+          <p className="text-xs text-slate-400">
+            {authModalMode === 'login' && 'Access your 3D Galaxy vaults and balances'}
+            {authModalMode === 'register' && 'Secure multi-vault personal finance management'}
+            {authModalMode === 'verify-email' && `Activation code sent to ${user?.email || identifier}`}
+            {authModalMode === 'verify-phone' && 'Enter the 6-digit OTP sent to your phone'}
+            {authModalMode === 'forgot-password' && 'Enter email or phone to receive recovery OTP'}
+          </p>
         </div>
 
         {/* Feedback Messages */}

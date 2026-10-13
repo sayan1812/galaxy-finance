@@ -18,9 +18,9 @@ import {
   User, 
   ShieldCheck,
   ChevronRight,
-  ChevronDown,
-  WalletCards
+  ChevronDown
 } from 'lucide-react';
+import logoImg from '../../assets/logo.png';
 import { useTransactions } from '../../context/TransactionContext';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -130,16 +130,18 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
       >
         {/* Top Header & Close button */}
         <div className="w-full min-w-0 flex items-center justify-between pb-4 border-b border-[var(--divider)]">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-[var(--accent-primary)] flex items-center justify-center text-[var(--btn-primary-text)] shadow-md shadow-[var(--accent-glow)] shrink-0">
-              <WalletCards size={18} className="stroke-[2.2]" />
-            </div>
-            <div className="min-w-0">
-              <span className="text-base font-black tracking-tight text-[var(--text-headings)] block leading-tight truncate">
-                Galaxy Finance
+          <div className="flex items-center gap-3 min-w-0">
+            <img
+              src={logoImg}
+              alt="Galaxy Finance Logo"
+              className="w-9 h-9 object-contain drop-shadow-[0_0_12px_rgba(56,189,248,0.45)] shrink-0"
+            />
+            <div className="flex flex-col min-w-0">
+              <span className="text-base font-bold tracking-tight text-white dark:text-[#FFF4E1] leading-tight truncate">
+                Galaxy <span className="text-[#38BDF8]">Finance</span>
               </span>
-              <span className="text-[10px] font-mono text-[var(--accent-primary)] font-bold truncate block">
-                {settings?.currency?.symbol || '₹'} Cosmic Vaults
+              <span className="text-[10px] uppercase tracking-widest text-[#89D7B7] font-semibold -mt-0.5 truncate">
+                Your Wealth • In Orbit
               </span>
             </div>
           </div>

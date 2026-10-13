@@ -1,8 +1,8 @@
 {
   "id": "/",
   "short_name": "GalaxyFinance",
-  "name": "Galaxy Finance — Emerald Wealth System",
-  "description": "Financial telemetry and portfolio orbit management",
+  "name": "Galaxy Finance — Your Wealth In Orbit",
+  "description": "Interactive orbital wealth telemetry and personal ledger",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -12,14 +12,14 @@
   "icons": [
     {
       "src": "/pwa-192x192.png",
-      "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/pwa-512x512.png",
-      "type": "image/png",
       "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]

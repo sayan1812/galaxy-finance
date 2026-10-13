@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  ShieldCheck, 
   Mail, 
   Lock, 
   User as UserIcon, 
@@ -14,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { AuthCanvasBackground } from './AuthCanvasBackground';
+import logoImg from '../../assets/logo.png';
 
 interface AuthScreenProps {
   onSuccessfulAuth?: () => void;
@@ -184,16 +184,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onSuccessfulAuth }) => {
         <div className="fin-card bg-[var(--card-bg)] rounded-3xl border border-[var(--card-border)] shadow-2xl backdrop-blur-xl p-6 sm:p-8">
           
           {/* Header Brand & Telemetry Badge */}
-          <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[var(--accent-surface)] border border-[var(--card-border)] mb-3 shadow-md shadow-[var(--accent-primary)]/20">
-              <ShieldCheck className="w-6 h-6 text-[var(--accent-primary)]" />
-            </div>
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[var(--text-headings)] flex items-center justify-center gap-2">
-              GALAXY <span className="text-[var(--accent-primary)]">FINANCE</span>
-            </h1>
-            <p className="text-xs text-[var(--text-muted)] mt-1 font-mono tracking-wide uppercase">
-              Financial Command Security Gate
-            </p>
+          <div className="flex flex-col items-center justify-center mb-6 text-center">
+            <img
+              src={logoImg}
+              alt="Galaxy Finance"
+              className="w-20 h-20 object-contain mb-3 drop-shadow-[0_0_20px_rgba(56,189,248,0.6)] animate-pulse"
+            />
+            <h2 className="text-2xl font-bold text-[#FFF4E1]">Galaxy Finance</h2>
+            <p className="text-xs text-[#89D7B7] tracking-wider uppercase font-semibold">Your Wealth • In Orbit</p>
           </div>
 
           {/* Switcher Tab: Sign In / Create Account */}

@@ -1,8 +1,11 @@
-const CACHE_NAME = 'galaxy-finance-cache-v5';
+const CACHE_NAME = 'galaxy-finance-cache-v6';
 const STATIC_ASSETS = [
   '/manifest.json',
   '/manifest.webmanifest',
   '/favicon.png',
+  '/favicon.ico',
+  '/favicon-32x32.png',
+  '/apple-touch-icon.png',
   '/pwa-192x192.png',
   '/pwa-512x512.png',
   '/icons/icon-192.png',
