@@ -12,8 +12,8 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 );
 
-// Register PWA Service Worker (only in production)
-if ('serviceWorker' in navigator && import.meta.env.PROD && import.meta.env.MODE !== 'test') {
+// Register PWA Service Worker for standalone installability
+if ('serviceWorker' in navigator && import.meta.env.MODE !== 'test') {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/sw.js')

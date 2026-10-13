@@ -166,6 +166,41 @@ function streamApkResponse(req, res, filename = 'galaxy-finance-v1.0.0.apk') {
   const apkPath = resolveApkPath(filename);
 
   if (!apkPath || !fs.existsSync(apkPath) || fs.statSync(apkPath).size < 100000) {
+    if (req.accepts('html')) {
+      return res.status(200).send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Galaxy Finance — Install App</title>
+          <style>
+            body { font-family: system-ui, -apple-system, sans-serif; background: #10221E; color: #FFF4E1; text-align: center; padding: 40px 20px; }
+            .card { max-width: 420px; margin: 0 auto; background: #162E29; border: 1px solid rgba(137,215,183,0.3); border-radius: 24px; padding: 32px 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+            h1 { font-size: 20px; font-weight: 800; color: #89D7B7; margin-bottom: 12px; }
+            p { font-size: 13px; line-height: 1.6; color: rgba(255,244,225,0.85); margin-bottom: 24px; }
+            .btn { display: inline-block; width: 100%; box-sizing: border-box; background: #89D7B7; color: #0A261F; font-weight: 800; padding: 14px 20px; border-radius: 14px; text-decoration: none; font-size: 14px; }
+            .steps { text-align: left; background: rgba(0,0,0,0.25); border-radius: 14px; padding: 16px; margin-bottom: 24px; font-size: 12px; }
+            .steps li { margin-bottom: 8px; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <h1>Install Galaxy Finance App</h1>
+            <p>Direct APK installation is replaced with <strong>Instant PWA Installation</strong> for zero package parsing errors and seamless 1-tap setup.</p>
+            <div class="steps">
+              <strong>Quick Install Instructions:</strong>
+              <ol style="padding-left: 20px; margin: 8px 0 0 0;">
+                <li>Open the app in Chrome on your phone</li>
+                <li>Tap <strong>Install Galaxy Finance App</strong> or browser menu (⋮) ➔ <strong>Install app</strong></li>
+              </ol>
+            </div>
+            <a href="/" class="btn">Open Galaxy Finance App</a>
+          </div>
+        </body>
+        </html>
+      `);
+    }
     return res.status(404).json({
       error: 'Native APK package currently unavailable. Please tap "PWA Instant App" to install directly via browser.'
     });
