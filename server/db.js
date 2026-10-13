@@ -221,10 +221,17 @@ function hashPassword(password) {
 
 export function verifyPassword(password, storedHash) {
   if (!storedHash || !storedHash.includes(':')) return false;
-  const [salt, key] = storedHash.split(':');
-  const keyBuffer = Buffer.from(key, 'hex');
-  const derivedKey = crypto.scryptSync(password, salt, 64);
-  return crypto.timingSafeEqual(keyBuffer, derivedKey);
+  try {
+    const [salt, key] = storedHash.split(':');
+    if (!salt || !key) return false;
+    const keyBuffer = Buffer.from(key, 'hex');
+    const derivedKey = crypto.scryptSync(password, salt, keyBuffer.length || 64);
+    if (keyBuffer.length !== derivedKey.length) return false;
+    return crypto.timingSafeEqual(keyBuffer, derivedKey);
+  } catch (err) {
+    console.warn('[Auth]: verifyPassword error:', err?.message);
+    return false;
+  }
 }
 
 export default db;

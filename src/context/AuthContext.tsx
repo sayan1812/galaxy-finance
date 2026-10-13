@@ -103,7 +103,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     return null;
   });
-  const [authState, setAuthState] = useState<AuthState>('INITIALIZING');
+  const [authState, setAuthState] = useState<AuthState>(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token') || localStorage.getItem('galaxy_token') || localStorage.getItem('rupeewise_token');
+      const saved = localStorage.getItem('rupeewise_user');
+      if (token && !isJwtExpired(token) && saved) {
+        return 'AUTHENTICATED';
+      }
+      if (!token) {
+        return 'UNAUTHENTICATED';
+      }
+    }
+    return 'INITIALIZING';
+  });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | 'verify-email' | 'verify-phone' | 'forgot-password'>('login');
 
@@ -125,7 +137,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      const data = await api.getMe();
+      // Race api.getMe with a 3.5s timeout so user is never frozen on splash screen
+      const timeoutPromise = new Promise<{ user: any }>((_, reject) =>
+        setTimeout(() => reject(new Error('Auth verification timeout')), 3500)
+      );
+      const data = await Promise.race([api.getMe(), timeoutPromise]);
       if (data?.user) {
         const fbPhoto = auth.currentUser?.photoURL;
         const enrichedUser: User = {
@@ -142,10 +158,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem('rupeewise_user');
         setAuthState('UNAUTHENTICATED');
       }
-    } catch {
-      api.setToken(null);
+    } catch (err) {
+      console.warn('[Auth]: Verification deferred/timed out:', err);
+      const savedUser = localStorage.getItem('rupeewise_user');
+      if (savedUser && token && !isJwtExpired(token)) {
+        try {
+          setUser(JSON.parse(savedUser));
+          setAuthState('AUTHENTICATED');
+          return;
+        } catch {
+          // ignore parse error
+        }
+      }
       setUser(null);
-      localStorage.removeItem('rupeewise_user');
       setAuthState('UNAUTHENTICATED');
     }
   }, []);

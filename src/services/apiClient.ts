@@ -52,15 +52,26 @@ class ApiClient {
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
     const url = `${API_BASE}${cleanEndpoint}`;
 
+    // Add a strict 7-second timeout so requests never hang indefinitely on sleeping backends
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 7000);
+
     let response: Response;
     try {
       response = await fetch(url, {
         ...options,
+        signal: options.signal || controller.signal,
         headers,
         credentials: 'include'
       });
     } catch (networkError: any) {
+      clearTimeout(timeoutId);
+      if (networkError?.name === 'AbortError') {
+        throw new Error('Connection timed out. Server may be waking up.');
+      }
       throw new Error(networkError?.message || 'Network connection failed');
+    } finally {
+      clearTimeout(timeoutId);
     }
 
     if (response.status === 401) {

@@ -205,9 +205,20 @@ const MainLayout: React.FC = () => {
 
 const AppGate: React.FC = () => {
   const { authState, isAuthenticated } = useAuth();
+  const [forceUnauth, setForceUnauth] = useState(false);
+
+  // Safety fallback: Never leave user frozen on splash screen if backend is waking up
+  useEffect(() => {
+    if (authState === 'INITIALIZING') {
+      const timer = setTimeout(() => {
+        setForceUnauth(true);
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [authState]);
 
   // 1. Initializing state: High-security executive splash screen
-  if (authState === 'INITIALIZING') {
+  if (authState === 'INITIALIZING' && !forceUnauth) {
     return (
       <div className="min-h-screen bg-[var(--bg-page)] flex flex-col items-center justify-center text-[var(--text-primary)] relative overflow-hidden select-none">
         <div className="relative flex items-center justify-center">
@@ -222,7 +233,7 @@ const AppGate: React.FC = () => {
   }
 
   // 2. Unauthenticated state: Mandatory interactive canvas login gate
-  if (!isAuthenticated) {
+  if (!isAuthenticated || forceUnauth) {
     return <AuthScreen />;
   }
 
