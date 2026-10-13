@@ -5,7 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { Header } from './components/layout/Header';
 import { DesktopSidebar } from './components/layout/DesktopSidebar';
 import { MobileDrawer } from './components/layout/MobileDrawer';
-import { InstallAppModal } from './components/common/InstallAppModal';
+import { MobileInstallBanner } from './components/common/MobileInstallBanner';
 import { CosmicBackground } from './components/galaxy/CosmicBackground';
 import { TransactionFormModal } from './components/transactions/TransactionFormModal';
 import { CashTransactionModal } from './components/transactions/CashTransactionModal';
@@ -248,7 +248,7 @@ export function App() {
         <AuthProvider>
           <TransactionProvider>
             <AppGate />
-            <InstallAppModal />
+            <MobileInstallBanner />
           </TransactionProvider>
         </AuthProvider>
       </ThemeProvider>
